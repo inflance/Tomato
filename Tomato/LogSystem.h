@@ -2,7 +2,6 @@
 
 #include <spdlog/spdlog.h>
 
-
 namespace Tomato {
 
 	class LogSystem

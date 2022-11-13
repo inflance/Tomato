@@ -6,8 +6,11 @@ add_library(glad "include/glad/glad.h" "include/KHR/khrplatform.h" "src/glad.c")
 
 target_include_directories(
 	${PROJECT_NAME}
-	PUBLIC ${GLAD_DIR}include
+	PUBLIC ${GLAD_DIR}/include
 )
-
+target_link_directories(
+	${PROJECT_NAME}
+	PUBLIC ${GLAD_DIR}/include
+)
 
 

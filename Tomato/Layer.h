@@ -23,7 +23,7 @@ namespace Tomato {
 
 		virtual void OnAttach(){}//∏Ωº”
 		virtual void OnDetach(){}//∑÷¿Î
-		virtual void OnUpdate(TimeSpan ts){}
+		virtual void Tick(TimeSpan ts){}
 		virtual void OnImGuiRender(){}
 		virtual void OnEvent(Event& event){}
 

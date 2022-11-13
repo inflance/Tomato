@@ -12,14 +12,13 @@ namespace Tomato {
 	class OpenGLShader : public Shader
 	{
 	public:
-		//OpenGLShader() = default;
 		OpenGLShader(const std::string& vertexPath, const std::string& fragmentPath);
 		OpenGLShader(const std::string& filePath);
 
 		virtual ~OpenGLShader() = default;
 
 		virtual void Bind() const override;
-		virtual void UnBind() const override; //debug ± π”√
+		virtual void UnBind() const override;
 
 		virtual const std::string& GetName() const override { return m_name; };
 

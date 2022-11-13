@@ -1,13 +1,17 @@
 #include "ImGuiLayer.h"
 
-namespace Tomato {
+#include <glfw/glfw3.h>
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+#include <ImGuizmo.h>
 
-	
+
+namespace Tomato {
 
 	void ImGuiLayer::OnAttach()
 	{
 		// Setup Dear ImGui context
-		 // Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		//ImGui::SetCurrentContext();
@@ -19,10 +23,14 @@ namespace Tomato {
 		//io.ConfigViewportsNoAutoMerge = true;
 		//io.ConfigViewportsNoTaskBarIcon = true;
 
+		float fontSize = 16.0f;// *2.0f;
+		//io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Bold.ttf", fontSize);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF("C:/Users/liyunlo2000/source/repos/Tomato/Tomato/Precompile/fonts/Myriad-Pro_31655.ttf", fontSize);
 		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
 		//ImGui::StyleColorsClassic();
 
+		
 		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
 		ImGuiStyle& style = ImGui::GetStyle();
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -37,7 +45,8 @@ namespace Tomato {
 		// Setup Platform/Renderer bindings
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui_ImplOpenGL3_Init("#version 330");
-		//ImGui_ImplGlfw_Init();
+
+
 	}
 
 	void ImGuiLayer::OnDetach()
@@ -49,23 +58,22 @@ namespace Tomato {
 
 	void ImGuiLayer::OnEvent(Event& event)
 	{
-		//if (m_blockEvent)
-		//{
-		//	//ImGuiIO& io = ImGui::GetIO();
-		//	event.handled |= event.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
-		//	event.handled |= event.IsInCategory(EventCategoryKey) & io.WantCaptureKeyboard;
-		//}
-
+		if (m_block)
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			event.handle |= event.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
+			event.handle |= event.IsInCategory(EventCategoryKey) & io.WantCaptureKeyboard;
+		}
 	}
 
 	void ImGuiLayer::OnImGuiRender()
 	{
 		//Begin();
-		bool show_demo_window = true;
+		/*bool show_demo_window = true;
 		bool show_another_window = false;
 		ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 		if (show_demo_window)
-			ImGui::ShowDemoWindow(&show_demo_window);
+			ImGui::ShowDemoWindow(&show_demo_window);*/
 		//End();
 	}
 
@@ -75,6 +83,8 @@ namespace Tomato {
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+
+		ImGuizmo::BeginFrame();
 	}
 
 	void ImGuiLayer::End()

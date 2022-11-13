@@ -10,12 +10,12 @@ namespace Tomato {
 
 
 	OrthgraphicCameraControler::OrthgraphicCameraControler(float aspect, bool rotation)
-		:m_aspect(aspect), m_camera(-m_aspect* m_zoom, m_aspect* m_zoom,-m_zoom, m_zoom), m_rotation(rotation)
+		:m_aspect(aspect), m_bounds(-m_aspect * m_zoom, m_aspect* m_zoom, -m_zoom, m_zoom), m_camera(m_bounds.Left, m_bounds.Right, m_bounds.Bottom, m_bounds.Top), m_rotation(rotation)
 	{
 
 	}
 
-	void OrthgraphicCameraControler::OnUpdate(TimeSpan ts)
+	void OrthgraphicCameraControler::Tick(TimeSpan ts)
 	{
 		if (Tomato::Input::IsKeyPressed(KEY_W)) {
 			m_camera_pos.y += m_cameraMoveSpeed * ts;
@@ -48,7 +48,7 @@ namespace Tomato {
 	{
 		EventDispatcher dispather(e);
 		dispather.Dispatch<MouseScrolledEvent>(BIND_EVENT_FUNC(&OrthgraphicCameraControler::OnMouseScrolled));
-		dispather.Dispatch<WindowResizeEvent>(BIND_EVENT_FUNC(&OrthgraphicCameraControler::OnWindowResized));
+		//dispather.Dispatch<WindowResizeEvent>(BIND_EVENT_FUNC(&OrthgraphicCameraControler::OnWindowResized));
 	}
 
 
@@ -57,15 +57,22 @@ namespace Tomato {
 	{
 		m_zoom -= e.GetYOffset() * 0.1f;
 		m_zoom = std::max(m_zoom, 0.2f);
-		m_camera.SetProjection(-m_aspect * m_zoom, m_aspect * m_zoom, -m_zoom, m_zoom);
+		m_bounds = { -m_aspect * m_zoom, m_aspect * m_zoom, -m_zoom, m_zoom };
+		m_camera.SetProjection(m_bounds.Left, m_bounds.Right, m_bounds.Bottom, m_bounds.Top);
 		return false;
 	}
 
 	bool OrthgraphicCameraControler::OnWindowResized(WindowResizeEvent& e)
 	{
-		m_aspect = (float)e.GetWidth() / (float)e.GetHeight();
-		m_camera.SetProjection(-m_aspect * m_zoom, m_aspect * m_zoom, -m_zoom, m_zoom);
+		Resize((float)e.GetWidth() , (float)e.GetHeight());
 		return false;
+	}
+
+	void OrthgraphicCameraControler::Resize(float width, float height)
+	{
+		m_aspect = width / height;
+		m_bounds = { -m_aspect * m_zoom, m_aspect * m_zoom, -m_zoom, m_zoom };
+		m_camera.SetProjection(m_bounds.Left, m_bounds.Right, m_bounds.Bottom, m_bounds.Top);
 	}
 
 }

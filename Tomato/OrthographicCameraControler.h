@@ -9,14 +9,30 @@
 
 namespace Tomato {
 
+
+	struct OrthographicCameraBounds
+	{
+		float Left, Right;
+		float Bottom, Top;
+		OrthographicCameraBounds(float left, float right, float bottom, float top)
+			:Left(left), Right(right), Top(top), Bottom(bottom)
+		{}
+		float GetWidth() { return Right - Left; }
+		float GetHeight() { return Top - Bottom; }
+	};
+
 	class OrthgraphicCameraControler
 	{
 	public:
 		OrthgraphicCameraControler(float aspect, bool rotation = false);
-		void OnUpdate(TimeSpan ts);
+		void Tick(TimeSpan ts);
 		void OnEvent(Event& e);
-		OrthographicCamera& GetCamera() { return m_camera; };
+
+		const OrthographicCameraBounds& GetBounds() const { return m_bounds; }
+		OrthographicCamera& GetCamera() { return m_camera; }
 		const OrthographicCamera& GetCamera() const { return m_camera; }
+
+		void Resize(float width, float height);
 
 	private:
 		bool OnMouseScrolled(MouseScrolledEvent& e);
@@ -27,7 +43,9 @@ namespace Tomato {
 		float m_aspect;
 		float m_zoom = 1.0f;
 
+		OrthographicCameraBounds m_bounds;
 		OrthographicCamera m_camera;
+		
 
 		glm::vec3 m_camera_pos = {0.0f, 0.0f, 0.0f};
 		float m_cameraMoveSpeed = 1.0f;

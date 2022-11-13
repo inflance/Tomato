@@ -1,22 +1,22 @@
 #pragma once
-
+//----Tomato Engine header file----//
 #include "Tomato/Tomato.h"
+//----Tomato Engine header file----//
 
-#include <imgui.h>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-#include "Layer2D.h"
- 
-using namespace std;
-
+//----2D Engine Client----//
+#include "Editor/Editor.h"
+//----2D Engine Client----//
+// 
+//----entry point----//
 int main(int argc, char** argv)
 {
 	Tomato::LogSystem::Init();
-	//LOG_ASSERT(true, "Unknown ShaderDataType!");
 	Tomato::TomatoEngine::GetInstance().StartUp();
-	Tomato::TomatoEngine::GetInstance().PushLayer(new Layer2D());
+	//start 2d layer//
+	Tomato::TomatoEngine::GetInstance().PushLayer(new Tomato::Editor());
 	Tomato::TomatoEngine::GetInstance().Run();
 	Tomato::TomatoEngine::GetInstance().ShutDown();
+
 	return 0;
 }
+//----entry point----//

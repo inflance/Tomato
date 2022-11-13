@@ -121,12 +121,26 @@ namespace Tomato {
 	void Renderer2D::BeginScene(const OrthographicCamera& camera)
 	{
 		s_quad_data.TextureShader->Bind();
-		s_quad_data.TextureShader->SetMat4("uViewProjection", camera.GetViewProjectionMat());
+		s_quad_data.TextureShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMat());
 		s_quad_data.QuadIndexCount = 0;
 		s_quad_data.QuadVertexBufferPtr = s_quad_data.QuadVertexBufferArr;
 
 		s_quad_data.TextureSlotIndex = 1;
 	
+	}
+
+	void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
+	{
+
+		glm::mat4 ViewProjection = camera.GetProjection() * glm::inverse(transform);
+
+		s_quad_data.TextureShader->Bind();
+		s_quad_data.TextureShader->SetMat4("u_ViewProjection", ViewProjection);
+		s_quad_data.QuadIndexCount = 0;
+		s_quad_data.QuadVertexBufferPtr = s_quad_data.QuadVertexBufferArr;
+
+		s_quad_data.TextureSlotIndex = 1;
+
 	}
 
 
@@ -171,49 +185,12 @@ namespace Tomato {
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
 	{
-		// out 
-		if (s_quad_data.QuadIndexCount >= QuadData::MaxIndices)
-		{
-			StartNewBatch();
-		}
+		float rotation = 0.0f;
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+			* glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f })
+			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
-		const float texIndex = 0.0f;
-		const float tilingFactor = 1.0f;
-
-		s_quad_data.QuadVertexBufferPtr->Position = position;
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = {0.0f, 0.0f};
-		s_quad_data.QuadVertexBufferPtr->TexIndex = texIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-		
-		s_quad_data.QuadVertexBufferPtr->Position = { position.x + size.x, position.y, 0.0f};
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = {1.0f, 0.0f};
-		s_quad_data.QuadVertexBufferPtr->TexIndex = texIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-		
-		s_quad_data.QuadVertexBufferPtr->Position = { position.x + size.x, position.y + size.y, 0.0f };
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = {1.0f, 1.0f};
-		s_quad_data.QuadVertexBufferPtr->TexIndex = texIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-
-		s_quad_data.QuadVertexBufferPtr->Position = { position.x , position.y + size.y, 0.0f };
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = {0.0f, 1.0f};
-		s_quad_data.QuadVertexBufferPtr->TexIndex = texIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-
-		s_quad_data.QuadIndexCount += 6;
-
-
-#ifdef DEBUG
-		++s_quad_data.Stats.QuadCount;
-#endif // DEBUG
+		DrawQuad(transform, color);
 
 	}
 
@@ -223,137 +200,129 @@ namespace Tomato {
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color)
-	{
-
-		if (s_quad_data.QuadIndexCount >= QuadData::MaxIndices)
-		{
-			StartNewBatch();
-		}
-		
-		float textureIndex = 0.0f;
-
-		for (uint32_t i = 1; i < s_quad_data.TextureSlotIndex; i++)
-		{
-			if (*s_quad_data.TextureSlots[i].get() == *texture.get()) 
-			{
-				textureIndex = (float)i;
-				break;
-			}
-		}
-
-		if (textureIndex == 0.0f)
-		{
-			textureIndex = (float)s_quad_data.TextureSlotIndex;
-			s_quad_data.TextureSlots[s_quad_data.TextureSlotIndex] = texture;
-			s_quad_data.TextureSlotIndex++;
-		}
-
-		s_quad_data.QuadVertexBufferPtr->Position = position;
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = { 0.0f, 0.0f };
-		s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-
-		s_quad_data.QuadVertexBufferPtr->Position = { position.x + size.x, position.y, 0.0f };
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = { 1.0f, 0.0f };
-		s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-
-		s_quad_data.QuadVertexBufferPtr->Position = { position.x + size.x, position.y + size.y, 0.0f };
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = { 1.0f, 1.0f };
-		s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-
-		s_quad_data.QuadVertexBufferPtr->Position = { position.x , position.y + size.y, 0.0f };
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = { 0.0f, 1.0f };
-		s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-
-		s_quad_data.QuadIndexCount += 6;
-
-
-#ifdef DEBUG
-		++s_quad_data.Stats.QuadCount;
-#endif // DEBUG
-
-		
-	}
-
-	void Renderer2D::DrawQuad(const glm::vec2& position, const float angle, const glm::vec2& size, const glm::vec4& color)
-	{
-		DrawQuad({ position.x, position.y, 0.0f }, angle, size, color);
-	}
-
-	void Renderer2D::DrawQuad(const glm::vec3& position, const float angle, const glm::vec2& size, const glm::vec4& color)
-	{
-		if (s_quad_data.QuadIndexCount >= QuadData::MaxIndices)
-		{
-			StartNewBatch();
-		}
-		
-		const float texIndex = 0.0f;
-		const float tilingFactor = 1.0f;
+	{	
+		float rotation = 0.0f;
 
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
-			* glm::rotate(glm::mat4(1.0f), glm::radians(angle),{0.0f, 0.0f, 1.0f})
+			* glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f })
 			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
-		s_quad_data.QuadVertexBufferPtr->Position = transform * s_quad_data.QuadVertexPosition[0];
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = { 0.0f, 0.0f };
-		s_quad_data.QuadVertexBufferPtr->TexIndex = texIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-
-		s_quad_data.QuadVertexBufferPtr->Position = transform * s_quad_data.QuadVertexPosition[1];
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = { 1.0f, 0.0f };
-		s_quad_data.QuadVertexBufferPtr->TexIndex = texIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-
-		s_quad_data.QuadVertexBufferPtr->Position = transform * s_quad_data.QuadVertexPosition[2];
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = { 1.0f, 1.0f };
-		s_quad_data.QuadVertexBufferPtr->TexIndex = texIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-
-		s_quad_data.QuadVertexBufferPtr->Position = transform * s_quad_data.QuadVertexPosition[3];
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = { 0.0f, 1.0f };
-		s_quad_data.QuadVertexBufferPtr->TexIndex = texIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-
-		s_quad_data.QuadIndexCount += 6;
-		
-
-#ifdef DEBUG
-		++s_quad_data.Stats.QuadCount;
-#endif // DEBUG
+		DrawQuad(transform, texture, tilingFactor, color);
 		
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const float angle, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const glm::vec4& color)
 	{
-		DrawQuad({ position.x, position.y, 0.0f }, angle, size, texture, tilingFactor, color);
+		DrawQuad({ position.x, position.y, 0.0f }, rotation, size, color);
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const float angle, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const glm::vec4& color)
 	{
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+			* glm::rotate(glm::mat4(1.0f), rotation,{0.0f, 0.0f, 1.0f})
+			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+
+		DrawQuad(transform, color);
+		
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color)
+	{
+		DrawQuad({ position.x, position.y, 0.0f }, rotation, size, texture, tilingFactor, color);
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color)
+	{
+		
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+			* glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f })
+			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+
+		DrawQuad(transform, texture, tilingFactor, color);
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color)
+	{
+		DrawQuad({ position.x, position.y, 0.0f }, size, subTexture, tilingFactor, color);
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color)
+	{
+		float rotation = 0.0f;
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+			* glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f })
+			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+
+		DrawQuad(transform, subTexture, tilingFactor, color);
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color)
+	{
+		DrawQuad({ position.x, position.y, 0.0f }, rotation, size, subTexture, tilingFactor, color);
+
+	}
+
+	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color)
+	{
+
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+			* glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f })
+			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+		
+		DrawQuad(transform, subTexture, tilingFactor, color);
+	}
+
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
+	{
+		// out 
 		if (s_quad_data.QuadIndexCount >= QuadData::MaxIndices)
 		{
 			StartNewBatch();
 		}
-		
+
+		constexpr glm::vec2 texcoord[] = {
+			{ 0.0f, 0.0f },
+			{ 1.0f, 0.0f },
+			{ 1.0f, 1.0f },
+			{ 0.0f, 1.0f }
+		};
+		const float textureIndex = 0.0f;
+		const float tilingFactor = 1.0f;
+		constexpr uint32_t QuadVertexCount = 4;
+
+		for (int i = 0; i < QuadVertexCount; i++)
+		{
+			s_quad_data.QuadVertexBufferPtr->Position = transform * s_quad_data.QuadVertexPosition[i];
+			s_quad_data.QuadVertexBufferPtr->Color = color;
+			s_quad_data.QuadVertexBufferPtr->Texcoord = texcoord[i];
+			s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
+			s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+			s_quad_data.QuadVertexBufferPtr++;
+		}
+
+		s_quad_data.QuadIndexCount += 6;
+
+
+#ifdef DEBUG
+		++s_quad_data.Stats.QuadCount;
+#endif // DEBUG
+	}
+
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color)
+	{
+
+		if (s_quad_data.QuadIndexCount >= QuadData::MaxIndices)
+		{
+			StartNewBatch();
+		}
+
+		glm::vec2 texcoord[] = {
+			{ 0.0f, 0.0f },
+			{ 1.0f, 0.0f },
+			{ 1.0f, 1.0f },
+			{ 0.0f, 1.0f }
+		};
+
 		float textureIndex = 0.0f;
 
 		for (uint32_t i = 1; i < s_quad_data.TextureSlotIndex; i++)
@@ -372,44 +341,71 @@ namespace Tomato {
 			s_quad_data.TextureSlotIndex++;
 		}
 
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
-			* glm::rotate(glm::mat4(1.0f), glm::radians(angle), { 0.0f, 0.0f, 1.0f })
-			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
-
-		s_quad_data.QuadVertexBufferPtr->Position = transform * s_quad_data.QuadVertexPosition[0];
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = { 0.0f, 0.0f };
-		s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-
-		s_quad_data.QuadVertexBufferPtr->Position = transform * s_quad_data.QuadVertexPosition[1];
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = { 1.0f, 0.0f };
-		s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-
-		s_quad_data.QuadVertexBufferPtr->Position = transform * s_quad_data.QuadVertexPosition[2];
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = { 1.0f, 1.0f };
-		s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
-
-		s_quad_data.QuadVertexBufferPtr->Position = transform * s_quad_data.QuadVertexPosition[3];
-		s_quad_data.QuadVertexBufferPtr->Color = color;
-		s_quad_data.QuadVertexBufferPtr->Texcoord = { 0.0f, 1.0f };
-		s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
-		s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-		s_quad_data.QuadVertexBufferPtr++;
+		constexpr uint32_t QuadVertexCount = 4;
+		for (int i = 0; i < QuadVertexCount; i++)
+		{
+			s_quad_data.QuadVertexBufferPtr->Position = transform * s_quad_data.QuadVertexPosition[i];
+			s_quad_data.QuadVertexBufferPtr->Color = color;
+			s_quad_data.QuadVertexBufferPtr->Texcoord = texcoord[i];
+			s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
+			s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+			s_quad_data.QuadVertexBufferPtr++;
+		}
 
 		s_quad_data.QuadIndexCount += 6;
 
 #ifdef DEBUG
 		++s_quad_data.Stats.QuadCount;
 #endif // DEBUG
+	}
 
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color)
+	{
+
+		if (s_quad_data.QuadIndexCount >= QuadData::MaxIndices)
+		{
+			StartNewBatch();
+		}
+
+		std::shared_ptr<Texture2D> texture = subTexture->GetTexture();
+
+		glm::vec2* texcoord = subTexture->GetTextcoord();
+
+		float textureIndex = 0.0f;
+
+		for (uint32_t i = 1; i < s_quad_data.TextureSlotIndex; i++)
+		{
+			if (*s_quad_data.TextureSlots[i].get() == *texture.get())
+			{
+				textureIndex = (float)i;
+				break;
+			}
+		}
+
+		if (textureIndex == 0.0f)
+		{
+			textureIndex = (float)s_quad_data.TextureSlotIndex;
+			s_quad_data.TextureSlots[s_quad_data.TextureSlotIndex] = texture;
+			s_quad_data.TextureSlotIndex++;
+		}
+
+		constexpr uint32_t QuadVertexCount = 4;
+		for (int i = 0; i < QuadVertexCount; i++)
+		{
+			s_quad_data.QuadVertexBufferPtr->Position = transform * s_quad_data.QuadVertexPosition[i];
+			s_quad_data.QuadVertexBufferPtr->Color = color;
+			s_quad_data.QuadVertexBufferPtr->Texcoord = texcoord[i];
+			s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
+			s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+			s_quad_data.QuadVertexBufferPtr++;
+		}
+
+		s_quad_data.QuadIndexCount += 6;
+
+
+#ifdef DEBUG
+		++s_quad_data.Stats.QuadCount;
+#endif // DEBUG
 	}
 
 #ifdef DEBUG

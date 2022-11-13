@@ -21,7 +21,7 @@ namespace Tomato {
 
 	void Renderer::OnWindowResize(int x, int y, uint32_t width, uint32_t height)
 	{
-		RendererCommand::SetViewPort(x, y, width, height);
+		//RendererCommand::SetViewPort(x, y, width, height);
 	}
 
 	//render

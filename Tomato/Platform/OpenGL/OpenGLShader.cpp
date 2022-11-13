@@ -172,6 +172,7 @@ namespace Tomato {
 	void OpenGLShader::Compile(const std::unordered_map<GLenum, std::string>& shaderSource)
 	{
 		GLuint program = glCreateProgram();
+
 		std::vector<GLenum> shaderIDs;
 		for (auto kv : shaderSource) {
 			GLenum type = kv.first;
@@ -197,6 +198,7 @@ namespace Tomato {
 		m_shader_id = program;
 		//链接着色器程序
 		glLinkProgram(m_shader_id);
+
 		CheckCompileErrors(m_shader_id, "PROGRAM");
 
 		//链接完成，删除占用的着色器资源

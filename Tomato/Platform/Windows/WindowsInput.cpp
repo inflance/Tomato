@@ -3,7 +3,6 @@
 
 #include <glfw/glfw3.h>
 
-
 namespace Tomato {
 
 	bool Input::IsKeyPressed(const int key)

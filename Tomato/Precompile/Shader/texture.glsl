@@ -12,7 +12,7 @@ out vec2 vTexcoord;
 out float vTexIndex; 
 out float vTilingFactor;
 
-uniform mat4 uViewProjection;
+uniform mat4 u_ViewProjection;
 
 void main()
 {
@@ -20,7 +20,7 @@ void main()
     vTexcoord = aTexcoord; 
     vTexIndex = aTexIndex;
     vTilingFactor = aTilingFactor;
-    gl_Position = uViewProjection  *  vec4(aPos, 1.0);
+    gl_Position = u_ViewProjection  *  vec4(aPos, 1.0);
   
 }
 

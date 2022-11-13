@@ -32,15 +32,12 @@ namespace Tomato {
 		Renderer::Init();
 
 		m_imgui_layer = new ImGuiLayer();
-		//m_imgui_layer->OnAttach();
-		PushOverLayer(m_imgui_layer);
-
-		
+		PushOverLayer(m_imgui_layer);	
 	}
 
 	void TomatoEngine::ShutDown()
 	{
-		//m_imgui_layer->OnDetach();
+	
 	}
 
 	void TomatoEngine::Run()
@@ -55,7 +52,7 @@ namespace Tomato {
 
 				for (Layer* layer : m_layer_stack)
 				{
-					layer->OnUpdate(timeSpan);
+					layer->Tick(timeSpan);
 				}
 			}
 			
@@ -66,7 +63,7 @@ namespace Tomato {
 				layer->OnImGuiRender();
 			}
 			m_imgui_layer->End();
-			m_window->OnUpdate();
+			m_window->Tick();
 		}
 
 
@@ -77,7 +74,6 @@ namespace Tomato {
 		EventDispatcher Dispatcher(e);
 		Dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUNC(&TomatoEngine::OnWindowClose));
 		Dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUNC(&TomatoEngine::OnwindowResize));
-		LOG_INFO("{0}", e.ToString());
 
 		for (auto it = m_layer_stack.end(); it != m_layer_stack.begin();)
 		{

@@ -29,7 +29,7 @@ namespace Tomato {
 		ShutDown();
 	}
 
-	void WindowsWindow::OnUpdate()
+	void WindowsWindow::Tick()
 	{
 
 		glfwPollEvents();
@@ -67,10 +67,10 @@ namespace Tomato {
 
 		if (s_glfw_window_count == 0) {
 			int success = glfwInit();
-			//LOG_INFO(success,"Could not initialize GLFW!");
+			LOG_ASSERT(success, "Could not initialize GLFW!");
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-			//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glfwSetErrorCallback(glfwErrorCallback);
 
 			++s_glfw_window_count;
@@ -90,7 +90,6 @@ namespace Tomato {
 			data.Width = width;
 			data.Height = height;
 			WindowResizeEvent event(width, height);
-			//glViewport(0, 0, width, height);
 			data.EventCallback(event);
 			});
 

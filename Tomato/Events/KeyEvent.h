@@ -37,6 +37,7 @@ namespace Tomato {
 			ss << "KeyPressed:" << m_key_code << "{" << m_repeatCount << "repesats}";
 			return ss.str();
 		}
+
 		EVENT_CLASS_TYPE(KeyPressed)
 
 	private:

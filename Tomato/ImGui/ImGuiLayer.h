@@ -1,10 +1,5 @@
 #pragma once
 
-#include <glfw/glfw3.h>
-#include <imgui.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
-
 #include "Tomato/Engine.h"
 #include "Tomato/LogSystem.h"
 #include "Tomato/Layer.h"
@@ -29,9 +24,9 @@ namespace Tomato {
 		void Begin();
 		void End();
 
-		void BlockEvents(bool block) { m_blockEvent = block; }
+		void SetBlock(bool block) { m_block = block; }
 
 	private:
-		bool m_blockEvent = true;
+		bool m_block = true;
 	};
 }

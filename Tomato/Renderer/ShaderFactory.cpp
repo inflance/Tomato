@@ -10,7 +10,6 @@ namespace Tomato {
 
 	void ShaderFactory::Add(const std::string& name, const std::shared_ptr<Shader>& shader)
 	{
-		//auto& name = shader->GetName();
 		LOG_ASSERT(!Exists(name), "Shader ÒÑ´æÔÚ");
 		m_shader[name] = shader;
 	}

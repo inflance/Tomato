@@ -15,7 +15,7 @@ namespace Tomato {
 		}
 			
 	}
-
+	
 	void LayerStack::PushLayer(Layer* layer)
 	{
 		m_layers.emplace(m_layers.begin(), layer);
