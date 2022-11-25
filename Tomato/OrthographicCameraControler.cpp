@@ -17,24 +17,24 @@ namespace Tomato {
 
 	void OrthgraphicCameraControler::Tick(TimeSpan ts)
 	{
-		if (Tomato::Input::IsKeyPressed(KEY_W)) {
+		if (Tomato::Input::IsKeyPressed(Key::W)) {
 			m_camera_pos.y += m_cameraMoveSpeed * ts;
 		}
-		else if (Tomato::Input::IsKeyPressed(KEY_S)) {
+		else if (Tomato::Input::IsKeyPressed(Key::S)) {
 			m_camera_pos.y -= m_cameraMoveSpeed * ts;
 		}
-		if (Tomato::Input::IsKeyPressed(KEY_A)) {
+		if (Tomato::Input::IsKeyPressed(Key::A)) {
 			m_camera_pos.x -= m_cameraMoveSpeed * ts;
 		}
-		else if (Tomato::Input::IsKeyPressed(KEY_D)) {
+		else if (Tomato::Input::IsKeyPressed(Key::D)) {
 			m_camera_pos.x += m_cameraMoveSpeed * ts;
 		}
 
 		if (m_rotation) {
-			if (Tomato::Input::IsKeyPressed(KEY_UP)) {
+			if (Tomato::Input::IsKeyPressed(Key::Up)) {
 				m_camera_rot += m_cameraRotationSpeed * ts;
 			}
-			else if (Tomato::Input::IsKeyPressed(KEY_DOWN)) {
+			else if (Tomato::Input::IsKeyPressed(Key::Down)) {
 				m_camera_rot -= m_cameraRotationSpeed * ts;
 			}
 			m_camera.SetRotation(m_camera_rot);

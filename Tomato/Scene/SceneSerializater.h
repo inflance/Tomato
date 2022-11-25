@@ -16,7 +16,7 @@ namespace Tomato {
 		bool Serialization(const std::string& filepath);
 		bool DeSerialization(const std::string& filepath);
 
-		void SerializeGO(Json& json,GameObject GO);
+		void SerializeEntity(Json& json, Entity entity);
 	private:
 		std::shared_ptr<Scene> m_Scene;
 	};

@@ -1,14 +1,15 @@
 #include "Editor.h"
 
 #include <imgui.h>
+#include <imgui_demo.cpp>
+
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 #include "Tomato/Math.h"
 #include "Tomato/Timer.h"
-#include <imgui_demo.cpp>
-#include "Tomato/Scene/ScriptableGO.h"
+#include "Tomato/Scene/ScriptableEntity.h"
 #include "Tomato/IFile.h"
-
 #include "Tomato/KeyCode.h"
 #include <ImGuizmo.h>
 
@@ -22,11 +23,12 @@ namespace Tomato{
 
     void Editor::OnAttach()
     {
-        m_texture = Texture2D::Create("C:/Users/liyunlo2000/source/repos/Tomato/Tomato/Precompile/Image/DefaultTexture.png");
-        m_texture1 = Texture2D::Create("C:/Users/liyunlo2000/source/repos/Tomato/Tomato/Precompile/Image/tilemap_packed.png");
+        m_texture = Texture2D::Create("C:/Users/liyun/source/repos/Tomato/Tomato/Precompile/Image/DefaultTexture.png");
+        m_texture1 = Texture2D::Create("C:/Users/liyun/source/repos/Tomato/Tomato/Precompile/Image/tilemap_packed.png");
         m_subtexture = SubTexture2D::CreateSubtexture(m_texture1, { 0.0f, 0.0f }, { 73.0f, 73.0f }, { 1.0f, 0.71f });
 
         FrameBufferProps fb_props;
+        fb_props.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
         fb_props.Height = 800;
         fb_props.Width = 1600;
 
@@ -34,23 +36,26 @@ namespace Tomato{
 
         m_Scene = std::make_shared<Scene>();
 
+        m_editorCamera = EditorCamera(30.0f, 1600.0f / 800.0f, 0.1f, 1000.0f);
+        m_editorCamera.SetPosition({0.0f, 0.0f, 10.5f});
+
 #if 0
-         squareObject = m_Scene->CreateGameObject("square");
-         squareObject.AddComponent<ColorComponent>();
+         squareObject = m_Scene->CreateEntity("square");
+         squareObject.AddComponent<SpriteComponent>();
 
-         squareObject1 = m_Scene->CreateGameObject("square1");
-         squareObject1.AddComponent<ColorComponent>();
+         squareObject1 = m_Scene->CreateEntity("square1");
+         squareObject1.AddComponent<SpriteComponent>();
 
-         CameraA = m_Scene->CreateGameObject("CameraA");
+         CameraA = m_Scene->CreateEntity("CameraA");
          CameraA.AddComponent<CameraComponent>();
 
 
-         CameraB = m_Scene->CreateGameObject("CameraB");
+         CameraB = m_Scene->CreateEntity("CameraB");
          CameraB.AddComponent<CameraComponent>();
 
          auto& cc = CameraB.GetComponent<CameraComponent>().IsMain = false;
 #endif
-        class CameraControllor : public ScriptableGO
+        class CameraControllor : public ScriptableEntity
         {
             void Tick(TimeSpan ts) override
             {
@@ -58,13 +63,13 @@ namespace Tomato{
 
                 float speed = 5.0f;
 
-                if (Input::IsKeyPressed(KEY_A))
+                if (Input::IsKeyPressed(Key::A))
                     position.x -= speed * ts;
-                if (Input::IsKeyPressed(KEY_D))
+                if (Input::IsKeyPressed(Key::D))
                     position.x += speed * ts;
-                if (Input::IsKeyPressed(KEY_W))
+                if (Input::IsKeyPressed(Key::W))
                     position.y += speed * ts;
-                if (Input::IsKeyPressed(KEY_S))
+                if (Input::IsKeyPressed(Key::S))
                     position.y -= speed * ts;
             }
         };
@@ -72,11 +77,11 @@ namespace Tomato{
         /* CameraA.AddComponent<NativeScriptComponent>().Bind<CameraControllor>();
          CameraB.AddComponent<NativeScriptComponent>().Bind<CameraControllor>();*/
 
-        SceneSerializater m_SceneSerializater(m_Scene);
-        if (m_SceneSerializater.DeSerialization("D:/redcube.json"))
-        {
-            //m_SceneSerializater.Serialization("D:/2.json");
-        }
+        //SceneSerializater m_SceneSerializater(m_Scene);
+        //if (m_SceneSerializater.DeSerialization("D:/redcube.json"))
+        //{
+        //    //m_SceneSerializater.Serialization("D:/2.json");
+        //}
        
         m_ScenePanel.SetContex(m_Scene);
     }
@@ -94,11 +99,32 @@ namespace Tomato{
 
         Renderer2D::ResetStats();
         //m_Scene->Tick(ts);
-        m_frameBuffer->Bind();
+		m_frameBuffer->Bind();
+		
         RendererCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
         RendererCommand::Clear();
+        m_frameBuffer->ClearAttachment(1, -1);
+        m_editorCamera.Tick(ts);
+        m_Scene->TickEditor(ts, m_editorCamera);
+        //m_Scene->Tick(ts);
 
-        m_Scene->Tick(ts);
+
+
+	    //获取屏幕鼠标位置
+		auto [mx, my] = ImGui::GetMousePos();
+		mx -= m_viewportBounds[0].x;
+		my -= m_viewportBounds[0].y;
+		glm::vec2 viewportSize = m_viewportBounds[1] - m_viewportBounds[0];
+		my = viewportSize.y - my;
+		int mouseX = (int)mx;
+		int mouseY = (int)my;
+
+		if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
+		{
+			int pixelData = m_frameBuffer->ReadPixel(1, mouseX, mouseY);
+			LOG_WARN(pixelData);
+			m_hoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_Scene.get());
+		}
 
         m_frameBuffer->UnBind();
 
@@ -125,8 +151,11 @@ namespace Tomato{
             ImGui::SetNextWindowPos(viewport->WorkPos);
             ImGui::SetNextWindowSize(viewport->WorkSize);
             ImGui::SetNextWindowViewport(viewport->ID);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.5f, 14.0f));
             window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
             window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
         }
@@ -151,8 +180,7 @@ namespace Tomato{
         if (!opt_padding)
             ImGui::PopStyleVar();
 
-        if (opt_fullscreen)
-            ImGui::PopStyleVar(2);
+       
 
         // Submit the DockSpace
         ImGuiIO& io = ImGui::GetIO();
@@ -162,10 +190,11 @@ namespace Tomato{
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
         }
 
+        
         if (ImGui::BeginMenuBar())
-        {
+		{
             if (ImGui::BeginMenu("File"))
-            {
+			{
                 // Disabling fullscreen would allow the window to be moved to the front of other windows,
                 // which we can't undo at the moment without finer window depth/z control.
                /* ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
@@ -200,26 +229,18 @@ namespace Tomato{
                 if (ImGui::MenuItem("Close", NULL, false, open != NULL))
                     TomatoEngine::GetInstance().Close();
                 ImGui::EndMenu();
+                
             }
-            HelpMarker(
-                "When docking is enabled, you can ALWAYS dock MOST window into another! Try it now!" "\n"
-                "- Drag from window title bar or their tab to dock/undock." "\n"
-                "- Drag from window menu button (upper-left button) to undock an entire node (all windows)." "\n"
-                "- Hold SHIFT to disable docking (if io.ConfigDockingWithShift == false, default)" "\n"
-                "- Hold SHIFT to enable docking (if io.ConfigDockingWithShift == true)" "\n"
-                "This demo app has nothing to do with enabling docking!" "\n\n"
-                "This demo app only demonstrate the use of ImGui::DockSpace() which allows you to manually create a docking node _within_ another window." "\n\n"
-                "Read comments in ShowExampleAppDockSpace() for more details.");
-
             ImGui::EndMenuBar();
             ImGui::ShowDemoWindow(&open);
         }
         if (showViewPort)
         {
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 2.0f));
             ImGui::Begin("ViewPort");
 
 
+			
             //set event block
             {
                 m_viewPortFocused = ImGui::IsWindowFocused();
@@ -234,6 +255,15 @@ namespace Tomato{
                 }
             }
 
+            //0, 20
+			auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+            
+			auto viewportMaxRegion = ImGui::GetWindowContentRegionMax(); 
+            
+            //获取当前窗口相对于屏幕左上角的位置
+			auto viewportOffset = ImGui::GetWindowPos();
+			m_viewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+			m_viewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
             //set window resize
             {
                 ImVec2 viewPortSize = ImGui::GetContentRegionAvail();
@@ -241,27 +271,26 @@ namespace Tomato{
                 if (m_viewPortSize != *(glm::vec2*)&viewPortSize && viewPortSize.x > 0.0f && viewPortSize.y > 0.0f)
                 {
                     m_viewPortSize = { viewPortSize.x, viewPortSize.y };
-                    LOG_WARN("{0}. {1}", m_viewPortSize.x, m_viewPortSize.y);
+                    //LOG_WARN("{0}{1}", m_viewPortSize.x, m_viewPortSize.y);
 
 
                     m_frameBuffer->Resize(m_viewPortSize.x, m_viewPortSize.y);
-                    m_cameraControler.Resize(m_viewPortSize.x, m_viewPortSize.y);
                     m_Scene->SetViewPortResize(m_viewPortSize.x, m_viewPortSize.y);
+                    m_editorCamera.SetViewportSize(m_viewPortSize.x, m_viewPortSize.y);
                 }
 
             }
 
-            
 
-            uint32_t id = m_frameBuffer->GetColorAttach();
+            uint32_t id = m_frameBuffer->GetColorAttachmentRID();
 
             ImGui::Image((void*)id, ImVec2{ m_viewPortSize.x, m_viewPortSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
 
             {
-                GameObject SelectedGO = m_ScenePanel.GetSelectedGO();
+                Entity SelectedEntity = m_ScenePanel.GetSelectedEntity();
 
-                if (SelectedGO && (m_editorMode != -1))
+                if (SelectedEntity && (m_zgmoMode != -1))
                 {
                     ImGuizmo::SetOrthographic(false);
                     ImGuizmo::SetDrawlist();
@@ -271,16 +300,19 @@ namespace Tomato{
 
                     ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, width, height);
 
-                    auto& cameraGO = m_Scene->GetMainCameraGO();
+                    /*auto& cameraEntity = m_Scene->GetMainCameraEntity();
 
-                    const auto& cc = cameraGO.GetComponent<CameraComponent>().Camera;
+                    const auto& cc = cameraEntity.GetComponent<CameraComponent>().Camera;
                     auto cameraProjection = cc.GetProjection();
-                    auto cameraView = glm::inverse(cameraGO.GetComponent<TransformComponent>().GetTransform());
+                    auto cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());*/
 
-                    auto& tc = SelectedGO.GetComponent<TransformComponent>();
-                    auto transform = SelectedGO.GetComponent<TransformComponent>().GetTransform();
+					auto cameraProjection = m_editorCamera.GetProjection();
+					auto cameraView = m_editorCamera.GetViewMatrix();
 
-                    ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), (ImGuizmo::OPERATION)m_editorMode, ImGuizmo::LOCAL, glm::value_ptr(transform));
+                    auto &tc = SelectedEntity.GetComponent<TransformComponent>();
+                    auto transform = tc.GetTransform();
+
+                    ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), (ImGuizmo::OPERATION)m_zgmoMode, ImGuizmo::LOCAL, glm::value_ptr(transform));
 
                     if (ImGuizmo::IsUsing())
                     {
@@ -321,15 +353,18 @@ namespace Tomato{
         }
 
         ImGui::End();
+		if (opt_fullscreen)
+			ImGui::PopStyleVar(5);
     }
 
     void Editor::OnEvent(Event& event)
     {
-        m_cameraControler.OnEvent(event);
+        m_editorCamera.OnEvent(event);
 
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FUNC(&Editor::OnKeyPressed));
         dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FUNC(&Editor::OnMouseButtonPressed));
+        dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FUNC(&Editor::OnMouseButtonReleased));
     }
 
 	void Editor::CreateNewScene()
@@ -374,56 +409,89 @@ namespace Tomato{
 	{
         LOG_INFO(e.ToString());
 
-        bool ctrl = Input::IsKeyPressed(KEY_LEFT_CONTROL) || Input::IsKeyPressed(KEY_RIGHT_CONTROL);
-        bool alt = Input::IsKeyPressed(KEY_LEFT_ALT) || Input::IsKeyPressed(KEY_RIGHT_ALT);
-        bool shift = Input::IsKeyPressed(KEY_LEFT_SHIFT) || Input::IsKeyPressed(KEY_RIGHT_SHIFT);
+        bool ctrl = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
+        bool alt = Input::IsKeyPressed(Key::LeftAlt) || Input::IsKeyPressed(Key::RightAlt);
+        bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
 
         switch (e.getKeyCode())
         {
-        
-        case KEY_N:
+
+        case Key::N:
             if (ctrl)
             {
                 CreateNewScene();
-                
+
             }
             break;
-        case KEY_O:
+        case Key::O:
             if (ctrl) {
                 OpenScene();
-                
+
             }
             break;
-        case KEY_S:       
+        case Key::S:
             if (shift && ctrl) {
                 SaveSceneAs();
-              
             }
             break;
-        case KEY_Q:
-                m_editorMode = -1;
-            break;
-        case KEY_W:
-                m_editorMode = ImGuizmo::OPERATION::TRANSLATE;
-            break;
-        case KEY_E:
-
-                m_editorMode = ImGuizmo::OPERATION::ROTATE;
-
-            break;
-        case KEY_R:
-                m_editorMode = ImGuizmo::OPERATION::SCALE;
-
-            break;
-
         }
 
+        if (m_editorMode == EditorMode::DefaultMode || m_editorMode == EditorMode::GizmoMode)
+        {
+			switch (e.getKeyCode())
+			{
+			case Key::Q:
+				m_zgmoMode = -1;
+				m_editorMode = EditorMode::DefaultMode;
+				break;
+
+			case Key::W:
+				m_zgmoMode = ImGuizmo::OPERATION::TRANSLATE;
+                m_editorMode = EditorMode::GizmoMode;
+				break;
+
+			case Key::E:
+				m_zgmoMode = ImGuizmo::OPERATION::ROTATE;
+                m_editorMode = EditorMode::GizmoMode;
+				break;
+
+			case Key::R:
+				m_zgmoMode = ImGuizmo::OPERATION::SCALE;
+                m_editorMode = EditorMode::GizmoMode;
+				break;
+
+			}
+        }
         return false;
 	}
 
 	bool Editor::OnMouseButtonPressed(MouseButtonPressedEvent& e)
 	{
+		if (m_viewPortHovered && !ImGuizmo::IsOver() && e.getMouseButton() != Mouse::ButtonRight)
+			m_ScenePanel.SetSelectedEntity(m_hoveredEntity);
+
+        switch (e.getMouseButton())
+        {
+        case Mouse::ButtonRight:
+            m_editorMode = EditorMode::CameraMode;
+            break;
+	
+		default:
+			m_editorMode = EditorMode::DefaultMode;
+			break;                                                                          
+        }
         return false;
+	}
+
+	bool Editor::OnMouseButtonReleased(MouseButtonReleasedEvent& e)
+	{
+		switch (e.getMouseButton())
+		{
+		default:
+			m_editorMode = EditorMode::DefaultMode;
+			break;
+		}
+		return false;
 	}
 
 }

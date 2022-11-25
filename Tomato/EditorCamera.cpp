@@ -1,12 +1,11 @@
 #include "EditorCamera.h"
 
-#include "Input.h"
-#include "KeyCodes.h"
-
-#include <glfw/glfw3.h>
-
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
+#include "Macro.h"
+
+#include "Input.h"
+#include "KeyCode.h"
 
 namespace Tomato {
 
@@ -19,13 +18,14 @@ namespace Tomato {
 	void EditorCamera::UpdateProjection()
 	{
 		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
-		m_Projection = glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip);
+		m_projection = glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip);
 	}
 
 	void EditorCamera::UpdateView()
 	{
 		// m_Yaw = m_Pitch = 0.0f; // Lock the camera's rotation
-		m_Position = CalculatePosition();
+		//if()
+		//m_Position = CalculatePosition();
 
 		glm::quat orientation = GetOrientation();
 		m_ViewMatrix = glm::translate(glm::mat4(1.0f), m_Position) * glm::toMat4(orientation);
@@ -45,32 +45,46 @@ namespace Tomato {
 
 	float EditorCamera::RotationSpeed() const
 	{
-		return 0.8f;
+		return 0.6f;
 	}
 
 	float EditorCamera::ZoomSpeed() const
 	{
-		float distance = m_Distance * 0.2f;
-		distance = std::max(distance, 0.0f);
-		float speed = distance * distance;
+		float zoomLevel = m_ZoomLevel * 0.2f;
+		zoomLevel = std::max(zoomLevel, 0.0f);
+		float speed = zoomLevel * zoomLevel;
 		speed = std::min(speed, 100.0f); // max speed = 100
 		return speed;
 	}
 
-	void EditorCamera::OnUpdate(Timestep ts)
+	void EditorCamera::Tick(float ts)
 	{
-		if (Input::IsKeyPressed(Key::LeftAlt))
+		const glm::vec2& mousePos{ Input::GetMouseX(), Input::GetMouseY() };
+		glm::vec2 delta = (mousePos - m_lastMousePosition) * 0.003f;
+		m_lastMousePosition = mousePos;
+		float moveSpeed = ts * 10.0f;
+		
+		if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle)) {
+			//CameraRotate(delta);
+		}
+		else if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
 		{
-			const glm::vec2& mouse{ Input::GetMouseX(), Input::GetMouseY() };
-			glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
-			m_InitialMousePosition = mouse;
-
-			if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
-				MousePan(delta);
-			else if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-				MouseRotate(delta);
-			else if (Input::IsMouseButtonPressed(Mouse::ButtonRight))
-				MouseZoom(delta.y);
+			//CameraRotatoByTarget(delta);
+		}
+		else if (Input::IsMouseButtonPressed(Mouse::ButtonRight)) {
+			CameraRotate(delta);
+			if (Input::IsKeyPressed(Key::W))
+				CameraMove(CameraMovement::Forward, moveSpeed);
+			if (Input::IsKeyPressed(Key::S))
+				CameraMove(CameraMovement::Back, moveSpeed);
+			if (Input::IsKeyPressed(Key::A))
+				CameraMove(CameraMovement::Left, moveSpeed);
+			if (Input::IsKeyPressed(Key::D))
+				CameraMove(CameraMovement::Right, moveSpeed);
+			if (Input::IsKeyPressed(Key::E))
+				CameraMove(CameraMovement::Up, moveSpeed);
+			if (Input::IsKeyPressed(Key::Q))
+				CameraMove(CameraMovement::Down, moveSpeed);
 		}
 
 		UpdateView();
@@ -79,59 +93,79 @@ namespace Tomato {
 	void EditorCamera::OnEvent(Event& e)
 	{
 		EventDispatcher dispatcher(e);
-		dispatcher.Dispatch<MouseScrolledEvent>(HZ_BIND_EVENT_FN(EditorCamera::OnMouseScroll));
+		dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FUNC(&EditorCamera::OnMouseScroll));
 	}
 
 	bool EditorCamera::OnMouseScroll(MouseScrolledEvent& e)
 	{
 		float delta = e.GetYOffset() * 0.1f;
-		MouseZoom(delta);
+		CameraZoom(delta);
 		UpdateView();
 		return false;
 	}
 
-	void EditorCamera::MousePan(const glm::vec2& delta)
+	void EditorCamera::CameraRotate(const glm::vec2& delta)
 	{
-		auto [xSpeed, ySpeed] = PanSpeed();
-		m_FocalPoint += -GetRightDirection() * delta.x * xSpeed * m_Distance;
-		m_FocalPoint += GetUpDirection() * delta.y * ySpeed * m_Distance;
-	}
-
-	void EditorCamera::MouseRotate(const glm::vec2& delta)
-	{
-		float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
+		float yawSign = GetUp().y < 0 ? -1.0f : 1.0f;
 		m_Yaw += yawSign * delta.x * RotationSpeed();
 		m_Pitch += delta.y * RotationSpeed();
 	}
 
-	void EditorCamera::MouseZoom(float delta)
+	void EditorCamera::CameraRotatoByTarget(const glm::vec2& delta)
 	{
-		m_Distance -= delta * ZoomSpeed();
-		if (m_Distance < 1.0f)
-		{
-			m_FocalPoint += GetForwardDirection();
-			m_Distance = 1.0f;
-		}
+		float yawSign = GetUp().y < 0 ? -1.0f : 1.0f;
+		m_Yaw += yawSign * delta.x * RotationSpeed();
+		m_Pitch += delta.y * RotationSpeed();
 	}
 
-	glm::vec3 EditorCamera::GetUpDirection() const
+	void EditorCamera::CameraZoom(float delta)
+	{
+		m_Position -= GetForward() * delta * ZoomSpeed();
+		if (m_FOV < 1.0f)
+		{
+			m_FOV = 1.0f;
+		}
+		else if (m_FOV > 90.0f)
+		{
+			m_FOV = 90.0f;
+		}
+		UpdateView();
+	}
+
+	void EditorCamera::CameraMove(CameraMovement movement, float delta)
+	{
+		if (movement == CameraMovement::Forward)
+			m_Position += GetForward() * delta;
+		if (movement == CameraMovement::Back)
+			m_Position -= GetForward() * delta;
+		if (movement == CameraMovement::Left)
+			m_Position -= GetRight() * delta;
+		if (movement == CameraMovement::Right)
+			m_Position += GetRight() * delta;
+		if (movement == CameraMovement::Up)
+			m_Position += GetUp() * delta;
+		if (movement == CameraMovement::Down)
+			m_Position -= GetUp() * delta;
+	}
+
+	glm::vec3 EditorCamera::GetUp() const
 	{
 		return glm::rotate(GetOrientation(), glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
-	glm::vec3 EditorCamera::GetRightDirection() const
+	glm::vec3 EditorCamera::GetRight() const
 	{
 		return glm::rotate(GetOrientation(), glm::vec3(1.0f, 0.0f, 0.0f));
 	}
 
-	glm::vec3 EditorCamera::GetForwardDirection() const
+	glm::vec3 EditorCamera::GetForward() const
 	{
 		return glm::rotate(GetOrientation(), glm::vec3(0.0f, 0.0f, -1.0f));
 	}
 
 	glm::vec3 EditorCamera::CalculatePosition() const
 	{
-		return m_FocalPoint - GetForwardDirection() * m_Distance;
+		return m_Target - GetForward() * m_ZoomLevel;
 	}
 
 	glm::quat EditorCamera::GetOrientation() const

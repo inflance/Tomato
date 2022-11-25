@@ -7,14 +7,14 @@
 
 namespace Tomato {
 
-	class GameObject
+	class Entity
 	{
 	public:
-		GameObject() = default;
-		virtual ~GameObject() {};
+		Entity() = default;
+		virtual ~Entity() {};
 
-		GameObject(entt::entity handle, Scene* scene);
-		GameObject(const GameObject& other) = default;
+		Entity(entt::entity handle, Scene* scene);
+		Entity(const Entity& other) = default;
 
 		template<typename T, typename... Args>
 		T& AddComponent(Args&&... args)
@@ -50,19 +50,19 @@ namespace Tomato {
 		operator uint32_t() const { return (uint32_t)m_ObjectHandle; }
 
 
-		bool operator==(const GameObject& other) const
+		bool operator==(const Entity& other) const
 		{
 			return m_ObjectHandle == other.m_ObjectHandle && m_Scene == other.m_Scene;
 		}
 
-		bool operator!=(const GameObject& other) const
+		bool operator!=(const Entity& other) const
 		{
 			return !(*this == other);
 		}
 
 		void Clear();
 
-	private:
+	protected:
 		entt::entity m_ObjectHandle{ entt::null };
 		Scene* m_Scene = nullptr;
 	};

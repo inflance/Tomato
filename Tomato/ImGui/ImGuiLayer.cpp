@@ -6,7 +6,6 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <ImGuizmo.h>
 
-
 namespace Tomato {
 
 	void ImGuiLayer::OnAttach()
@@ -23,11 +22,12 @@ namespace Tomato {
 		//io.ConfigViewportsNoAutoMerge = true;
 		//io.ConfigViewportsNoTaskBarIcon = true;
 
-		float fontSize = 16.0f;// *2.0f;
+		float fontSize = 18.0f;// *2.0f;
 		//io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Bold.ttf", fontSize);
-		io.FontDefault = io.Fonts->AddFontFromFileTTF("C:/Users/liyunlo2000/source/repos/Tomato/Tomato/Precompile/fonts/Myriad-Pro_31655.ttf", fontSize);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF( "C:/Users/liyun/source/repos/Tomato/Tomato/Precompile/fonts/Myriad-Pro_31655.ttf", fontSize);
 		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
+		SetDarkModeColor();
 		//ImGui::StyleColorsClassic();
 
 		
@@ -46,7 +46,7 @@ namespace Tomato {
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui_ImplOpenGL3_Init("#version 330");
 
-
+	
 	}
 
 	void ImGuiLayer::OnDetach()
@@ -77,6 +77,44 @@ namespace Tomato {
 		//End();
 	}
 
+
+	void ImGuiLayer::SetDarkModeColor()
+	{
+		auto& colors = ImGui::GetStyle().Colors;
+		
+		colors[ImGuiCol_WindowBg] = ImVec4(0.17f, 0.17f, 0.17f, 1.0f);
+
+		colors[ImGuiCol_Header] = ImVec4(0.35f, 0.35f, 0.35f, 1.0f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
+		colors[ImGuiCol_HeaderActive] = ImVec4(0.7f, 0.7f, 0.7f, 1.0f);	
+
+		colors[ImGuiCol_Button] = ImVec4(0.35f, 0.35f, 0.35f, 1.0f);
+		colors[ImGuiCol_ButtonHovered] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
+		colors[ImGuiCol_ButtonActive] = ImVec4(0.7f, 0.7f, 0.7f, 1.0f);
+		
+		colors[ImGuiCol_CheckMark] = ImVec4(0.75f, 0.75f, 0.75f, 1.0f);
+		colors[ImGuiCol_SliderGrab] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
+		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.99f, 0.99f, 0.99f, 1.0f);
+
+		colors[ImGuiCol_Tab] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+		colors[ImGuiCol_TabActive] = ImVec4(0.42f, 0.42f, 0.42f, 1.0f);
+		colors[ImGuiCol_TabHovered] = ImVec4(0.45f, 0.45f, 0.45f, 1.0f);
+		colors[ImGuiCol_TabUnfocused] = ImVec4(0.17f, 0.17f, 0.17f, 1.0f);
+		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+		
+		colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+		colors[ImGuiCol_TextDisabled] = ImVec4(0.96f, 0.96f, 0.96f, 1.0f);
+
+		colors[ImGuiCol_TitleBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.0f);
+		colors[ImGuiCol_TitleBgActive] = ImVec4(0.10f, 0.10f, 0.10f, 1.0f);
+		colors[ImGuiCol_PopupBg] = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
+
+		auto& padding = ImGui::GetStyle().FramePadding;
+		padding = ImVec2(20.0f, 8.0f);
+		colors[ImGuiCol_FrameBg] = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
+		colors[ImGuiCol_FrameBgActive] = ImVec4(0.55f, 0.55f, 0.55f, 1.0f);
+		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.7f, 0.7f, 0.7f, 1.0f);
+	}
 
 	void ImGuiLayer::Begin()
 	{

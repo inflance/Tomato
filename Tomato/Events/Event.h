@@ -61,6 +61,7 @@ namespace Tomato{
 		template<typename T, typename F>
 		bool Dispatch(const F& func)
 		{
+			//std::cout << (int)m_event.GetEventType() << "," << (int)T::GetStaticType() << std::endl;
 			if (m_event.GetEventType() == T::GetStaticType())
 			{
 				m_event.handle |= func(static_cast<T&>(m_event));

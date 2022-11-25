@@ -1,21 +1,21 @@
 #pragma once
 
-#include "GameObject.h"
+#include "Entity.h"
 #include "Scene.h"
 #include "Tomato/TimeSpan.h"
 
 namespace Tomato{
 
-	class ScriptableGO
+	class ScriptableEntity
 	{
 	public:
-		ScriptableGO() = default;
-		virtual ~ScriptableGO() = default;
+		ScriptableEntity() = default;
+		virtual ~ScriptableEntity() = default;
 
 		template<typename T>
 		T& GetComponent()
 		{
-			return m_GO.GetComponent<T>();
+			return m_entity.GetComponent<T>();
 		}
 		
 	protected:
@@ -26,7 +26,7 @@ namespace Tomato{
 		virtual void OnDestroy(){};
 
 	private:
-		GameObject m_GO;
+		Entity m_entity;
 
 		friend class Scene;
 	};

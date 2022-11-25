@@ -20,8 +20,10 @@ namespace Tomato {
 		virtual std::vector<std::shared_ptr<VertexBuffer>> GetVertexBuffer() const override{ return m_vertex_buffer; }
 	private:
 		uint32_t m_renderer_id;
+		uint32_t m_VertexBufferIndex = 0;
 
 		std::vector<std::shared_ptr<VertexBuffer>> m_vertex_buffer;
 		std::shared_ptr<IndexBuffer> m_index_buffer;
+
 	};
 }

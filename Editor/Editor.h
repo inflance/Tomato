@@ -7,6 +7,12 @@
 
 namespace Tomato{
 
+	enum class EditorMode {
+		DefaultMode = 0,
+		CameraMode,
+		GizmoMode
+	};
+
 	class Editor : public Layer
 	{
 	public:
@@ -20,10 +26,13 @@ namespace Tomato{
 		virtual void OnImGuiRender() override;
 		virtual void OnEvent(Event& event) override;
 		bool OnKeyPressed(KeyPressedEvent& e);
+		
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+		bool OnMouseButtonReleased(MouseButtonReleasedEvent& e);
 		void  CreateNewScene();
 		void  OpenScene();
 		void  SaveSceneAs();
+
 
 	private:
 		OrthgraphicCameraControler m_cameraControler;
@@ -37,14 +46,14 @@ namespace Tomato{
 
 		std::shared_ptr<Scene> m_Scene;
 
-		GameObject squareObject;
-		GameObject squareObject1;
-		GameObject CameraA;
-		GameObject CameraB;
+		EditorCamera m_editorCamera;
+
+		EditorMode m_editorMode;
 
 		ScenePanel m_ScenePanel;
+		Entity m_hoveredEntity;
 
-		int m_editorMode = -1;
+		int m_zgmoMode = -1;
 
 		bool m_mainCamera = true;
 
@@ -59,6 +68,7 @@ namespace Tomato{
 
 		float m_timeSpan;
 		uint32_t m_count = 0;
+		glm::vec2 m_viewportBounds[2];
 
 		ParticleProps m_particle;
 	};

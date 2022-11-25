@@ -1,8 +1,8 @@
-#include "SceneSerializater.h"
-
-#include "GameObject.h"
-#include "Components.h"
 #include <fstream>
+
+#include "Entity.h"
+#include "SceneSerializater.h"
+#include "Components.h"
 
 namespace nlohmann {
 
@@ -56,16 +56,16 @@ namespace Tomato {
 
 		Json j;
 		m_Scene->m_Registry.each(
-			[&](auto entityID)
+			[&](auto entt)
 			{
 				Json temp;
-				GameObject GO = { entityID, m_Scene.get() };
+				Entity entity = { entt, m_Scene.get() };
 	
-				if (!GO)
+				if (!entity)
 					return false;
 	
-				SerializeGO(temp, GO);
-				json["GameObjects"] += temp;
+				SerializeEntity(temp, entity);
+				json["Entities"] += temp;
 				
 			});
 
@@ -94,23 +94,23 @@ namespace Tomato {
 		auto sceneName = json["Scene"]["SceneName"];
 		LOG_TRACE("Scene {0}", sceneName);
 
-		auto GOs = json["GameObjects"];
-				if (GOs.empty() == false)
+		auto Entitys = json["Entities"];
+				if (Entitys.empty() == false)
 		{
-			for(auto go : GOs)
+			for(auto go : Entitys)
 			{
-				auto g = go["GameObject"];
+				auto g = go["Entity"];
 								std::string name;
 				auto nameComponent = g["NameComponent"]["Name"];
 								if (nameComponent.empty() == false)
 					name = nameComponent.get<std::string>();
 
-				GameObject deserializedGO = m_Scene->CreateGameObject(name);
+				Entity deserializedEntity = m_Scene->CreateEntity(name);
 
 				auto tranformComponent = g["TransformComponent"];
 				if (tranformComponent.empty() == false)
 				{
-					auto& tc = deserializedGO.GetComponent<TransformComponent>();
+					auto& tc = deserializedEntity.GetComponent<TransformComponent>();
 					tc.Position= tranformComponent["Position"].get<glm::vec3>();
 					tc.Rotation = tranformComponent["Rotation"].get<glm::vec3>();
 					tc.Scale = tranformComponent["Scale"].get<glm::vec3>();
@@ -119,7 +119,7 @@ namespace Tomato {
 				auto cameraComponent = g["CameraComponent"];
 				if (cameraComponent.empty() == false)
 				{
-					auto& cc = deserializedGO.AddComponent<CameraComponent>();
+					auto& cc = deserializedEntity.AddComponent<CameraComponent>();
 
 					auto& cameraProps = cameraComponent["Camera"];
 					cc.Camera.SetSceneCameraType((SceneCameraType)cameraProps["ProjectionType"].get<int>());
@@ -136,11 +136,11 @@ namespace Tomato {
 					cc.IsResize = cameraComponent["IsResize"].get<bool>();
 				}
 
-				auto colorComponent = g["ColorComponent"];
-				if (colorComponent.empty() == false)
+				auto spriteComponent = g["SpriteComponent"];
+				if (spriteComponent.empty() == false)
 				{
-					auto& src = deserializedGO.AddComponent<ColorComponent>();
-					src.Color = colorComponent["Color"].get<glm::vec4>();
+					auto& src = deserializedEntity.AddComponent<SpriteComponent>();
+					src.Color = spriteComponent["Color"].get<glm::vec4>();
 				}
 
 			}
@@ -149,47 +149,47 @@ namespace Tomato {
 		return true;
 	}
 
-	void SceneSerializater::SerializeGO(Json& json, GameObject GO)
+	void SceneSerializater::SerializeEntity(Json& json, Entity entity)
 	{
 		Json js;
 		{
-			js["GameObject"]["Gid"] = 121212121212;
+			js["Entity"]["EntityID"] = 121212121212;
 		}
-		if (GO.HasComponent<NameComponent>())
+		if (entity.HasComponent<NameComponent>())
 		{
-			auto& name = GO.GetComponent<NameComponent>().Name;
-			js["GameObject"]["NameComponent"]["Name"] = name;
+			auto& name = entity.GetComponent<NameComponent>().Name;
+			js["Entity"]["NameComponent"]["Name"] = name;
 		}
-		if (GO.HasComponent<TransformComponent>())
+		if (entity.HasComponent<TransformComponent>())
 		{
-			auto& position = GO.GetComponent<TransformComponent>().Position;
-			auto& rotation = GO.GetComponent<TransformComponent>().Rotation;
-			auto& scale = GO.GetComponent<TransformComponent>().Scale;
-			js["GameObject"]["TransformComponent"]["Position"] = { position.x, position.y, position.z };
-			js["GameObject"]["TransformComponent"]["Rotation"] = { rotation.x, rotation.y, rotation.z };
-			js["GameObject"]["TransformComponent"]["Scale"] = { scale.x, scale.y, scale.z };
+			auto& position	= entity.GetComponent<TransformComponent>().Position;
+			auto& rotation	= entity.GetComponent<TransformComponent>().Rotation;
+			auto& scale		= entity.GetComponent<TransformComponent>().Scale;
+			js["Entity"]["TransformComponent"]["Position"] = { position.x, position.y, position.z };
+			js["Entity"]["TransformComponent"]["Rotation"] = { rotation.x, rotation.y, rotation.z };
+			js["Entity"]["TransformComponent"]["Scale"] = { scale.x, scale.y, scale.z };
 		}
-		if (GO.HasComponent<CameraComponent>())
+		if (entity.HasComponent<CameraComponent>())
 		{
-			auto& cc = GO.GetComponent<CameraComponent>();
+			auto& cc = entity.GetComponent<CameraComponent>();
 			auto camera = cc.Camera;
 			//camera
-			js["GameObject"]["CameraComponent"]["Camera"]["ProjectionType"]	= camera.GetSceneCameraType();
-			js["GameObject"]["CameraComponent"]["Camera"]["PerspectiveFOV"]	= camera.GetPerspFOV();
-			js["GameObject"]["CameraComponent"]["Camera"]["PerspectiveFar"]	= camera.GetPerspFar();
-			js["GameObject"]["CameraComponent"]["Camera"]["PerspectiveNear"]	= camera.GetPerspNear();
-			js["GameObject"]["CameraComponent"]["Camera"]["OrthographicZoomLevel"]	= camera.GetOrthoZoomLevel();
-			js["GameObject"]["CameraComponent"]["Camera"]["OrthographicFar"]	= camera.GetOrthoFar();
-			js["GameObject"]["CameraComponent"]["Camera"]["OrthographicNear"] = camera.GetOrthoNear();
+			js["Entity"]["CameraComponent"]["Camera"]["ProjectionType"]			= camera.GetSceneCameraType();
+			js["Entity"]["CameraComponent"]["Camera"]["PerspectiveFOV"]			= camera.GetPerspFOV();
+			js["Entity"]["CameraComponent"]["Camera"]["PerspectiveFar"]			= camera.GetPerspFar();
+			js["Entity"]["CameraComponent"]["Camera"]["PerspectiveNear"]		= camera.GetPerspNear();
+			js["Entity"]["CameraComponent"]["Camera"]["OrthographicZoomLevel"]	= camera.GetOrthoZoomLevel();
+			js["Entity"]["CameraComponent"]["Camera"]["OrthographicFar"]		= camera.GetOrthoFar();
+			js["Entity"]["CameraComponent"]["Camera"]["OrthographicNear"]		= camera.GetOrthoNear();
 
-			js["GameObject"]["CameraComponent"]["IsMain"] = cc.IsMain;
-			js["GameObject"]["CameraComponent"]["IsResize"] = cc.IsResize;
+			js["Entity"]["CameraComponent"]["IsMain"]							= cc.IsMain;
+			js["Entity"]["CameraComponent"]["IsResize"]							= cc.IsResize;
 
 		}
-		if (GO.HasComponent<ColorComponent>())
+		if (entity.HasComponent<SpriteComponent>())
 		{
-			auto& color = GO.GetComponent<ColorComponent>().Color;
-			js["GameObject"]["ColorComponent"]["Color"] = { color.r, color.g, color.b, color.a };
+			auto& color = entity.GetComponent<SpriteComponent>().Color;
+			js["Entity"]["SpriteComponent"]["Color"] = { color.r, color.g, color.b, color.a };
 		}
 		json = js;
 		

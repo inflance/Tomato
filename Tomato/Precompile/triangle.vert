@@ -2,7 +2,7 @@
 layout (location = 0) in vec3 aPos;   
 layout (location = 1) in vec3 aColor;
 
-out vec3 ourColor; // ��Ƭ����ɫ�����һ����ɫ
+out vec3 ourColor;
 uniform mat4 m_viewProjection;
 uniform mat4 m_transform;
 

@@ -3,6 +3,7 @@
 #include "Renderer.h"
 
 #include "Tomato/Platform/OpenGL/OpenGLFrameBuffer.h"
+#include <Tomato/Macro.h>
 
 namespace Tomato {
 
@@ -15,6 +16,7 @@ namespace Tomato {
 		case RendererAPI::API::Vulkan: return nullptr;
 		case RendererAPI::API::DirectX12: return nullptr;
 		}
+		LOG_ASSERT(false,"");
 		return nullptr;
 	}
 

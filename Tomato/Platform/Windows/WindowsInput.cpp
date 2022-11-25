@@ -5,17 +5,17 @@
 
 namespace Tomato {
 
-	bool Input::IsKeyPressed(const int key)
+	bool Input::IsKeyPressed(KeyCode key)
 	{
 		auto* window = static_cast<GLFWwindow*>(TomatoEngine::GetInstance().GetWindow().GetNativeWindow());
-		auto state = glfwGetKey(window, static_cast<int32_t>(key));
+		auto state = glfwGetKey(window, key);
 		return state == GLFW_PRESS || state == GLFW_REPEAT;
 	}
 
-	bool Input::IsMouseButtonPressed(const int button)
+	bool Input::IsMouseButtonPressed(MouseCode button)
 	{
 		auto* window = static_cast<GLFWwindow*>(TomatoEngine::GetInstance().GetWindow().GetNativeWindow());
-		auto state = glfwGetMouseButton(window, static_cast<int32_t>(button));
+		auto state = glfwGetMouseButton(window, button);
 		return state == GLFW_PRESS;
 	}
 

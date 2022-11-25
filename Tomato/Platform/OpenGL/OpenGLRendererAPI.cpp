@@ -1,6 +1,7 @@
 #include "OpenGLRendererAPI.h"
 
 #include "glad/glad.h"
+#include <Tomato/Macro.h>
 
 namespace Tomato {
 
@@ -27,9 +28,10 @@ namespace Tomato {
 
 	void OpenGLRendererAPI::DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray, uint32_t indexCount)
 	{
-		uint32_t count = indexCount ? vertexArray->GetIndexBuffer()->GetCount() : indexCount;
+		//vertexArray->Bind();
+		uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount() ;
 		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
-		glBindTexture(GL_TEXTURE_2D, 0);
+
 	}
 
 	void OpenGLRendererAPI::Init()

@@ -2,20 +2,36 @@
 
 #include "Scene.h"
 #include "Components.h"
-#include "GameObject.h"
+#include "Entity.h"
 #include "Tomato/Renderer/Renderer2D.h"
 
 namespace Tomato {
 
-	GameObject Scene::CreateGameObject(const std::string& name)
+	Entity Scene::CreateEntity(const std::string& name)
 	{
-		GameObject GO = { m_Registry.create(), this };
-		GO.AddComponent<TransformComponent>();
-		auto& tag = GO.AddComponent<NameComponent>();
-		tag.Name = name.empty() ? "GameObject" : name;
+		Entity entity = { m_Registry.create(), this };
+		entity.AddComponent<TransformComponent>();
+		auto& tag = entity.AddComponent<NameComponent>();
+		tag.Name = name.empty() ? ("Empty Entity"+std::to_string(entity)) : name;
 
-		//m_GameObjects.push_back(GO);
-		return GO;
+		return entity;
+	}
+
+	void Scene::TickEditor(float deltaTime, const EditorCamera& camera)
+	{
+
+		Renderer2D::BeginScene(camera);
+		auto& view = m_Registry.view<TransformComponent, SpriteComponent>();
+
+		for (auto& entity : view)
+		{
+			auto& transformComponent = view.get<TransformComponent>(entity);
+			auto& spriteComponent = view.get<SpriteComponent>(entity);
+			LOG_ERROR(entity);
+			Renderer2D::DrawQuad(transformComponent.GetTransform(), spriteComponent, (int)entity);
+
+		}
+		Renderer2D::EndScene();
 	}
 
 	void Scene::Tick(TimeSpan ts)
@@ -30,7 +46,7 @@ namespace Tomato {
 				if (!nsc.Instance)
 				{
 					nsc.Instance = nsc.InstantiateScript();
-					nsc.Instance->m_GO = GameObject{ entity, this };
+					nsc.Instance->m_entity = Entity{ entity, this };
 					nsc.Instance->OnCreate();
 				}
 
@@ -62,12 +78,12 @@ namespace Tomato {
 		if (mainCamera) 
 		{
 			Renderer2D::BeginScene(*mainCamera, mainCameraTransform);
-			auto& view = m_Registry.view<TransformComponent, ColorComponent>();
+			auto& view = m_Registry.view<TransformComponent, SpriteComponent>();
 	
 			for (auto entity : view)
 			{
 				auto& transform = view.get<TransformComponent>(entity);
-				auto& color = view.get<ColorComponent>(entity);
+				auto& color = view.get<SpriteComponent>(entity);
 				Renderer2D::DrawQuad(transform.GetTransform(), color.Color);
 			}
 			Renderer2D::EndScene();
@@ -91,12 +107,20 @@ namespace Tomato {
 		}
 	}
 
-	void Scene::DestroyEntity(GameObject GO)
+	void Scene::DestroyEntity(Entity entity)
 	{
-		m_Registry.destroy(GO);
+		m_Registry.destroy(entity);
 	}
 
-	Tomato::GameObject Scene::GetMainCameraGO()
+	void Scene::Clear()
+	{
+		m_Registry.each([&](entt::entity entity) {
+			LOG_ERROR((int)entity);
+			m_Registry.destroy(entity);
+			});
+	}
+
+	Tomato::Entity Scene::GetMainCameraEntity()
 	{
 		auto view = m_Registry.view<CameraComponent>();
 		for (auto en : view)
@@ -104,7 +128,7 @@ namespace Tomato {
 			auto& camera = view.get<CameraComponent>(en);
 			if (camera.IsMain)
 			{
-				return GameObject{ en, this };
+				return Entity{ en, this };
 			}
 		}
 		return {};

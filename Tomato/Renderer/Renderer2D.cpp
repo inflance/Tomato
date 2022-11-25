@@ -8,6 +8,7 @@
 #include "Tomato/Platform/OpenGL/OpenGLShader.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <Tomato/Scene/Entity.h>
 
 
 namespace Tomato {
@@ -21,6 +22,8 @@ namespace Tomato {
 		float TexIndex;
 		//平铺因子
 		float TilingFactor;
+
+		int GID;
 	};
 
 	struct QuadData {
@@ -58,11 +61,12 @@ namespace Tomato {
 
 		//设置顶点布局
 		s_quad_data.QuadVertexBuffer->SetLayout({
-			{ShaderDataType::Float3, "aPos"},
-			{ShaderDataType::Float4, "aColor"},
-			{ShaderDataType::Float2, "aTexcoord"},
-			{ShaderDataType::Float, "aTexIndex"},
-			{ShaderDataType::Float, "aTilingFactor"},
+			{ShaderDataType::Float3		, "aPos"			},
+			{ShaderDataType::Float4		, "aColor"			},
+			{ShaderDataType::Float2		, "aTexcoord"		},
+			{ShaderDataType::Float		, "aTexIndex"		},
+			{ShaderDataType::Float		, "aTilingFactor"	},
+			{ShaderDataType::Int		, "GID"				},
 		});
 		s_quad_data.QuadVertexArray->AddVertexBuffer(s_quad_data.QuadVertexBuffer);
 
@@ -99,7 +103,7 @@ namespace Tomato {
 			samplers[i] = i;
 
 		
-		s_quad_data.TextureShader = Shader::Create("C:/Users/liyunlo2000/source/repos/Tomato/Tomato/Precompile/Shader/texture.glsl");
+		s_quad_data.TextureShader = Shader::Create("C:/Users/liyun/source/repos/Tomato/Tomato/Precompile/Shader/texture.glsl");
 		s_quad_data.TextureShader->Bind();
 		s_quad_data.TextureShader->SetIntArray("uTextures", samplers, s_quad_data.MaxTextureSlot);;
 
@@ -116,6 +120,7 @@ namespace Tomato {
 
 	void Renderer2D::Shutdown()
 	{
+		delete[] s_quad_data.QuadVertexBufferArr;
 	}
 
 	void Renderer2D::BeginScene(const OrthographicCamera& camera)
@@ -144,9 +149,21 @@ namespace Tomato {
 	}
 
 
+	void Renderer2D::BeginScene(const EditorCamera& camera)
+	{
+
+		glm::mat4 ViewProjection = camera.GetViewProjection();
+
+		s_quad_data.TextureShader->Bind();
+		s_quad_data.TextureShader->SetMat4("u_ViewProjection", ViewProjection);
+		s_quad_data.QuadIndexCount = 0;
+		s_quad_data.QuadVertexBufferPtr = s_quad_data.QuadVertexBufferArr;
+
+		s_quad_data.TextureSlotIndex = 1;
+	}
+
 	void Renderer2D::StartNewBatch()
 	{
-		EndScene();
 		s_quad_data.QuadIndexCount = 0;
 		s_quad_data.QuadVertexBufferPtr = s_quad_data.QuadVertexBufferArr;
 
@@ -155,51 +172,60 @@ namespace Tomato {
 
 	void Renderer2D::Flush()
 	{
-		//bind texture
-
-		for (auto i = 0; i < s_quad_data.TextureSlotIndex; i++)
+		if (s_quad_data.QuadIndexCount)
 		{
-			s_quad_data.TextureSlots[i]->Bind(i);
-		}
+			uint32_t dataSize = (uint32_t)((uint8_t*)s_quad_data.QuadVertexBufferPtr - (uint8_t*)s_quad_data.QuadVertexBufferArr);
+			s_quad_data.QuadVertexBuffer->SetData(s_quad_data.QuadVertexBufferArr, dataSize);
+			//bind texture
 
-		RendererCommand::DrawIndexed(s_quad_data.QuadVertexArray, s_quad_data.QuadIndexCount);
+			for (auto i = 0; i < s_quad_data.TextureSlotIndex; i++)
+			{
+				s_quad_data.TextureSlots[i]->Bind(i);
+			}
+			s_quad_data.TextureShader->Bind();
+			RendererCommand::DrawIndexed(s_quad_data.QuadVertexArray, s_quad_data.QuadIndexCount);
 
 #ifdef DEBUG
-		++s_quad_data.Stats.DrawCalls;
+			++s_quad_data.Stats.DrawCalls;
 #endif // DEBUG
+		}
+		
 
 	}
 
+	void Renderer2D::NextBatch()
+	{
+		Flush();
+		StartNewBatch();
+	}
 
 	void Renderer2D::EndScene()
 	{
-		uint32_t dataSize = (uint8_t*) s_quad_data.QuadVertexBufferPtr - (uint8_t*)s_quad_data.QuadVertexBufferArr;
-		s_quad_data.QuadVertexBuffer->SetData(s_quad_data.QuadVertexBufferArr, dataSize);
 		Flush();
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color, int GID)
 	{
-		DrawQuad({ position.x, position.y, 0.0f }, size, color);
+		DrawQuad({ position.x, position.y, 0.0f }, size, color, GID);
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, int GID)
 	{
 		float rotation = 0.0f;
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
 			* glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f })
 			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
-		DrawQuad(transform, color);
+		DrawQuad(transform, color, GID);
 
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color, int GID)
 	{
-		DrawQuad({ position.x, position.y, 0.0f }, size, texture, tilingFactor, color);
+		DrawQuad({ position.x, position.y, 0.0f }, size, texture, tilingFactor, color, GID);
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color, int GID)
 	{	
 		float rotation = 0.0f;
 
@@ -207,77 +233,77 @@ namespace Tomato {
 			* glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f })
 			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
-		DrawQuad(transform, texture, tilingFactor, color);
+		DrawQuad(transform, texture, tilingFactor, color, GID);
 		
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const glm::vec4& color, int GID)
 	{
-		DrawQuad({ position.x, position.y, 0.0f }, rotation, size, color);
+		DrawQuad({ position.x, position.y, 0.0f }, rotation, size, color, GID);
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const glm::vec4& color, int GID)
 	{
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
 			* glm::rotate(glm::mat4(1.0f), rotation,{0.0f, 0.0f, 1.0f})
 			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
-		DrawQuad(transform, color);
+		DrawQuad(transform, color, GID);
 		
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color, int GID)
 	{
-		DrawQuad({ position.x, position.y, 0.0f }, rotation, size, texture, tilingFactor, color);
+		DrawQuad({ position.x, position.y, 0.0f }, rotation, size, texture, tilingFactor, color, GID);
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color, int GID)
 	{
 		
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
 			* glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f })
 			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
-		DrawQuad(transform, texture, tilingFactor, color);
+		DrawQuad(transform, texture, tilingFactor, color, GID);
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color, int GID)
 	{
-		DrawQuad({ position.x, position.y, 0.0f }, size, subTexture, tilingFactor, color);
+		DrawQuad({ position.x, position.y, 0.0f }, size, subTexture, tilingFactor, color, GID);
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color, int GID)
 	{
 		float rotation = 0.0f;
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
 			* glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f })
 			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
-		DrawQuad(transform, subTexture, tilingFactor, color);
+		DrawQuad(transform, subTexture, tilingFactor, color, GID);
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color, int GID)
 	{
-		DrawQuad({ position.x, position.y, 0.0f }, rotation, size, subTexture, tilingFactor, color);
+		DrawQuad({ position.x, position.y, 0.0f }, rotation, size, subTexture, tilingFactor, color, GID);
 
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color, int GID)
 	{
 
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
 			* glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f })
 			* glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 		
-		DrawQuad(transform, subTexture, tilingFactor, color);
+		DrawQuad(transform, subTexture, tilingFactor, color, GID);
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, int GID)
 	{
 		// out 
 		if (s_quad_data.QuadIndexCount >= QuadData::MaxIndices)
 		{
-			StartNewBatch();
+			NextBatch();
 		}
 
 		constexpr glm::vec2 texcoord[] = {
@@ -297,6 +323,7 @@ namespace Tomato {
 			s_quad_data.QuadVertexBufferPtr->Texcoord = texcoord[i];
 			s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
 			s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+			s_quad_data.QuadVertexBufferPtr->GID = GID;
 			s_quad_data.QuadVertexBufferPtr++;
 		}
 
@@ -308,14 +335,8 @@ namespace Tomato {
 #endif // DEBUG
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color, int GID)
 	{
-
-		if (s_quad_data.QuadIndexCount >= QuadData::MaxIndices)
-		{
-			StartNewBatch();
-		}
-
 		glm::vec2 texcoord[] = {
 			{ 0.0f, 0.0f },
 			{ 1.0f, 0.0f },
@@ -324,6 +345,12 @@ namespace Tomato {
 		};
 
 		float textureIndex = 0.0f;
+		constexpr uint32_t QuadVertexCount = 4;
+
+		if (s_quad_data.QuadIndexCount >= QuadData::MaxIndices)
+		{
+			NextBatch();
+		}
 
 		for (uint32_t i = 1; i < s_quad_data.TextureSlotIndex; i++)
 		{
@@ -336,12 +363,16 @@ namespace Tomato {
 
 		if (textureIndex == 0.0f)
 		{
+			if (s_quad_data.QuadIndexCount >= QuadData::MaxIndices)
+			{
+				NextBatch();
+			}
 			textureIndex = (float)s_quad_data.TextureSlotIndex;
 			s_quad_data.TextureSlots[s_quad_data.TextureSlotIndex] = texture;
 			s_quad_data.TextureSlotIndex++;
 		}
 
-		constexpr uint32_t QuadVertexCount = 4;
+		
 		for (int i = 0; i < QuadVertexCount; i++)
 		{
 			s_quad_data.QuadVertexBufferPtr->Position = transform * s_quad_data.QuadVertexPosition[i];
@@ -349,6 +380,7 @@ namespace Tomato {
 			s_quad_data.QuadVertexBufferPtr->Texcoord = texcoord[i];
 			s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
 			s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+			s_quad_data.QuadVertexBufferPtr->GID = GID;
 			s_quad_data.QuadVertexBufferPtr++;
 		}
 
@@ -359,7 +391,7 @@ namespace Tomato {
 #endif // DEBUG
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color,int GID)
 	{
 
 		if (s_quad_data.QuadIndexCount >= QuadData::MaxIndices)
@@ -397,6 +429,7 @@ namespace Tomato {
 			s_quad_data.QuadVertexBufferPtr->Texcoord = texcoord[i];
 			s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
 			s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+			s_quad_data.QuadVertexBufferPtr->GID = GID;
 			s_quad_data.QuadVertexBufferPtr++;
 		}
 
@@ -406,6 +439,11 @@ namespace Tomato {
 #ifdef DEBUG
 		++s_quad_data.Stats.QuadCount;
 #endif // DEBUG
+	}
+
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const SpriteComponent& cc, int GID )
+	{
+		DrawQuad(transform, cc.Color, GID);
 	}
 
 #ifdef DEBUG

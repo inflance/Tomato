@@ -20,7 +20,7 @@
 #include "Platform/OpenGL/OpenGLShader.h"
 // renderer
 
-#include "Scene/GameObject.h"
+#include "Scene/Entity.h"
 #include "Scene/Scene.h"
 #include "Scene/Components.h"
 

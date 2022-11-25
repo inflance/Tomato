@@ -35,8 +35,8 @@ target_link_libraries(${PROJECT_NAME}
 target_include_directories(
 	${PROJECT_NAME}
 	PUBLIC ${ENGINE_DIR}/
-	PUBLIC ${ENTT_DIR}/single_include/
-	PUBLIC ${ENTT_DIR}/include/
+	PUBLIC ${ENTT_DIR}/single_include
+	PUBLIC ${ENTT_DIR}/src
 	PUBLIC ${JSON_DIR}/single_include
 	PUBLIC ${IMGUIZMO_DIR}
 )

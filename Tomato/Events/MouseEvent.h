@@ -20,8 +20,8 @@ namespace Tomato {
 			return ss.str();
 		}
 
-		EVENT_CLASS_TYPE(MouseMoved)
-			EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
+		EVENT_CLASS_TYPE(MouseMoved);
+		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput);
 	private:
 		float m_mouse_x, m_mouse_y;
 	};
@@ -53,7 +53,7 @@ namespace Tomato {
 	public:
 		int getMouseButton() const { return m_button; }
 
-		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput | EventCategoryMouseButton)
+		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput | EventCategoryMouseButton);
 	protected:
 		MouseButtOnEvent(const int button)
 			: m_button(button) {}
@@ -74,7 +74,7 @@ namespace Tomato {
 			return ss.str();
 		}
 
-		EVENT_CLASS_TYPE(MouseButtonPressed)
+		EVENT_CLASS_TYPE(MouseButtonPressed);
 	};
 
 	class MouseButtonReleasedEvent : public MouseButtOnEvent
@@ -90,7 +90,7 @@ namespace Tomato {
 			return ss.str();
 		}
 
-		EVENT_CLASS_TYPE(MouseButtonReleased)
+		EVENT_CLASS_TYPE(MouseButtonReleased);
 	};
 
 }

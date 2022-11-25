@@ -2,7 +2,7 @@
 
 #include "Tomato/Scene/Scene.h"
 
-#include "Tomato/Scene/GameObject.h"
+#include "Tomato/Scene/Entity.h"
 
 #include <glm/glm.hpp>
 #include "Tomato/Renderer/Texture.h"
@@ -21,23 +21,25 @@ namespace Tomato{
 
 		void SetContex(const std::shared_ptr<Scene>& context);
 
-		void DrawScenePanel(GameObject GO);
-		void DrewDetailPanel(GameObject GO);
+		void DrawScenePanel(Entity entity);
+		void DrewDetailPanel(Entity entity);
 
 		template<typename T, typename Func>
-		void DrawComponents(const std::string& name, GameObject GO, Func uiFunction);
+		void DrawComponents(const std::string& name, Entity entity, Func uiFunction);
 
 		void DrawVector3(const std::string& label, glm::vec3& values, float speed = 0.1f,const glm::vec3& defaltValue = glm::vec3(0.0f));
 
-		GameObject GetSelectedGO() const { return m_SelectedGO; }
+		Entity GetSelectedEntity() const { return m_selectedEntity; }
+
+		void SetSelectedEntity(Entity entity) { m_selectedEntity = entity; }
 
 	private:
 		glm::vec3 dPosition{0.0f};
 		glm::vec3 dScale{1.0f};
 		glm::vec3 dRotation{0.0f};
 
-		std::shared_ptr<Scene> m_Context;
-		GameObject m_SelectedGO;
+		std::shared_ptr<Scene> m_context;
+		Entity m_selectedEntity;
 		bool m_isFirst = true;
 
 		std::shared_ptr<Texture2D> m_moreBtn;

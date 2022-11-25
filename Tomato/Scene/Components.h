@@ -9,7 +9,7 @@
 
 #include "SceneCamera.h"
 #include "Tomato/EditorCamera.h"
-#include "ScriptableGO.h"
+#include "ScriptableEntity.h"
 
 namespace Tomato {
 
@@ -66,31 +66,37 @@ namespace Tomato {
 		NameComponent(const NameComponent& other) = default;
 	};
 
-	struct ColorComponent : ComponentBase
+	struct SpriteComponent : ComponentBase
 	{
 		glm::vec4 Color{1.0f};
 
-		ColorComponent() = default;
-		ColorComponent(const glm::vec4& color)
+		SpriteComponent() = default;
+		SpriteComponent(const glm::vec4& color)
 			:Color(color)
 		{
 		}
-		ColorComponent(const ColorComponent& other) = default;
+		SpriteComponent(const SpriteComponent& other) = default;
 	};
 
 	struct NativeScriptComponent
 	{
-		ScriptableGO* Instance = nullptr;
+		ScriptableEntity* Instance = nullptr;
 
-		ScriptableGO* (*InstantiateScript)();
+		ScriptableEntity* (*InstantiateScript)();
 		void (*DestroyScript)(NativeScriptComponent*);
 
 		template<typename T>
 		void Bind()
 		{
-			InstantiateScript = []() { return static_cast<ScriptableGO*>(new T()); };
+			InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
 			DestroyScript = [](NativeScriptComponent* nativeScriptComponent) { delete nativeScriptComponent->Instance; nativeScriptComponent->Instance = nullptr; };
 		}
 	};
+
+	struct LightComponent {
+
+	};
+
+
 
 }

@@ -21,6 +21,8 @@ namespace Tomato {
 		virtual void OnEvent(Event& event) override;
 		virtual void OnImGuiRender() override;
 
+		void SetDarkModeColor();
+
 		void Begin();
 		void End();
 
