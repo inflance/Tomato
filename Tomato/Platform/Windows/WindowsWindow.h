@@ -1,13 +1,12 @@
 #pragma once
 
-#include "Tomato/Window.h"
-#include "Tomato/LogSystem.h"
+#include "Tomato/Core/Window.h"
 #include "Tomato/Renderer/GraphicsContext.h"
 
-#include <GLFW/glfw3.h>
+struct GLFWwindow;
 
 namespace Tomato{
-
+	
 	class WindowsWindow : public Window
 	{
 	public:
@@ -26,9 +25,9 @@ namespace Tomato{
 
 	private:
 		GLFWwindow* m_window;
-		GraphicsContext* m_context;
+		std::shared_ptr<GraphicsContext> m_context;
 
-		struct  WindowData
+		struct WindowData
 		{
 			std::string Title;
 			unsigned int Width, Height;

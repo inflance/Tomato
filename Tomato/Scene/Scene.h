@@ -3,8 +3,7 @@
 #include <string>
 #include <entt/entt.hpp>
 
-#include "Tomato/TimeSpan.h"
-#include "Tomato/EditorCamera.h"
+#include "Tomato/Function/Camera/EditorCamera.h"
 
 namespace Tomato {
 
@@ -20,10 +19,12 @@ namespace Tomato {
 		virtual ~Scene() = default;
 		
 		Entity CreateEntity(const std::string& name = std::string());
+		Entity CreateSprite(const std::string& name = std::string());
+		Entity CreateCamera(const std::string& name = std::string());
 
 		void TickEditor(float deltaTime, const EditorCamera& camera);
 
-		void Tick(TimeSpan ts);
+		void Tick(float deltaTime);
 
 		void SetViewPortResize(float width, float height);
 

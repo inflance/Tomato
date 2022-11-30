@@ -1,14 +1,13 @@
 #include "windowsWindow.h"
 
-#include "Tomato/Core.h"
+#include <GLFW/glfw3.h>
 
+#include "Tomato/Core/Core.h"
 #include "Tomato/Events/Event.h"
 #include "Tomato/Events/ApplicationEvent.h"
 #include "Tomato/Events/KeyEvent.h"
 #include "Tomato/Events/MouseEvent.h"
-
 #include "Tomato/Platform/OpenGL/OpenGLContext.h"
-
 
 namespace Tomato {
 
@@ -31,10 +30,8 @@ namespace Tomato {
 
 	void WindowsWindow::Tick()
 	{
-
 		glfwPollEvents();
 		m_context->SwapBuffers();
-		
 	}
 
 	void WindowsWindow::SetVSync(bool enabled)
@@ -63,20 +60,19 @@ namespace Tomato {
 		m_window_data.Width = props.Width;
 		m_window_data.Height = props.Height;
 
-		
-
 		if (s_glfw_window_count == 0) {
 			int success = glfwInit();
 			LOG_ASSERT(success, "Could not initialize GLFW!");
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_SAMPLES, 16);
 			glfwSetErrorCallback(glfwErrorCallback);
 
 			++s_glfw_window_count;
 		}
 		m_window = glfwCreateWindow((int)props.Width, (int)props.Height, props.Title.c_str(), NULL, NULL);
-		m_context = new OpenGLContext(m_window);
+		m_context = GraphicsContext::Create(m_window);
 		m_context->Init();
 
 		
@@ -130,7 +126,8 @@ namespace Tomato {
 				data.EventCallback(event);
 			});
 
-		glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods) {
+		glfwSetMouseButtonCallback(m_window, 
+		[](GLFWwindow* window, int button, int action, int mods) {
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
 			switch (action)
@@ -147,23 +144,25 @@ namespace Tomato {
 			}
 			}
 
-			});
+		});
 
-		glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xOffset, double yOffset) {
+		glfwSetScrollCallback(m_window, 
+		[](GLFWwindow* window, double xOffset, double yOffset) {
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
 			MouseScrolledEvent event((float)xOffset, (float)yOffset);
 			data.EventCallback(event);
 
-			});
+		});
 
-		glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xPos, double yPos) {
+		glfwSetCursorPosCallback(m_window, 
+		[](GLFWwindow* window, double xPos, double yPos) {
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
 			MouseMovedEvent event((float)xPos, (float)yPos);
 			data.EventCallback(event);
 
-			});
+		});
 
 		
 

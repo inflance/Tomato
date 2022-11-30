@@ -1,18 +1,17 @@
 #include "OpenGLTexture.h"
 
-#include "Tomato/Core.h"
-#include "stb_image.h"
+#include <stb_image.h>
+
+#include "Tomato/Core/Core.h"
 
 namespace Tomato {
 	
-
 	OpenGLTexture::OpenGLTexture(uint32_t width, uint32_t height)
 		:m_width(width), m_height(height)
 	{
-
 		m_internalformat = GL_RGBA8;
 		m_format = GL_RGBA;
-		LOG_ASSERT(m_internalformat & m_format, "格式不被支持");
+		LOG_ASSERT(m_internalformat && m_format, "格式不被支持");
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_renderer_id);
 		glTextureStorage2D(m_renderer_id, 1, m_internalformat, m_width, m_height);
@@ -51,7 +50,7 @@ namespace Tomato {
 		m_internalformat = internalformat;
 		m_format = format;
 
-		LOG_ASSERT(internalformat & format, "格式不被支持");
+		LOG_ASSERT(internalformat && format, "格式不被支持");
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_renderer_id);
 		glTextureStorage2D(m_renderer_id, 1, m_internalformat, m_width, m_height);

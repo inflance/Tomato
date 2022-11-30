@@ -23,6 +23,6 @@ namespace Tomato {
 			s_renderer_api->DrawIndexed(vertexArray, count);
 		}
 	private:
-		static RendererAPI* s_renderer_api;
+		static std::shared_ptr<RendererAPI> s_renderer_api;
 	};
 }

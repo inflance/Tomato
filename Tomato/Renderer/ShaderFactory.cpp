@@ -1,12 +1,8 @@
-#include "Tomato/tmtpch.h"
-
-#include "Tomato/Core.h"
-
 #include "ShaderFactory.h"
 
+#include "Tomato/Core/Core.h"
 
 namespace Tomato {
-
 
 	void ShaderFactory::Add(const std::string& name, const std::shared_ptr<Shader>& shader)
 	{

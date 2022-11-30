@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Tomato/Renderer/IFrameBuffer.h"
+#include "Tomato/Renderer/FrameBuffer.h"
 
 namespace Tomato {
 
 	using GLenum = uint32_t;
 
-	class OpenGLFrameBuffer : public IFrameBuffer
+	class OpenGLFrameBuffer : public FrameBuffer
 	{
 	public:
 		OpenGLFrameBuffer(const FrameBufferProps& props);

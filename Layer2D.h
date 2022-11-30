@@ -9,11 +9,11 @@ public:
 	Layer2D();
 	virtual ~Layer2D() = default;
 
-	virtual void OnAttach() override;
-	virtual void OnDetach() override;
+	virtual void OnCreate() override;
+	virtual void OnDestroy() override;
 
-	virtual void Tick(Tomato::TimeSpan ts) override;
-	virtual void OnImGuiRender() override;
+	virtual void Tick(Tomato::float deltaTime) override;
+	virtual void OnImGuiRenderer() override;
 	virtual void OnEvent(Tomato::Event& event) override;
 
 private:
@@ -38,6 +38,5 @@ private:
 	float m_timeSpan;
 	uint32_t m_count = 0;
 
-	//Tomato::ParticleSystem m_particleSystem;
-	Tomato::ParticleProps m_particle;
+	//Tomato::ParticleProps m_particle;
 };

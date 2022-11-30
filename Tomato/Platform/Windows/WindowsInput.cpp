@@ -1,7 +1,8 @@
-#include "Tomato/Input.h"
-#include "Tomato/Engine.h"
+#include "Tomato/Input/Input.h"
 
 #include <glfw/glfw3.h>
+
+#include "Tomato/Core/Engine.h"
 
 namespace Tomato {
 

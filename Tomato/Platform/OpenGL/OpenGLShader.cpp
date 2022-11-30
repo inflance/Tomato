@@ -1,14 +1,12 @@
-#pragma once
-#include "Tomato/tmtpch.h"
 #include "OpenGLShader.h"
-#include "Tomato/Core.h"
 
 #include <fstream>
 #include <sstream>
-#include <iostream>
 
 #include <glm/gtc/type_ptr.hpp>
-#include "glad/glad.h"
+#include <glad/glad.h>
+
+#include "Tomato/Core/Core.h"
 
 namespace Tomato {
 
@@ -30,7 +28,6 @@ namespace Tomato {
 	{
 		m_name = GetFileName(filePath);
 		std::string shaderStr = ReadFile(filePath);
-		//LOG_ASSERT("{0}", res);
 		auto shaderSource = Preprocess(shaderStr);
 		Compile(shaderSource);
 	}
@@ -64,18 +61,13 @@ namespace Tomato {
 		}
 		catch (std::ifstream::failure& e)
 		{
-			std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+			LogSystem::ConsoleLog("ERROR::ShaderÎÄ¼þ¶ÁÈ¡´íÎó", LogType::Error);
 		}
-
-
 		std::unordered_map<GLenum, std::string> source;
 		source[GL_VERTEX_SHADER] = vertexCode;
 		source[GL_FRAGMENT_SHADER] = fragmentCode;
-
 		Compile(source);
 	}
-
-	
 
 	void OpenGLShader::Bind() const
 	{

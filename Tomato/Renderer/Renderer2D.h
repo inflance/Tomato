@@ -1,12 +1,14 @@
 #pragma once
 
-#include "OrthographicCamera.h"
-#include "Tomato/Renderer/Texture.h"
-#include "Tomato/SubTexture2D.h"
-#include "Tomato/Camera.h"
-#include "Tomato/EditorCamera.h"
-#include "Tomato/Scene/Components.h"
 #define DEBUG
+
+#include "OrthographicCamera.h"
+
+#include "Tomato/Scene/Components.h"
+#include "Tomato/Function/Camera/Camera.h"
+#include "Tomato/Function/Camera/EditorCamera.h"
+#include "Tomato/Renderer/Texture.h"
+#include "Tomato/Renderer/SubTexture2D.h"
 
 namespace Tomato {
 
@@ -31,29 +33,18 @@ namespace Tomato {
 		static void DrawQuad(const glm::mat4& transform, const std::shared_ptr<Texture2D> texture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
 		static void DrawQuad(const glm::mat4& transform, const std::shared_ptr<SubTexture2D> subtexture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
 
-		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subtexture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, const std::shared_ptr<SubTexture2D> subtexture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-
-
-		static void DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const std::shared_ptr<Texture2D> texture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::vec2& position, const float rotation, const glm::vec2& size, const std::shared_ptr<SubTexture2D> texture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::vec3& position, const float rotation, const glm::vec2& size, const std::shared_ptr<SubTexture2D> texture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-	
-	
 #ifdef DEBUG
+		//
 		struct Statistics
 		{
+			//渲染调用的批次
 			uint32_t DrawCalls = 0;
+			//矩形个数
 			uint32_t QuadCount = 0;
 
+			//顶点总数
 			uint32_t GetTotalVetexCount() { return QuadCount * 4; }
+			//索引总数
 			uint32_t GetTotalIndexCount() { return QuadCount * 6; }
 		};
 

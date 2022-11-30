@@ -1,12 +1,11 @@
 #include "Renderer.h"
 
-#include "Tomato/Platform/OpenGL/OpenGLShader.h"
-
 #include "Renderer2D.h"
+#include "Tomato/Platform/OpenGL/OpenGLShader.h"
 
 namespace Tomato {
 
-	Renderer::SceneData* Renderer::m_scene_data = new Renderer::SceneData;
+	std::shared_ptr<Renderer::SceneData> Renderer::m_scene_data = std::make_shared<Renderer::SceneData>();
 
 	//设置相机，视角
 	void Renderer::BeginScene(OrthographicCamera& camera)
@@ -33,6 +32,7 @@ namespace Tomato {
 		std::dynamic_pointer_cast<Tomato::OpenGLShader>(shader)->SetMat4("m_viewProjection", m_scene_data->ViewProjection);
 		//设置变换矩阵
 		std::dynamic_pointer_cast<Tomato::OpenGLShader>(shader)->SetMat4("m_transform", transform);
+
 		vertexArray->Bind();
 		RendererCommand::DrawIndexed(vertexArray);
 	}

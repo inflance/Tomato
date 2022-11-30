@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Tomato/Camera.h"
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "Tomato/Function/Camera/Camera.h"
 
 namespace Tomato {
 

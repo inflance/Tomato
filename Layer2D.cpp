@@ -12,21 +12,13 @@ Layer2D::Layer2D()
 
 }
 
-void Layer2D::OnAttach()
+void Layer2D::OnCreate()
 {
 	m_texture = Tomato::Texture2D::Create("C:/Users/liyunlo2000/source/repos/Tomato/Tomato/Precompile/Image/DefaultTexture.png");
 	m_texture1 = Tomato::Texture2D::Create("C:/Users/liyunlo2000/source/repos/Tomato/Tomato/Precompile/Image/tilemap_packed.png");
 	m_subtexture = Tomato::SubTexture2D::CreateSubtexture(m_texture1, { 0.0f, 0.0f }, { 73.0f, 73.0f }, { 1.0f, 0.71f });
-	//m_square_shader = Tomato::Shader::Create("D:/Dev/cmake/Tomato/Tomato/precompile/square.vert", "D:/Dev/cmake/Tomato/Tomato/precompile/square.frag");
-	// Init here
-	/*m_particle.ColorBegin = { 254 / 255.0f, 212 / 255.0f, 123 / 255.0f, 1.0f };
-	m_particle.ColorEnd = { 254 / 255.0f, 109 / 255.0f, 41 / 255.0f, 1.0f };
-	m_particle.SizeBegin = 0.5f, m_particle.SizeVariation = 0.3f, m_particle.SizeEnd = 0.0f;
-	m_particle.LifeTime = 2.0f;
-	m_particle.Velocity = { 0.0f, 0.0f };
-	m_particle.VelocityVariation = { 3.0f, 1.0f };
-	m_particle.Position = { 0.0f, 0.0f };*/
 
+    //Init FramBuffer
     Tomato::FrameBufferProps fb_props;
     fb_props.Height = 800;
     fb_props.Width = 1600;
@@ -34,16 +26,13 @@ void Layer2D::OnAttach()
     m_frameBuffer = Tomato::IFrameBuffer::Create(fb_props);
 }
 
-void Layer2D::OnDetach()
+void Layer2D::OnDestroy()
 {
 
 }
 
 void Layer2D::Tick(Tomato::TimeSpan ts)
 {
-
-	//Tomato::Timer timer("layer2D::Tick");
-	
     if(m_viewPortFocused)
 	    m_cameraControler.Tick(ts);
 
@@ -101,7 +90,7 @@ void Layer2D::Tick(Tomato::TimeSpan ts)
 
 }
 
-void Layer2D::OnImGuiRender()
+void Layer2D::OnImGuiRenderer()
 {
 
     bool open = true;

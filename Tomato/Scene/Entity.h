@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Tomato/Core.h"
-#include "Scene.h"
-
 #include <entt/entt.hpp>
+
+#include "Scene.h"
+#include "Tomato/Core/Core.h"
 
 namespace Tomato {
 

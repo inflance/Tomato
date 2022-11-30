@@ -1,10 +1,9 @@
 #pragma once
 
-#include "Tomato/Scene/Scene.h"
+#include <glm/glm.hpp>
 
 #include "Tomato/Scene/Entity.h"
-
-#include <glm/glm.hpp>
+#include "Tomato/Scene/Scene.h"
 #include "Tomato/Renderer/Texture.h"
 
 namespace Tomato{
@@ -31,7 +30,9 @@ namespace Tomato{
 
 		Entity GetSelectedEntity() const { return m_selectedEntity; }
 
-		void SetSelectedEntity(Entity entity) { m_selectedEntity = entity; }
+		void SetSelectedEntity(Entity entity) {
+			m_selectedEntity = entity; LOG_INFO("Selected Entity:{0}", (uint32_t)entity);
+		}
 
 	private:
 		glm::vec3 dPosition{0.0f};
@@ -43,6 +44,7 @@ namespace Tomato{
 		bool m_isFirst = true;
 
 		std::shared_ptr<Texture2D> m_moreBtn;
+		std::shared_ptr<Texture2D> m_default_texture;
 	};
 
 	

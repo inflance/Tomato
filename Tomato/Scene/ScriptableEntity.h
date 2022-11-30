@@ -2,7 +2,6 @@
 
 #include "Entity.h"
 #include "Scene.h"
-#include "Tomato/TimeSpan.h"
 
 namespace Tomato{
 
@@ -20,7 +19,7 @@ namespace Tomato{
 		
 	protected:
 		virtual void OnCreate() {};
-		virtual void Tick(TimeSpan ts) {
+		virtual void Tick(float deltaTime) {
 			std::cout << "123" << std::endl;
 		};
 		virtual void OnDestroy(){};

@@ -1,14 +1,16 @@
 #include "ImGuiLayer.h"
 
-#include <glfw/glfw3.h>
 #include <imgui.h>
+#include <glfw/glfw3.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <ImGuizmo.h>
 
+#include "Tomato/Core/Engine.h"
+
 namespace Tomato {
 
-	void ImGuiLayer::OnAttach()
+	void ImGuiLayer::OnCreate()
 	{
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
@@ -24,7 +26,7 @@ namespace Tomato {
 
 		float fontSize = 18.0f;// *2.0f;
 		//io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Bold.ttf", fontSize);
-		io.FontDefault = io.Fonts->AddFontFromFileTTF( "C:/Users/liyun/source/repos/Tomato/Tomato/Precompile/fonts/Myriad-Pro_31655.ttf", fontSize);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF( "C:/Users/liyun/source/repos/Tomato/Precompile/Assets/Fonts/Myriad-Pro_31655.ttf", fontSize);
 		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
 		SetDarkModeColor();
@@ -45,11 +47,9 @@ namespace Tomato {
 		// Setup Platform/Renderer bindings
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui_ImplOpenGL3_Init("#version 330");
-
-	
 	}
 
-	void ImGuiLayer::OnDetach()
+	void ImGuiLayer::OnDestroy()
 	{
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
@@ -66,15 +66,9 @@ namespace Tomato {
 		}
 	}
 
-	void ImGuiLayer::OnImGuiRender()
+	void ImGuiLayer::OnImGuiRenderer()
 	{
-		//Begin();
-		/*bool show_demo_window = true;
-		bool show_another_window = false;
-		ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-		if (show_demo_window)
-			ImGui::ShowDemoWindow(&show_demo_window);*/
-		//End();
+		
 	}
 
 
@@ -96,7 +90,7 @@ namespace Tomato {
 		colors[ImGuiCol_SliderGrab] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
 		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.99f, 0.99f, 0.99f, 1.0f);
 
-		colors[ImGuiCol_Tab] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+		colors[ImGuiCol_Tab] = ImVec4(0.17f, 0.17f, 0.17f, 1.0f);
 		colors[ImGuiCol_TabActive] = ImVec4(0.42f, 0.42f, 0.42f, 1.0f);
 		colors[ImGuiCol_TabHovered] = ImVec4(0.45f, 0.45f, 0.45f, 1.0f);
 		colors[ImGuiCol_TabUnfocused] = ImVec4(0.17f, 0.17f, 0.17f, 1.0f);
@@ -114,6 +108,9 @@ namespace Tomato {
 		colors[ImGuiCol_FrameBg] = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
 		colors[ImGuiCol_FrameBgActive] = ImVec4(0.55f, 0.55f, 0.55f, 1.0f);
 		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.7f, 0.7f, 0.7f, 1.0f);
+
+		auto& position = ImGui::GetStyle().WindowMenuButtonPosition;
+		position += 1;
 	}
 
 	void ImGuiLayer::Begin()

@@ -1,14 +1,19 @@
+#include "ScenePanel.h"
+
+#include <filesystem>
+
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "ScenePanel.h"
 #include "Tomato/Scene/Components.h"
 #include "Tomato/Renderer/Texture.h"
 #include "Tomato/Platform/OpenGL/OpenGLTexture.h"
-
+#include "AssetPanel.h"
 
 namespace Tomato {
+
+	const std::filesystem::path g_asset_path = "PreCompile/Assets";
 
 	ScenePanel::ScenePanel(const std::shared_ptr<Scene>& context)
 	{
@@ -39,7 +44,6 @@ namespace Tomato {
 				Entity Entity = { entity, m_context.get() };
 				
 				DrawScenePanel(Entity);
-			
 			}
 		);
 		
@@ -47,21 +51,20 @@ namespace Tomato {
 		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 8.0f);
 		if (ImGui::BeginPopupContextWindow(0, 1, true))
 		{
-			if (!m_selectedEntity) {
-				if (ImGui::MenuItem("Create Empty Entity"))
-				{
-					m_context->CreateEntity("Empty Entity");
-
-				}
+			if (ImGui::MenuItem("Create Empty Entity"))
+			{
+				m_context->CreateEntity("Empty Entity");
 			}
-			
+			if (ImGui::MenuItem("Create Sprite"))
+			{
+				m_context->CreateSprite("Sprite");
+			}
+			if (ImGui::MenuItem("Create Camera"))
+			{
+				m_context->CreateCamera("Camera");
+			}
 			if (m_selectedEntity)
 			{
-				if (ImGui::MenuItem("Create Empty Entity"))
-				{
-					m_context->CreateEntity("Empty Entity");
-
-				}
 				if (ImGui::MenuItem("Delete Entity")) {
 					m_context->DestroyEntity(m_selectedEntity);
 					m_selectedEntity = {};
@@ -78,15 +81,14 @@ namespace Tomato {
 
 		//ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(40, 40));
 		ImGui::Begin("Detail");
+		int isSelectedEntityID = m_selectedEntity ? (uint32_t)m_selectedEntity : -1;
+		ImGui::Text("Current select entityID: %d", isSelectedEntityID);
 		if (m_selectedEntity)
 		{
 			DrewDetailPanel(m_selectedEntity);
 		}
 		ImGui::End();
 		//ImGui::PopStyleVar();
-		
-
-
 	}
 
 	template<typename T, typename Func>
@@ -99,13 +101,13 @@ namespace Tomato {
 			auto& component = Entity.GetComponent<T>();
 			ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 20, 8 });
-			float lineHeight = 20.0f;
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 20, 6 });
+			float lineHeight = 18.0f;
 			ImGui::Separator();
 			bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, name.c_str());
 			ImGui::PopStyleVar();
 
-			ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.6f);
+			ImGui::SameLine(contentRegionAvailable.x - lineHeight);
 
 			uint32_t id = m_moreBtn.get()->GetID();
 			if (ImGui::ImageButton((void*)id, ImVec2{ lineHeight, lineHeight }))
@@ -134,27 +136,29 @@ namespace Tomato {
 	}
 
 
-	void ScenePanel::DrawScenePanel(Entity Entity)
+	void ScenePanel::DrawScenePanel(Entity entity)
 	{
-		ImGuiTreeNodeFlags flags = ((Entity == m_selectedEntity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+		ImGui::PushID(entity);
+
+		ImGuiTreeNodeFlags flags = ((entity == m_selectedEntity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		
-		auto& name = m_context->m_Registry.get<NameComponent>(Entity).Name;
-		bool selected = Entity == m_selectedEntity;
+		auto& name = m_context->m_Registry.get<NameComponent>(entity).Name;
+		bool selected = entity == m_selectedEntity;
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize,5.0f);
 		ImGui::Selectable(name.c_str(), &selected, flags, { ImGui::GetContentRegionAvail().x, 28.0f});
 		ImGui::PopStyleVar();
+		ImGui::PopID();
 		if (ImGui::IsItemClicked())
 		{
-			m_selectedEntity = Entity;
-			
+			SetSelectedEntity(entity);
 		}
 	}
 
-	void ScenePanel::DrewDetailPanel(Entity Entity)
+	void ScenePanel::DrewDetailPanel(Entity entity)
 	{
-		if (Entity.HasComponent<NameComponent>())
+		if (entity.HasComponent<NameComponent>())
 		{
-			auto& name = m_context->m_Registry.get<NameComponent>(Entity).Name;
+			auto& name = m_context->m_Registry.get<NameComponent>(entity).Name;
 			char buffer[256];
 			memset(buffer, 0, sizeof(buffer));
 			strcpy_s(buffer, sizeof(buffer), name.c_str());
@@ -173,28 +177,58 @@ namespace Tomato {
 
 		if (ImGui::BeginPopup("+ AddComponent"))
 		{
-			if (ImGui::MenuItem("Camera"))
+			if (!m_selectedEntity.HasComponent<TransformComponent>())
 			{
-				if (!m_selectedEntity.HasComponent<CameraComponent>())
-					m_selectedEntity.AddComponent<CameraComponent>();
-				else
-					LOG_WARN("This entity already has the Camera Component!");
-				ImGui::CloseCurrentPopup();
-			}
+				if (ImGui::MenuItem("Transform"))
+				{
 
-			if (ImGui::MenuItem("Sprite"))
-			{
-				if (!m_selectedEntity.HasComponent<SpriteComponent>())
-					m_selectedEntity.AddComponent<SpriteComponent>();
-				else
-					LOG_WARN("This entity already has the Sprite Component!");
-				ImGui::CloseCurrentPopup();
+					m_selectedEntity.AddComponent<TransformComponent>();
+
+					ImGui::CloseCurrentPopup();
+				}
 			}
+			else
+				LOG_WARN("This entity already has the Sprite Component!");
+
+			if (!m_selectedEntity.HasComponent<SpriteComponent>())
+			{
+				if (ImGui::MenuItem("Sprite"))
+				{
+					m_selectedEntity.AddComponent<SpriteComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+			else
+				LOG_WARN("This entity already has the Sprite Component!");
+
+			if (!m_selectedEntity.HasComponent<CameraComponent>())
+			{
+				if (ImGui::MenuItem("Camera"))
+				{
+					m_selectedEntity.AddComponent<CameraComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+			else
+				LOG_WARN("This entity already has the Camera Component!");
+			
+			if (!m_selectedEntity.HasComponent<SpriteComponent>()) 
+			{
+				if (ImGui::MenuItem("Sprite"))
+				{
+
+					m_selectedEntity.AddComponent<SpriteComponent>();
+
+					ImGui::CloseCurrentPopup();
+				}
+			}
+			else
+				LOG_WARN("This entity already has the Sprite Component!");
 
 			ImGui::EndPopup();
 		}
 
-		DrawComponents<TransformComponent>("Transform", Entity,
+		DrawComponents<TransformComponent>("Transform", entity,
 			[&](auto& component){
 				auto& position = component.Position;
 				auto& scale = component.Scale;
@@ -207,14 +241,52 @@ namespace Tomato {
 				DrawVector3("Scale", scale, 0.1f, dScale);
 			});
 
-		DrawComponents<SpriteComponent>("Color", Entity,
-			[](auto& component) {
+		DrawComponents<SpriteComponent>("Sprite", entity,
+			[&](auto& component) {
 				auto& color = component.Color;
+				ImGui::Columns(2);
+				ImGui::SetColumnWidth(0,120.0f);
+				ImGui::Text("Color");
 
-				ImGui::ColorEdit4("Color", glm::value_ptr(color));
+				ImGui::NextColumn();
+				ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
+				ImGui::ColorEdit4("##Color", glm::value_ptr(color));
+				ImGui::PopItemWidth();
+				
+				ImGui::NextColumn();
+				ImGui::Text("Texture");
+
+				ImGui::NextColumn();
+				ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
+				if(component.Texture)
+					ImGui::ImageButton((void*)component.Texture->GetID(), {80, 80}, {0, 1}, {1, 0});
+				else
+					ImGui::ImageButton((void*)m_default_texture->GetID(), { 80, 80 } , { 0, 1 }, { 1, 0 });
+				ImGui::PopItemWidth();
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Assets_Panel"))
+					{
+						const wchar_t* path = (const wchar_t*)payload->Data;
+						std::filesystem::path texturePath = std::filesystem::path(g_asset_path) / path;
+						Ref<Texture2D> texture = Texture2D::Create(texturePath.string());
+						//if (texture->IsLoaded())
+						component.Texture = texture;
+						/*else
+							LOG_WARN("Could not load texture {0}", texturePath.filename().string());*/
+					}
+					ImGui::EndDragDropTarget();
+				}
+				ImGui::NextColumn();
+				ImGui::Text("Tiling Factor");
+				ImGui::NextColumn();
+				ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
+				ImGui::DragFloat("##Tiling Factor", &component.TilingFactor, 0.1f);
+				ImGui::PopItemWidth();
 			});
-
-		DrawComponents<CameraComponent>("Camera", Entity,
+		
+		DrawComponents<CameraComponent>("Camera", entity,
 			[](auto& component)
 			{
 				auto& cameraComponent = component;
@@ -276,7 +348,8 @@ namespace Tomato {
 
 	void ScenePanel::SetContex(const std::shared_ptr<Scene>& context)
 	{
-		m_moreBtn = Texture2D::Create("C:/Users/liyun/source/repos/Tomato/Tomato/Precompile/ImGuiImage/more.png");
+		m_moreBtn = Texture2D::Create("PreCompile/Assets/ImGuiImage/more.png");
+		m_default_texture = Texture2D::Create("PreCompile/Assets/Image/DefaultTexture.png");
 		m_context = context;
 		m_selectedEntity.Clear();
 		m_selectedEntity = {};
@@ -293,7 +366,7 @@ namespace Tomato {
 
 		ImGui::NextColumn();
 
-		ImGui::PushMultiItemsWidths(3, ImGui::GetColumnWidth()/2);
+		ImGui::PushMultiItemsWidths(3, (ImGui::GetColumnWidth()-50.0f)/2*1.3);
 
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 		ImVec2 buttonSize = { lineHeight-3 , lineHeight-3 };
@@ -339,7 +412,6 @@ namespace Tomato {
 		ImGui::PopStyleVar();
 
 		ImGui::PopID();
-
 	}
 
 }

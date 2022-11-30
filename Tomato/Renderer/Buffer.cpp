@@ -1,12 +1,10 @@
-#include "Tomato/Core.h"
-
 #include "Buffer.h"
-#include "Renderer.h"
 
+#include "Renderer.h"
+#include "Tomato/Core/Core.h"
 #include "Tomato/Platform/OpenGL/OpenGLBuffer.h"
 
 namespace Tomato {
-
 
 	Ref<VertexBuffer> VertexBuffer::Create(float* vertices, uint32_t size)
 	{
@@ -18,7 +16,7 @@ namespace Tomato {
 		case RendererAPI::API::Vulkan: return nullptr;
 		case RendererAPI::API::DirectX12: return nullptr;
 		}
-
+		LOG_ASSERT(false, "Unknown ShaderDataType!");
 		return nullptr;
 	}
 
@@ -31,7 +29,7 @@ namespace Tomato {
 		case RendererAPI::API::Vulkan: return nullptr;
 		case RendererAPI::API::DirectX12: return nullptr;
 		}
-
+		LOG_ASSERT(false, "Unknown ShaderDataType!");
 		return nullptr;
 	}
 

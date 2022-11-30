@@ -1,7 +1,8 @@
 #include "OpenGLVertexArray.h"
 
 #include <glad/glad.h>
-#include <Tomato/Macro.h>
+
+#include "Tomato/Core/Core.h"
 
 namespace Tomato {
 

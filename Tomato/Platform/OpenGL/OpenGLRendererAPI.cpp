@@ -1,13 +1,27 @@
 #include "OpenGLRendererAPI.h"
 
-#include "glad/glad.h"
-#include <Tomato/Macro.h>
+#include <glad/glad.h>
+
+#include "Tomato/Core/Core.h"
 
 namespace Tomato {
 
-
 	OpenGLRendererAPI::OpenGLRendererAPI()
 	{
+
+	}
+
+	void OpenGLRendererAPI::Init()
+	{
+		//启用混合
+		glEnable(GL_BLEND);
+		//启用混合函数
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//开启深度测试
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+
+		glEnable(GL_MULTISAMPLE);
 
 	}
 
@@ -32,16 +46,6 @@ namespace Tomato {
 		uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount() ;
 		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
 
-	}
-
-	void OpenGLRendererAPI::Init()
-	{
-		//启用混合
-		glEnable(GL_BLEND);
-		//启用混合函数
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		//开启深度测试
-		glEnable(GL_DEPTH_TEST);
 	}
 
 }

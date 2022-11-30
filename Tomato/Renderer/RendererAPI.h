@@ -27,7 +27,6 @@ namespace Tomato {
 		inline static API GetAPI() { return s_api; };
 	private:
 		static API s_api;
-
 	};
 
 }

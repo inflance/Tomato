@@ -2,16 +2,16 @@
 
 #include <imgui.h>
 #include <imgui_demo.cpp>
+#include <ImGuizmo.h>
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Tomato/Math.h"
-#include "Tomato/Timer.h"
+#include "Tomato/Core/Math.h"
+#include "Tomato/Core/File.h"
+#include "Tomato/Input/Input.h"
+#include "Tomato/Function/Timer.h"
 #include "Tomato/Scene/ScriptableEntity.h"
-#include "Tomato/IFile.h"
-#include "Tomato/KeyCode.h"
-#include <ImGuizmo.h>
 
 namespace Tomato{
 
@@ -21,10 +21,10 @@ namespace Tomato{
 
     }
 
-    void Editor::OnAttach()
+    void Editor::OnCreate()
     {
-        m_texture = Texture2D::Create("C:/Users/liyun/source/repos/Tomato/Tomato/Precompile/Image/DefaultTexture.png");
-        m_texture1 = Texture2D::Create("C:/Users/liyun/source/repos/Tomato/Tomato/Precompile/Image/tilemap_packed.png");
+        m_texture = Texture2D::Create("PreCompile/Assets/Image/DefaultTexture.png");
+        m_texture1 = Texture2D::Create("PreCompile/Assets/Image/tilemap_packed.png");
         m_subtexture = SubTexture2D::CreateSubtexture(m_texture1, { 0.0f, 0.0f }, { 73.0f, 73.0f }, { 1.0f, 0.71f });
 
         FrameBufferProps fb_props;
@@ -32,7 +32,7 @@ namespace Tomato{
         fb_props.Height = 800;
         fb_props.Width = 1600;
 
-        m_frameBuffer = IFrameBuffer::Create(fb_props);
+        m_frameBuffer = FrameBuffer::Create(fb_props);
 
         m_Scene = std::make_shared<Scene>();
 
@@ -57,20 +57,20 @@ namespace Tomato{
 #endif
         class CameraControllor : public ScriptableEntity
         {
-            void Tick(TimeSpan ts) override
+            void Tick(float deltaTime) override
             {
                 auto& position = GetComponent<TransformComponent>().Position;
 
                 float speed = 5.0f;
 
                 if (Input::IsKeyPressed(Key::A))
-                    position.x -= speed * ts;
+                    position.x -= speed * deltaTime;
                 if (Input::IsKeyPressed(Key::D))
-                    position.x += speed * ts;
+                    position.x += speed * deltaTime;
                 if (Input::IsKeyPressed(Key::W))
-                    position.y += speed * ts;
+                    position.y += speed * deltaTime;
                 if (Input::IsKeyPressed(Key::S))
-                    position.y -= speed * ts;
+                    position.y -= speed * deltaTime;
             }
         };
 
@@ -86,12 +86,12 @@ namespace Tomato{
         m_ScenePanel.SetContex(m_Scene);
     }
 
-    void Editor::OnDetach()
+    void Editor::OnDestroy()
     {
 
     }
 
-    void Editor::Tick(TimeSpan ts)
+    void Editor::Tick(float deltaTime)
     {
 
         /*if (m_viewPortFocused)
@@ -104,8 +104,8 @@ namespace Tomato{
         RendererCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
         RendererCommand::Clear();
         m_frameBuffer->ClearAttachment(1, -1);
-        m_editorCamera.Tick(ts);
-        m_Scene->TickEditor(ts, m_editorCamera);
+        m_editorCamera.Tick(deltaTime);
+        m_Scene->TickEditor(deltaTime, m_editorCamera);
         //m_Scene->Tick(ts);
 
 
@@ -122,7 +122,6 @@ namespace Tomato{
 		if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
 		{
 			int pixelData = m_frameBuffer->ReadPixel(1, mouseX, mouseY);
-			LOG_WARN(pixelData);
 			m_hoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_Scene.get());
 		}
 
@@ -130,7 +129,7 @@ namespace Tomato{
 
     }
 
-    void Editor::OnImGuiRender()
+    void Editor::OnImGuiRenderer()
     {
 
         bool open = true;
@@ -153,9 +152,14 @@ namespace Tomato{
             ImGui::SetNextWindowViewport(viewport->ID);
             ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 9.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 6.0f);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.5f, 14.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.5f, 5.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.5f, 12.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 6.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 7.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2( 0.00f ,0.5f));
             window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
             window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
         }
@@ -239,8 +243,6 @@ namespace Tomato{
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 2.0f));
             ImGui::Begin("ViewPort");
 
-
-			
             //set event block
             {
                 m_viewPortFocused = ImGui::IsWindowFocused();
@@ -329,32 +331,17 @@ namespace Tomato{
 
                 }
             }
-            
 
             ImGui::End();
             ImGui::PopStyleVar();
         }
-        {
-            ImGui::Begin("setting");
-      
-            auto& stats = Renderer2D::GetStats();
-            ImGui::Text("DrawCalls:%d ", stats.DrawCalls);
-            ImGui::Text("Quad: %d", stats.QuadCount);
-            ImGui::Text("TotalIndex: %d", stats.GetTotalIndexCount());
-            ImGui::Text("TotalVertex: %d", stats.GetTotalVetexCount());
-
-
-            ImGui::Text("fps: %u", TomatoEngine::GetInstance().GetFPS());
-
-
-            ImGui::Text("123");
-            m_ScenePanel.OnImGuiRenderer();
-            ImGui::End();
-        }
-
         ImGui::End();
-		if (opt_fullscreen)
-			ImGui::PopStyleVar(5);
+		m_ScenePanel.OnImGuiRenderer();
+		m_asset_panel.OnImGuiRenderer();
+	    ImGui::PopStyleVar(10);
+
+        DeBugInfoPanel();
+       
     }
 
     void Editor::OnEvent(Event& event)
@@ -376,7 +363,7 @@ namespace Tomato{
 
 	void Editor::OpenScene()
 	{
-        const std::string& filePath = Tomato::File::FileDiolog::OpenFile("Tomato Scene (*.json)\0*.json\0");
+        const std::string& filePath = Tomato::File::Diolog::OpenFile("Tomato Scene (*.json)\0*.json\0");
         if (!filePath.empty())
         {
             std::shared_ptr<Scene> newScene = std::make_shared<Scene>();
@@ -388,27 +375,30 @@ namespace Tomato{
                 m_Scene->SetViewPortResize(m_viewPortSize.x, m_viewPortSize.y);
                 m_ScenePanel.SetContex(m_Scene);
             }
+            else {
+				LogSystem::ConsoleLog("Failed To Open Scene", LogType::Error);
+            }
         }
 	}
 
 	void Editor::SaveSceneAs()
 	{
-        const std::string& filePath = Tomato::File::FileDiolog::SaveFile("Tomato Scene (*.json)\0*.json\0");
+        const std::string& filePath = Tomato::File::Diolog::SaveFile("Tomato Scene (*.json)\0*.json\0");
         if (!filePath.empty())
         {
             SceneSerializater m_SceneSerializater(m_Scene);
             if (m_SceneSerializater.Serialization(filePath))
             {
-               
-
+                LogSystem::ConsoleLog("Success To Save Scene", LogType::Info);
+            }
+            else {
+                LogSystem::ConsoleLog("Failed To Save Scene", LogType::Error);
             }
         }
 	}
 
 	bool Editor::OnKeyPressed(KeyPressedEvent& e)
 	{
-        LOG_INFO(e.ToString());
-
         bool ctrl = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
         bool alt = Input::IsKeyPressed(Key::LeftAlt) || Input::IsKeyPressed(Key::RightAlt);
         bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
@@ -472,15 +462,30 @@ namespace Tomato{
 
         switch (e.getMouseButton())
         {
-        case Mouse::ButtonRight:
-            m_editorMode = EditorMode::CameraMode;
-            break;
+            case Mouse::ButtonRight:
+                m_editorMode = EditorMode::CameraMode;
+                break;
 	
-		default:
-			m_editorMode = EditorMode::DefaultMode;
-			break;                                                                          
+		    default:
+			    m_editorMode = EditorMode::DefaultMode;
+			    break;                                                                          
         }
         return false;
+	}
+
+	void Editor::DeBugInfoPanel()
+	{
+		ImGui::Begin("setting");
+
+		auto& stats = Renderer2D::GetStats();
+		ImGui::Text("DrawCalls:%d ", stats.DrawCalls);
+		ImGui::Text("Quad: %d", stats.QuadCount);
+		ImGui::Text("TotalIndex: %d", stats.GetTotalIndexCount());
+		ImGui::Text("TotalVertex: %d", stats.GetTotalVetexCount());
+
+		ImGui::Text("fps: %u", TomatoEngine::GetInstance().GetFPS());
+
+		ImGui::End();
 	}
 
 	bool Editor::OnMouseButtonReleased(MouseButtonReleasedEvent& e)

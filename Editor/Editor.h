@@ -1,9 +1,10 @@
 #pragma once
 
-#include "Tomato/Tomato.h"
-#include "Tomato/ParticleSystem.h"
 #include "ScenePanel.h"
-#include "Tomato/Scene/SceneSerializater.h"
+#include "AssetPanel.h"
+
+#include "Tomato/Tomato.h"
+
 
 namespace Tomato{
 
@@ -19,39 +20,40 @@ namespace Tomato{
 		Editor();
 		virtual ~Editor() = default;
 
-		virtual void OnAttach() override;
-		virtual void OnDetach() override;
+		virtual void OnCreate() override;
+		virtual void OnDestroy() override;
 
-		virtual void Tick(TimeSpan ts) override;
-		virtual void OnImGuiRender() override;
+		virtual void Tick(float deltaTime) override;
+		virtual void OnImGuiRenderer() override;
 		virtual void OnEvent(Event& event) override;
-		bool OnKeyPressed(KeyPressedEvent& e);
 		
-		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
-		bool OnMouseButtonReleased(MouseButtonReleasedEvent& e);
 		void  CreateNewScene();
 		void  OpenScene();
 		void  SaveSceneAs();
+	private:
+		bool OnKeyPressed(KeyPressedEvent& e);
+		bool OnMouseButtonReleased(MouseButtonReleasedEvent& e);
+		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
-
+		void DeBugInfoPanel();
+	
 	private:
 		OrthgraphicCameraControler m_cameraControler;
 
 		std::shared_ptr<Shader> m_square_shader;
-		std::shared_ptr<VertexArray> m_square_vertex_array;
 		std::shared_ptr<Texture2D> m_texture;
 		std::shared_ptr<Texture2D> m_texture1;
 		std::shared_ptr<SubTexture2D> m_subtexture;
-		std::shared_ptr<IFrameBuffer> m_frameBuffer;
+		std::shared_ptr<FrameBuffer> m_frameBuffer;
 
 		std::shared_ptr<Scene> m_Scene;
+		Entity m_hoveredEntity;
 
 		EditorCamera m_editorCamera;
-
-		EditorMode m_editorMode;
+		EditorMode m_editorMode = EditorMode::DefaultMode;
 
 		ScenePanel m_ScenePanel;
-		Entity m_hoveredEntity;
+		AssetPanel m_asset_panel;
 
 		int m_zgmoMode = -1;
 
@@ -60,6 +62,7 @@ namespace Tomato{
 		glm::vec4 m_color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
 		glm::vec2 m_viewPortSize = glm::vec2(0);
+		glm::vec2 m_viewportBounds[2];
 
 		bool m_viewPortFocused = false;
 		bool m_viewPortHovered = false;
@@ -68,8 +71,5 @@ namespace Tomato{
 
 		float m_timeSpan;
 		uint32_t m_count = 0;
-		glm::vec2 m_viewportBounds[2];
-
-		ParticleProps m_particle;
 	};
 }

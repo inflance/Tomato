@@ -1,8 +1,5 @@
 #pragma once
 
-#include <string>
-#include <memory>
-
 namespace Tomato {
 
 	class Texture 
@@ -10,9 +7,9 @@ namespace Tomato {
 	public:
 		virtual ~Texture() = default;
 
+		virtual const std::string& GetPath() const = 0;
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
-
 		virtual uint32_t GetID() const = 0;
 
 		virtual void SetData(void* data, uint32_t size) = 0;

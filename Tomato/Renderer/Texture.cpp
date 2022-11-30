@@ -1,8 +1,7 @@
 #include "Texture.h"
 
-#include "Tomato/Core.h"
-
 #include "Renderer.h"
+#include "Tomato/Core/Core.h"
 #include "Tomato/Platform/OpenGL/OpenGLTexture.h"
 
 namespace Tomato {

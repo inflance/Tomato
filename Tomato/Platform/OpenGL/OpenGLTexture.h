@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Tomato/Renderer/Texture.h"
-
 #include <glad/glad.h>
 
+#include "Tomato/Renderer/Texture.h"
+
 namespace Tomato{
+
 	class OpenGLTexture : public Texture2D
 	{
 	public:
@@ -12,6 +13,7 @@ namespace Tomato{
 		OpenGLTexture(const std::string& path);
 		virtual ~OpenGLTexture();
 
+		virtual const std::string& GetPath() const override { return m_path; }
 		virtual uint32_t GetWidth() const override { return m_width; }
 		virtual uint32_t GetHeight() const override { return m_height; }
 		virtual uint32_t GetID() const override { return m_renderer_id; }

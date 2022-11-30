@@ -2,9 +2,6 @@
 
 #include "Buffer.h"
 
-#include <memory>
-
-
 class VertexBuffer;
 
 namespace Tomato {

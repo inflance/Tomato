@@ -1,8 +1,6 @@
 #pragma once
 
-#include "Tomato/Engine.h"
-#include "Tomato/LogSystem.h"
-#include "Tomato/Layer.h"
+#include "Tomato/Core/Layer.h"
 
 namespace Tomato {
 
@@ -11,20 +9,18 @@ namespace Tomato {
 	public:
 
 		ImGuiLayer()
-			: Layer("ImGuiLayer")
-		{
-		}
-		~ImGuiLayer(){};
+			: Layer("ImGuiLayer"){}
+		~ImGuiLayer() = default;
 
-		virtual void OnAttach() override;
-		virtual void OnDetach() override;
+		virtual void OnCreate() override;
+		virtual void OnDestroy() override;
 		virtual void OnEvent(Event& event) override;
-		virtual void OnImGuiRender() override;
-
-		void SetDarkModeColor();
-
+		virtual void OnImGuiRenderer() override;
+		
 		void Begin();
 		void End();
+		
+		void SetDarkModeColor();
 
 		void SetBlock(bool block) { m_block = block; }
 

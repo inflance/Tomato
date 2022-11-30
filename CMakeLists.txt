@@ -5,26 +5,28 @@ cmake_minimum_required (VERSION 3.8)
 
 project (TomatoEditor)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 add_executable(${PROJECT_NAME}  "Main.cpp" )
 
-set(ENGINE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(ENGINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
-set(GLFW_DIR ${ENGINE_DIR}/thirdparty/glfw)
-set(GLAD_DIR ${ENGINE_DIR}/thirdparty/glad)
-set(IMGUI_DIR ${ENGINE_DIR}/thirdparty/imgui)
-set(GLM_DIR ${ENGINE_DIR}/thirdparty/glm)
-set(STB_DIR ${ENGINE_DIR}/thirdparty/stb)
-set(ENTT_DIR ${ENGINE_DIR}/thirdparty/entt)
-set(JSON_DIR ${ENGINE_DIR}/thirdparty/json)
-set(IMGUIZMO_DIR ${ENGINE_DIR}/thirdparty/ImGuizmo)
+set(GLFW_DIR ${ENGINE_DIR}/ThirdParty/glfw)
+set(GLAD_DIR ${ENGINE_DIR}/ThirdParty/glad)
+set(IMGUI_DIR ${ENGINE_DIR}/ThirdParty/imgui)
+set(GLM_DIR ${ENGINE_DIR}/ThirdParty/glm)
+set(STB_DIR ${ENGINE_DIR}/ThirdParty/stb)
+set(ENTT_DIR ${ENGINE_DIR}/ThirdParty/entt)
+set(JSON_DIR ${ENGINE_DIR}/ThirdParty/json)
+set(IMGUIZMO_DIR ${ENGINE_DIR}/ThirdParty/ImGuizmo)
 
 add_definitions(-DTMT_PLATFORM_WINDOWS)
 
-
-
 add_subdirectory(Tomato)
 add_subdirectory(Editor)
-add_subdirectory(thirdparty)
+add_subdirectory(ThirdParty)
+add_subdirectory(PreCompile)
 
 target_include_directories(
 	${PROJECT_NAME}

@@ -1,7 +1,8 @@
+#include "SceneSerializater.h"
+
 #include <fstream>
 
 #include "Entity.h"
-#include "SceneSerializater.h"
 #include "Components.h"
 
 namespace nlohmann {
@@ -141,6 +142,8 @@ namespace Tomato {
 				{
 					auto& src = deserializedEntity.AddComponent<SpriteComponent>();
 					src.Color = spriteComponent["Color"].get<glm::vec4>();
+					src.Texture = Texture2D::Create(spriteComponent["TexturePath"].get<std::string>());
+					src.TilingFactor = spriteComponent["TilingFactor"].get<int>();
 				}
 
 			}
@@ -188,8 +191,13 @@ namespace Tomato {
 		}
 		if (entity.HasComponent<SpriteComponent>())
 		{
-			auto& color = entity.GetComponent<SpriteComponent>().Color;
+			auto& spriteComponent = entity.GetComponent<SpriteComponent>();
+			auto& color = spriteComponent.Color;
+			auto& texture = spriteComponent.Texture;
+			auto& tilingFactor = spriteComponent.TilingFactor;
 			js["Entity"]["SpriteComponent"]["Color"] = { color.r, color.g, color.b, color.a };
+			js["Entity"]["SpriteComponent"]["TexturePath"] = texture->GetPath();
+			js["Entity"]["SpriteComponent"]["TilingFactor"] = tilingFactor;
 		}
 		json = js;
 		

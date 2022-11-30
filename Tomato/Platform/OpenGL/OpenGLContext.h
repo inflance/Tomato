@@ -9,12 +9,13 @@ namespace Tomato {
 	class OpenGLContext : public GraphicsContext
 	{
 	public:
-		OpenGLContext(GLFWwindow* windowhandled);
+		OpenGLContext(GLFWwindow* windowHandle);
+		OpenGLContext(void* windowHandle);
 
 		virtual void Init() override;
 		virtual void SwapBuffers() override;
 
 	private:
-		GLFWwindow* m_window_handled;
+		GLFWwindow* m_window_handle;
 	};
 }

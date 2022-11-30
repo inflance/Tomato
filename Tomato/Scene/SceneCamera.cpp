@@ -1,4 +1,3 @@
-
 #include "SceneCamera.h"
 
 namespace Tomato {

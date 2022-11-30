@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Tomato/Renderer/Shader.h"
-#include <string>
-#include <unordered_map>
 #include <glm/glm.hpp>
+
+#include "Tomato/Renderer/Shader.h"
 
 typedef unsigned int GLenum;
 
@@ -37,6 +36,7 @@ namespace Tomato {
 	private:
 		//检查shader编译或者连接错误
 		void CheckCompileErrors(unsigned int shader, std::string type);
+		// 编译
 		void Compile(const std::unordered_map<GLenum, std::string>& shaderSource);
 		std::string ReadFile(const std::string& path);
 		std::unordered_map<GLenum, std::string> Preprocess(const std::string& source);

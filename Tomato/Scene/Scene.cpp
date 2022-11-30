@@ -1,8 +1,7 @@
-#include "Tomato/tmtpch.h"
-
 #include "Scene.h"
-#include "Components.h"
+
 #include "Entity.h"
+#include "Components.h"
 #include "Tomato/Renderer/Renderer2D.h"
 
 namespace Tomato {
@@ -17,6 +16,28 @@ namespace Tomato {
 		return entity;
 	}
 
+	Tomato::Entity Scene::CreateSprite(const std::string& name /*= std::string()*/)
+	{
+		Entity entity = { m_Registry.create(), this };
+		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<SpriteComponent>();
+		auto& tag = entity.AddComponent<NameComponent>();
+		tag.Name = name.empty() ? "Sprite" : name;
+
+		return entity;
+	}
+
+	Tomato::Entity Scene::CreateCamera(const std::string& name /*= std::string()*/)
+	{
+		Entity entity = { m_Registry.create(), this };
+		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<CameraComponent>();
+		auto& tag = entity.AddComponent<NameComponent>();
+		tag.Name = name.empty() ? "Camera" : name;
+		
+		return entity;
+	}
+
 	void Scene::TickEditor(float deltaTime, const EditorCamera& camera)
 	{
 
@@ -27,14 +48,14 @@ namespace Tomato {
 		{
 			auto& transformComponent = view.get<TransformComponent>(entity);
 			auto& spriteComponent = view.get<SpriteComponent>(entity);
-			LOG_ERROR(entity);
+
 			Renderer2D::DrawQuad(transformComponent.GetTransform(), spriteComponent, (int)entity);
 
 		}
 		Renderer2D::EndScene();
 	}
 
-	void Scene::Tick(TimeSpan ts)
+	void Scene::Tick(float deltaTime)
 	{
 
 		{
@@ -50,15 +71,12 @@ namespace Tomato {
 					nsc.Instance->OnCreate();
 				}
 
-				nsc.Instance->Tick(ts);
+				nsc.Instance->Tick(deltaTime);
 			}
 		}
 
-
-
 		Camera* mainCamera = nullptr;
 		glm::mat4 mainCameraTransform;
-
 		{
 			auto& view = m_Registry.view<TransformComponent, CameraComponent>();
 			for (auto entity : view)

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "RendererCommand.h"
 #include "Shader.h"
+#include "RendererCommand.h"
 #include "OrthographicCamera.h"
 
 namespace Tomato {
@@ -18,11 +18,10 @@ namespace Tomato {
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 
 	private:
-		//
 		struct SceneData {
 			glm::mat4 ViewProjection;
 		};
 
-		static SceneData* m_scene_data;
+		static std::shared_ptr<SceneData> m_scene_data;
 	};
 }
