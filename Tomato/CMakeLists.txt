@@ -29,6 +29,8 @@ target_link_libraries(${PROJECT_NAME}
 	PUBLIC EnTT
 	PUBLIC nlohmann_json
 	PUBLIC ImGuizmo
+	PUBLIC ${ASSIMP_BIN_DEBUG_DIR}/assimp-vc142-mtd.lib
+	PUBLIC ${ASSIMP_BIN_RELEASE_DIR}/assimp-vc142-mt.lib
 	opengl32
 )
 target_include_directories(
@@ -38,5 +40,6 @@ target_include_directories(
 	PUBLIC ${ENTT_DIR}/src
 	PUBLIC ${JSON_DIR}/single_include
 	PUBLIC ${IMGUIZMO_DIR}
+	PUBLIC ${ASSIMP_INCLUDE_DIR}
 )
 

@@ -4,6 +4,7 @@
 
 #include "Scene.h"
 #include "Tomato/Core/Core.h"
+#include "Tomato/Core/UUID.h"
 
 namespace Tomato {
 
@@ -15,6 +16,9 @@ namespace Tomato {
 
 		Entity(entt::entity handle, Scene* scene);
 		Entity(const Entity& other) = default;
+
+		void SetEntityID(UUID uuid){ m_EntityID = uuid;}
+		const UUID GetEntityID() const { return m_EntityID; };
 
 		template<typename T, typename... Args>
 		T& AddComponent(Args&&... args)
@@ -62,6 +66,8 @@ namespace Tomato {
 
 		void Clear();
 
+	private:
+		UUID m_EntityID;
 	protected:
 		entt::entity m_ObjectHandle{ entt::null };
 		Scene* m_Scene = nullptr;

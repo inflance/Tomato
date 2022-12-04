@@ -2,6 +2,7 @@
 
 #include "Entity.h"
 #include "Components.h"
+#include "Tomato/Renderer/Renderer.h"
 #include "Tomato/Renderer/Renderer2D.h"
 
 namespace Tomato {
@@ -38,21 +39,47 @@ namespace Tomato {
 		return entity;
 	}
 
-	void Scene::TickEditor(float deltaTime, const EditorCamera& camera)
+	Tomato::Entity Scene::CreateStaticMesh(const std::string& name /*= std::string()*/)
+	{
+		Entity entity = { m_Registry.create(), this };
+		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<StaticMeshComponent>();
+		auto& tag = entity.AddComponent<NameComponent>();
+		tag.Name = name.empty() ? "StaticMesh" : name;
+
+		entity.GetComponent<StaticMeshComponent>().StaticMesh.Load(uint32_t(entity));
+
+		return entity;
+	}
+
+	void Scene::TickEditor(float deltaTime, const EditorCamera& camera, const Ref<Shader>& shader)
 	{
 
-		Renderer2D::BeginScene(camera);
-		auto& view = m_Registry.view<TransformComponent, SpriteComponent>();
+		{
+			Renderer2D::BeginScene(camera);
+			auto& view = m_Registry.view<TransformComponent, SpriteComponent>();
+
+			for (auto& entity : view)
+			{
+				auto& transformComponent = view.get<TransformComponent>(entity);
+				auto& spriteComponent = view.get<SpriteComponent>(entity);
+
+				Renderer2D::DrawQuad(transformComponent.GetTransform(), spriteComponent, (int)entity);
+
+			}
+			Renderer2D::EndScene();
+		}
+		auto& view = m_Registry.view<TransformComponent, StaticMeshComponent>();
 
 		for (auto& entity : view)
 		{
 			auto& transformComponent = view.get<TransformComponent>(entity);
-			auto& spriteComponent = view.get<SpriteComponent>(entity);
+			auto& staticMeshComponent = view.get<StaticMeshComponent>(entity);
 
-			Renderer2D::DrawQuad(transformComponent.GetTransform(), spriteComponent, (int)entity);
+			Renderer::RenderBaseShape(staticMeshComponent.StaticMesh, shader, camera.GetViewProjection(), transformComponent.GetTransform());
 
 		}
-		Renderer2D::EndScene();
+		
 	}
 
 	void Scene::Tick(float deltaTime)

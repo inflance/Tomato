@@ -58,7 +58,7 @@ namespace Tomato {
 
 			FileIcon(filenameString.c_str(), selected, (ImTextureID)icon->GetID(), { m_icon_size, m_icon_size });
 
-			if (ImGui::BeginDragDropSource())
+			if (!directoryEntry.is_directory() && ImGui::BeginDragDropSource())
 			{
 				auto relativePath = std::filesystem::relative(path, g_asset_path);
 				const wchar_t* itemPath = relativePath.c_str();

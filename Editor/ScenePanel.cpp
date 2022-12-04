@@ -63,6 +63,10 @@ namespace Tomato {
 			{
 				m_context->CreateCamera("Camera");
 			}
+			if (ImGui::MenuItem("Create StaticMesh"))
+			{
+				m_context->CreateStaticMesh();
+			}
 			if (m_selectedEntity)
 			{
 				if (ImGui::MenuItem("Delete Entity")) {
@@ -212,18 +216,18 @@ namespace Tomato {
 			else
 				LOG_WARN("This entity already has the Camera Component!");
 			
-			if (!m_selectedEntity.HasComponent<SpriteComponent>()) 
+			if (!m_selectedEntity.HasComponent<StaticMeshComponent>()) 
 			{
-				if (ImGui::MenuItem("Sprite"))
+				if (ImGui::MenuItem("StaticMesh"))
 				{
 
-					m_selectedEntity.AddComponent<SpriteComponent>();
+					m_selectedEntity.AddComponent<StaticMeshComponent>();
 
 					ImGui::CloseCurrentPopup();
 				}
 			}
 			else
-				LOG_WARN("This entity already has the Sprite Component!");
+				LOG_WARN("This entity already has the StaticMesh Component!");
 
 			ImGui::EndPopup();
 		}
@@ -239,6 +243,20 @@ namespace Tomato {
 				component.Rotation = glm::radians(rotation);
 
 				DrawVector3("Scale", scale, 0.1f, dScale);
+			});
+
+		DrawComponents<StaticMeshComponent>("StaticMesh", entity,
+			[&](auto& component) {
+				auto& staticMesh = component.StaticMesh;
+				auto& path = staticMesh.GetPath();
+				char buffer[256];
+				memset(buffer, 0, sizeof(buffer));
+				strcpy_s(buffer, sizeof(buffer), path.c_str());
+
+				if (ImGui::InputText("##Path", buffer, sizeof(buffer)))
+				{
+					path = std::string(buffer);
+				}
 			});
 
 		DrawComponents<SpriteComponent>("Sprite", entity,
@@ -261,7 +279,10 @@ namespace Tomato {
 				if(component.Texture)
 					ImGui::ImageButton((void*)component.Texture->GetID(), {80, 80}, {0, 1}, {1, 0});
 				else
-					ImGui::ImageButton((void*)m_default_texture->GetID(), { 80, 80 } , { 0, 1 }, { 1, 0 });
+				{
+					ImGui::ImageButton((void*)m_default_texture->GetID(), { 80, 80 }, { 0, 1 }, { 1, 0 });
+				}
+					
 				ImGui::PopItemWidth();
 
 				if (ImGui::BeginDragDropTarget())
@@ -273,8 +294,6 @@ namespace Tomato {
 						Ref<Texture2D> texture = Texture2D::Create(texturePath.string());
 						//if (texture->IsLoaded())
 						component.Texture = texture;
-						/*else
-							LOG_WARN("Could not load texture {0}", texturePath.filename().string());*/
 					}
 					ImGui::EndDragDropTarget();
 				}

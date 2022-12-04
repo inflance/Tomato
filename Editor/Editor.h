@@ -4,6 +4,7 @@
 #include "AssetPanel.h"
 
 #include "Tomato/Tomato.h"
+#include "Tomato/Renderer/Mesh.h"
 
 
 namespace Tomato{
@@ -43,11 +44,14 @@ namespace Tomato{
 		std::shared_ptr<Shader> m_square_shader;
 		std::shared_ptr<Texture2D> m_texture;
 		std::shared_ptr<Texture2D> m_texture1;
+		std::shared_ptr<TextureCube> m_texture2;
 		std::shared_ptr<SubTexture2D> m_subtexture;
 		std::shared_ptr<FrameBuffer> m_frameBuffer;
+		Ref<Shader> m_MeshShader;
 
 		std::shared_ptr<Scene> m_Scene;
 		Entity m_hoveredEntity;
+		Mesh mesh;
 
 		EditorCamera m_editorCamera;
 		EditorMode m_editorMode = EditorMode::DefaultMode;

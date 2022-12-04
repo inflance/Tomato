@@ -4,6 +4,8 @@
 #include <entt/entt.hpp>
 
 #include "Tomato/Function/Camera/EditorCamera.h"
+#include "Tomato/Renderer/Shader.h"
+#include "Tomato/Core/Core.h"
 
 namespace Tomato {
 
@@ -21,8 +23,9 @@ namespace Tomato {
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateSprite(const std::string& name = std::string());
 		Entity CreateCamera(const std::string& name = std::string());
+		Entity CreateStaticMesh(const std::string& name = std::string());
 
-		void TickEditor(float deltaTime, const EditorCamera& camera);
+		void TickEditor(float deltaTime, const EditorCamera& camera, const Ref<Shader>& shader);
 
 		void Tick(float deltaTime);
 

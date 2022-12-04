@@ -9,3 +9,7 @@ add_subdirectory(stb)
 add_subdirectory(entt)
 add_subdirectory(json)
 add_subdirectory(ImGuizmo)
+
+file(GLOB assimpdll "./assimp/bin/Debug/assimp-vc142-mtd.dll")
+file(COPY ${assimpdll} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+

@@ -13,6 +13,7 @@
 #include "Tomato/Core/Math.h"
 #include "Tomato/Function/Camera/EditorCamera.h"
 #include "Tomato/Renderer/Texture.h"
+#include "Tomato/Renderer/Mesh.h"
 
 namespace Tomato {
 
@@ -67,8 +68,11 @@ namespace Tomato {
 	struct SpriteComponent
 	{
 		glm::vec4 Color{1.0f};
-		std::shared_ptr<Texture2D> Texture = nullptr;
+		//white texture
+		std::shared_ptr<Texture2D> Texture = Texture2D::Create(std::string());
 		float TilingFactor = 1.0f;
+
+		//TODO:BPR
 		/*glm::vec3 Diffuse;
 		glm::vec3 Specular;
 		float Ambient{0.1};
@@ -101,6 +105,14 @@ namespace Tomato {
 		LightComponent() = default;
 		LightComponent(LightType lightType, float intensity, const glm::vec4& color, const glm::vec3& direction)
 			:Light(lightType, intensity, color, direction){}
+	};
+
+	struct StaticMeshComponent {
+		Mesh StaticMesh;
+
+		StaticMeshComponent() = default;
+		StaticMeshComponent(StaticMeshComponent& other)
+			:StaticMesh(other.StaticMesh){}
 	};
 
 

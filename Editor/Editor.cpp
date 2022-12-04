@@ -12,6 +12,7 @@
 #include "Tomato/Input/Input.h"
 #include "Tomato/Function/Timer.h"
 #include "Tomato/Scene/ScriptableEntity.h"
+#include "Tomato/Renderer/Mesh.h"
 
 namespace Tomato{
 
@@ -38,6 +39,9 @@ namespace Tomato{
 
         m_editorCamera = EditorCamera(30.0f, 1600.0f / 800.0f, 0.1f, 1000.0f);
         m_editorCamera.SetPosition({0.0f, 0.0f, 10.5f});
+
+        m_MeshShader = Shader::Create("PreCompile/Assets/Shader/StaticMesh.glsl");
+        //mesh.Load("C:/Users/liyun/source/repos/Tomato/PreCompile/Assets/Mesh/bbl/bbl.pmx");
 
 #if 0
          squareObject = m_Scene->CreateEntity("square");
@@ -82,7 +86,16 @@ namespace Tomato{
         //{
         //    //m_SceneSerializater.Serialization("D:/2.json");
         //}
-       
+
+      /*  std::vector<std::string> skybox = {
+            "PreCompile/Assets/Image/skybox/back.jpg",
+            "PreCompile/Assets/Image/skybox/bottom.jpg",
+            "PreCompile/Assets/Image/skybox/front.jpg",
+            "PreCompile/Assets/Image/skybox/left.jpg",
+            "PreCompile/Assets/Image/skybox/right.jpg",
+            "PreCompile/Assets/Image/skybox/top.jpg",
+        };
+        m_texture2 = TextureCube::Create(skybox);*/
         m_ScenePanel.SetContex(m_Scene);
     }
 
@@ -101,13 +114,13 @@ namespace Tomato{
         //m_Scene->Tick(ts);
 		m_frameBuffer->Bind();
 		
-        RendererCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        RendererCommand::SetClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
         RendererCommand::Clear();
         m_frameBuffer->ClearAttachment(1, -1);
         m_editorCamera.Tick(deltaTime);
-        m_Scene->TickEditor(deltaTime, m_editorCamera);
+        m_Scene->TickEditor(deltaTime, m_editorCamera, m_MeshShader);
         //m_Scene->Tick(ts);
-
+		
 
 
 	    //获取屏幕鼠标位置
@@ -335,6 +348,7 @@ namespace Tomato{
             ImGui::End();
             ImGui::PopStyleVar();
         }
+        //ImGui::Image((ImTextureID)m_texture2->GetID(), {120,120 });
         ImGui::End();
 		m_ScenePanel.OnImGuiRenderer();
 		m_asset_panel.OnImGuiRenderer();

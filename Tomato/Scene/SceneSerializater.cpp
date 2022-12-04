@@ -91,22 +91,24 @@ namespace Tomato {
 			LOG_ERROR("{0}:{1}",e.id, e.what());
 			return false;
 		}
-
 		auto sceneName = json["Scene"]["SceneName"];
 		LOG_TRACE("Scene {0}", sceneName);
 
 		auto Entitys = json["Entities"];
-				if (Entitys.empty() == false)
+		if (Entitys.empty() == false)
 		{
 			for(auto go : Entitys)
 			{
+				auto entityid = go["Entity"]["EntityID"].get<uint64_t>();
 				auto g = go["Entity"];
-								std::string name;
+				std::string name;
 				auto nameComponent = g["NameComponent"]["Name"];
-								if (nameComponent.empty() == false)
+				if (nameComponent.empty() == false)
 					name = nameComponent.get<std::string>();
 
 				Entity deserializedEntity = m_Scene->CreateEntity(name);
+
+				deserializedEntity.SetEntityID(entityid);
 
 				auto tranformComponent = g["TransformComponent"];
 				if (tranformComponent.empty() == false)
@@ -156,7 +158,7 @@ namespace Tomato {
 	{
 		Json js;
 		{
-			js["Entity"]["EntityID"] = 121212121212;
+			js["Entity"]["EntityID"] = (uint64_t)entity.GetEntityID();
 		}
 		if (entity.HasComponent<NameComponent>())
 		{
@@ -196,7 +198,10 @@ namespace Tomato {
 			auto& texture = spriteComponent.Texture;
 			auto& tilingFactor = spriteComponent.TilingFactor;
 			js["Entity"]["SpriteComponent"]["Color"] = { color.r, color.g, color.b, color.a };
-			js["Entity"]["SpriteComponent"]["TexturePath"] = texture->GetPath();
+			if(texture)
+				js["Entity"]["SpriteComponent"]["TexturePath"] = texture->GetPath();
+			else
+				js["Entity"]["SpriteComponent"]["TexturePath"] = "";
 			js["Entity"]["SpriteComponent"]["TilingFactor"] = tilingFactor;
 		}
 		json = js;

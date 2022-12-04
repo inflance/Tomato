@@ -23,7 +23,7 @@ namespace Tomato {
 		//Æ½ÆÌÒò×Ó
 		float TilingFactor;
 
-		int GID;
+		int EntityID;
 	};
 
 	struct QuadData {
@@ -177,7 +177,7 @@ namespace Tomato {
 
 			for (auto i = 0; i < s_quad_data.TextureSlotIndex; i++)
 			{
-				s_quad_data.TextureSlots[i]->Bind(i);
+				s_quad_data.TextureSlots[i]->BindUnit(i);
 			}
 			s_quad_data.TextureShader->Bind();
 			RendererCommand::DrawIndexed(s_quad_data.QuadVertexArray, s_quad_data.QuadIndexCount);
@@ -226,7 +226,7 @@ namespace Tomato {
 			s_quad_data.QuadVertexBufferPtr->Texcoord = texcoord[i];
 			s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
 			s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-			s_quad_data.QuadVertexBufferPtr->GID = GID;
+			s_quad_data.QuadVertexBufferPtr->EntityID = GID;
 			s_quad_data.QuadVertexBufferPtr++;
 		}
 
@@ -276,7 +276,7 @@ namespace Tomato {
 			s_quad_data.QuadVertexBufferPtr->Texcoord = texcoord[i];
 			s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
 			s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-			s_quad_data.QuadVertexBufferPtr->GID = GID;
+			s_quad_data.QuadVertexBufferPtr->EntityID = GID;
 			s_quad_data.QuadVertexBufferPtr++;
 		}
 
@@ -325,7 +325,7 @@ namespace Tomato {
 			s_quad_data.QuadVertexBufferPtr->Texcoord = texcoord[i];
 			s_quad_data.QuadVertexBufferPtr->TexIndex = textureIndex;
 			s_quad_data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-			s_quad_data.QuadVertexBufferPtr->GID = GID;
+			s_quad_data.QuadVertexBufferPtr->EntityID = GID;
 			s_quad_data.QuadVertexBufferPtr++;
 		}
 
