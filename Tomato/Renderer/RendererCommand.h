@@ -22,6 +22,9 @@ namespace Tomato {
 		inline static void DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray, uint32_t count = 0) {
 			s_renderer_api->DrawIndexed(vertexArray, count);
 		}
+		inline static void DrawArray(const std::shared_ptr<VertexArray>& vertexArray, uint32_t count = 0) {
+			s_renderer_api->DrawArray(vertexArray, count);
+		}
 	private:
 		static std::shared_ptr<RendererAPI> s_renderer_api;
 	};

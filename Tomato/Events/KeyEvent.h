@@ -1,57 +1,50 @@
 #pragma once
 
 #include "Event.h"
+#include <sstream>
 
 namespace Tomato {
 
 	class KeyEvent : public Event
 	{
 	public:
-		inline int getKeyCode() const{
-			return m_key_code;
-		}
+		[[nodiscard]] int GetKeyCode() const{return m_key_code;}
 
 		EVENT_CLASS_CATEGORY(EventCategoryKey | EventCategoryInput)
 	protected:
 		int m_key_code;
 
-		KeyEvent(int keycode)
-			:m_key_code(keycode)
-		{}
-	
+		KeyEvent(const int key_code)
+			:m_key_code(key_code){}
 	};
 
 	class KeyPressedEvent : public KeyEvent
 	{
 	public:
-		KeyPressedEvent(int keycode, int repeatCount)
-			:KeyEvent(keycode), m_repeatCount(repeatCount)
-		{}
+		KeyPressedEvent(const int key_code, const int repeat_count)
+			:KeyEvent(key_code), m_repeat_count(repeat_count){}
 
-		inline int getRepeatCount() const {
-			return m_repeatCount;
-		}
+		[[nodiscard]] int GetRepeatCount() const {return m_repeat_count;}
 
-		std::string ToString() const override {
+		[[nodiscard]] std::string ToString() const override {
 			std::stringstream ss;
-			ss << "KeyPressed:" << m_key_code << "{" << m_repeatCount << "repesats}";
+			ss << "KeyPressed:" << m_key_code << "{" << m_repeat_count << "repeats}";
 			return ss.str();
 		}
 
 		EVENT_CLASS_TYPE(KeyPressed)
 
 	private:
-		int m_repeatCount;
+		int m_repeat_count;
 	};
 
 	class KeyReleasedEvent : public KeyEvent 
 	{
 	public:
-		KeyReleasedEvent(const int& keycode)
-			:KeyEvent(keycode)
-		{}
+		KeyReleasedEvent(const int key_code)
+			:KeyEvent(key_code){}
 
-		std::string ToString() const override {
+		[[nodiscard]] std::string ToString() const override {
 			std::stringstream ss;
 			ss << "KeyReleased:" << m_key_code;
 			return ss.str();
@@ -63,11 +56,10 @@ namespace Tomato {
 	class KeyTypedEvent : public KeyEvent
 	{
 	public:
-		KeyTypedEvent(int keycode)
-			:KeyEvent(keycode) {}
+		KeyTypedEvent(const int key_code)
+			:KeyEvent(key_code) {}
 
-
-		std::string ToString() const override {
+		[[nodiscard]] std::string ToString() const override {
 			std::stringstream ss;
 			ss << "KeyTypedEvent:" << m_key_code;
 			return ss.str();

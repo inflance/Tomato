@@ -19,8 +19,8 @@ namespace Tomato{
 		
 	protected:
 		virtual void OnCreate() {};
-		virtual void Tick(float deltaTime) {
-			std::cout << "123" << std::endl;
+		virtual void Tick(float delta_time) {
+			
 		};
 		virtual void OnDestroy(){};
 

@@ -5,11 +5,11 @@ namespace Tomato {
 	Layer::Layer(const std::string& name /*= "Layer"*/)
 		:m_debug_name(name)
 	{
-		LogSystem::ConsoleLog(name, LogType::Trace);
+		LogSystem::ConsoleLog(LogType::Trace, m_debug_name + " Created");
 	}
 	Layer::~Layer()
 	{
-
+		LogSystem::ConsoleLog(LogType::Trace, m_debug_name + " Destroyed");
 	}
 
 }

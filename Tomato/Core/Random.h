@@ -2,20 +2,30 @@
 
 #include <random>
 
-namespace Tomato
-{
+namespace Tomato{
+
 	class Random
 	{
 	public:
-		static void Init()
+		static Random& Get() { static Random instance; return instance;}
+
+		void Init()
 		{
 			s_RandomEngine.seed(std::random_device()());
 		}
 
-		static float GetFloat(){ return (float)s_Distribution(s_RandomEngine) / (std::numeric_limits<uint32_t>::max)(); }
+		double GetDouble(double min, double max)
+		{
+			s_real_dist = std::uniform_real_distribution<>(min, max);
+			return s_real_dist(s_RandomEngine);
+		}
 
 	private:
-		static std::mt19937 s_RandomEngine;
-		static std::uniform_int_distribution<std::mt19937::result_type> s_Distribution;
+		Random() = default;
+		~Random() = default;
+	private:
+		std::mt19937 s_RandomEngine;
+		std::uniform_int_distribution<int> s_int_dist;
+		std::uniform_real_distribution<double> s_real_dist;
 	};
 }

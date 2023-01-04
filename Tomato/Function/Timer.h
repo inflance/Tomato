@@ -14,7 +14,7 @@ namespace Tomato {
 			Reset();
 		}
 
-		void Timer::Reset()
+		void Reset()
 		{
 			m_start = std::chrono::high_resolution_clock::now();
 		}
@@ -22,7 +22,7 @@ namespace Tomato {
 		void CountTime() 
 		{
 			m_end = std::chrono::high_resolution_clock::now();
-			m_time = (float)(m_end.time_since_epoch().count() - m_start.time_since_epoch().count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den;
+			m_time = static_cast<float>(m_end.time_since_epoch().count() - m_start.time_since_epoch().count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den;
 			LOG_INFO("name:{0} {1}ms", m_name, m_time);
 		}
 
@@ -36,6 +36,5 @@ namespace Tomato {
 		std::chrono::time_point<std::chrono::high_resolution_clock> m_end;
 		std::chrono::time_point<std::chrono::high_resolution_clock> m_start;
 	};
-
 
 }

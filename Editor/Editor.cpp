@@ -13,6 +13,7 @@
 #include "Tomato/Function/Timer.h"
 #include "Tomato/Scene/ScriptableEntity.h"
 #include "Tomato/Renderer/Mesh.h"
+#include "Tomato/Renderer/ShaderFactory.h"
 
 namespace Tomato{
 
@@ -40,7 +41,7 @@ namespace Tomato{
         m_editorCamera = EditorCamera(30.0f, 1600.0f / 800.0f, 0.1f, 1000.0f);
         m_editorCamera.SetPosition({0.0f, 0.0f, 10.5f});
 
-        m_MeshShader = Shader::Create("PreCompile/Assets/Shader/StaticMesh.glsl");
+       
         //mesh.Load("C:/Users/liyun/source/repos/Tomato/PreCompile/Assets/Mesh/bbl/bbl.pmx");
 
 #if 0
@@ -96,7 +97,15 @@ namespace Tomato{
             "PreCompile/Assets/Image/skybox/top.jpg",
         };
         m_texture2 = TextureCube::Create(skybox);*/
+        m_MeshShader = Shader::Create("PreCompile/Assets/Shader/StaticMesh.glsl");
+        m_ShapeShader = Shader::Create("PreCompile/Assets/Shader/BaseCube.glsl");
+		m_LightShader = Shader::Create("PreCompile/Assets/Shader/BaseLight.glsl");
+
         m_ScenePanel.SetContex(m_Scene);
+
+        ShaderFactory::GetInstance().Add(m_MeshShader);
+        ShaderFactory::GetInstance().Add(m_ShapeShader);
+        ShaderFactory::GetInstance().Add(m_LightShader);
     }
 
     void Editor::OnDestroy()
@@ -114,14 +123,12 @@ namespace Tomato{
         //m_Scene->Tick(ts);
 		m_frameBuffer->Bind();
 		
-        RendererCommand::SetClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+        RendererCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
         RendererCommand::Clear();
         m_frameBuffer->ClearAttachment(1, -1);
         m_editorCamera.Tick(deltaTime);
-        m_Scene->TickEditor(deltaTime, m_editorCamera, m_MeshShader);
+        m_Scene->TickEditor(deltaTime, m_editorCamera);
         //m_Scene->Tick(ts);
-		
-
 
 	    //获取屏幕鼠标位置
 		auto [mx, my] = ImGui::GetMousePos();
@@ -129,8 +136,8 @@ namespace Tomato{
 		my -= m_viewportBounds[0].y;
 		glm::vec2 viewportSize = m_viewportBounds[1] - m_viewportBounds[0];
 		my = viewportSize.y - my;
-		int mouseX = (int)mx;
-		int mouseY = (int)my;
+		int mouseX = mx;
+		int mouseY = my;
 
 		if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
 		{
@@ -363,9 +370,9 @@ namespace Tomato{
         m_editorCamera.OnEvent(event);
 
         EventDispatcher dispatcher(event);
-        dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FUNC(&Editor::OnKeyPressed));
-        dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FUNC(&Editor::OnMouseButtonPressed));
-        dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FUNC(&Editor::OnMouseButtonReleased));
+        dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FUNC(Editor::OnKeyPressed));
+        dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FUNC(Editor::OnMouseButtonPressed));
+        dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FUNC(Editor::OnMouseButtonReleased));
     }
 
 	void Editor::CreateNewScene()
@@ -390,7 +397,7 @@ namespace Tomato{
                 m_ScenePanel.SetContex(m_Scene);
             }
             else {
-				LogSystem::ConsoleLog("Failed To Open Scene", LogType::Error);
+				LogSystem::ConsoleLog(LogType::Error, "Failed To Open Scene");
             }
         }
 	}
@@ -403,10 +410,10 @@ namespace Tomato{
             SceneSerializater m_SceneSerializater(m_Scene);
             if (m_SceneSerializater.Serialization(filePath))
             {
-                LogSystem::ConsoleLog("Success To Save Scene", LogType::Info);
+                LogSystem::ConsoleLog(LogType::Info, "Success To Save Scene");
             }
             else {
-                LogSystem::ConsoleLog("Failed To Save Scene", LogType::Error);
+                LogSystem::ConsoleLog(LogType::Error,"Failed To Save Scene");
             }
         }
 	}
@@ -417,7 +424,7 @@ namespace Tomato{
         bool alt = Input::IsKeyPressed(Key::LeftAlt) || Input::IsKeyPressed(Key::RightAlt);
         bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
 
-        switch (e.getKeyCode())
+        switch (e.GetKeyCode())
         {
 
         case Key::N:
@@ -442,7 +449,7 @@ namespace Tomato{
 
         if (m_editorMode == EditorMode::DefaultMode || m_editorMode == EditorMode::GizmoMode)
         {
-			switch (e.getKeyCode())
+			switch (e.GetKeyCode())
 			{
 			case Key::Q:
 				m_zgmoMode = -1;
@@ -471,10 +478,10 @@ namespace Tomato{
 
 	bool Editor::OnMouseButtonPressed(MouseButtonPressedEvent& e)
 	{
-		if (m_viewPortHovered && !ImGuizmo::IsOver() && e.getMouseButton() != Mouse::ButtonRight)
+		if (m_viewPortHovered && !ImGuizmo::IsOver() && e.GetMouseButton() != Mouse::ButtonRight)
 			m_ScenePanel.SetSelectedEntity(m_hoveredEntity);
 
-        switch (e.getMouseButton())
+        switch (e.GetMouseButton())
         {
             case Mouse::ButtonRight:
                 m_editorMode = EditorMode::CameraMode;
@@ -490,21 +497,21 @@ namespace Tomato{
 	void Editor::DeBugInfoPanel()
 	{
 		ImGui::Begin("setting");
+		{
+            const auto stats = Renderer2D::GetStats();
+            ImGui::Text("DrawCalls:%d ", stats.DrawCalls);
+            ImGui::Text("Quad: %d", stats.QuadCount);
+            ImGui::Text("TotalIndex: %d", stats.GetTotalIndexCount());
+            ImGui::Text("TotalVertex: %d", stats.GetTotalVertexCount());
 
-		auto& stats = Renderer2D::GetStats();
-		ImGui::Text("DrawCalls:%d ", stats.DrawCalls);
-		ImGui::Text("Quad: %d", stats.QuadCount);
-		ImGui::Text("TotalIndex: %d", stats.GetTotalIndexCount());
-		ImGui::Text("TotalVertex: %d", stats.GetTotalVetexCount());
-
-		ImGui::Text("fps: %u", TomatoEngine::GetInstance().GetFPS());
-
+            ImGui::Text("fps: %u", TomatoEngine::GetInstance().GetFPS());
+		}
 		ImGui::End();
 	}
 
 	bool Editor::OnMouseButtonReleased(MouseButtonReleasedEvent& e)
 	{
-		switch (e.getMouseButton())
+		switch (e.GetMouseButton())
 		{
 		default:
 			m_editorMode = EditorMode::DefaultMode;

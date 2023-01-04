@@ -12,8 +12,8 @@ namespace Tomato {
 		OpenGLContext(GLFWwindow* windowHandle);
 		OpenGLContext(void* windowHandle);
 
-		virtual void Init() override;
-		virtual void SwapBuffers() override;
+		void Init() override;
+		void SwapBuffers() override;
 
 	private:
 		GLFWwindow* m_window_handle;

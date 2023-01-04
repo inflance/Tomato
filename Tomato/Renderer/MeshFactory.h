@@ -12,7 +12,7 @@ namespace Tomato {
 	class MeshFactory
 	{
 	public:
-		static MeshFactory& Getnstance() { static MeshFactory instance; return instance; }
+		static MeshFactory& GetInstance() { static MeshFactory instance; return instance; }
 
 		void Add(const std::string& path, const Mesh& data);
 

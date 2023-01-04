@@ -41,11 +41,10 @@ namespace Tomato {
 			uint32_t DrawCalls = 0;
 			//矩形个数
 			uint32_t QuadCount = 0;
-
 			//顶点总数
-			uint32_t GetTotalVetexCount() { return QuadCount * 4; }
+			const uint32_t GetTotalVertexCount() const { return QuadCount * 4; }
 			//索引总数
-			uint32_t GetTotalIndexCount() { return QuadCount * 6; }
+			const uint32_t GetTotalIndexCount() const { return QuadCount * 6; }
 		};
 
 		static Statistics GetStats();

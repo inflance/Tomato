@@ -56,7 +56,7 @@ namespace Tomato {
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 			bool selected = m_cur_selected_dir == directoryEntry;
 
-			FileIcon(filenameString.c_str(), selected, (ImTextureID)icon->GetID(), { m_icon_size, m_icon_size });
+			file_icon(filenameString.c_str(), selected, (ImTextureID)icon->GetID(), { m_icon_size, m_icon_size });
 
 			if (!directoryEntry.is_directory() && ImGui::BeginDragDropSource())
 			{
@@ -75,16 +75,12 @@ namespace Tomato {
 			}
 			if (ImGui::IsItemHovered()&& ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 			{
-				if (directoryEntry.is_directory())
-				{
+				if (directoryEntry.is_directory()){
 						m_cur_asset_path /= path.filename();
 						m_cur_selected_dir = std::filesystem::directory_entry();
 				}
 			}
-			
-
 			ImGui::NextColumn();
-
 			ImGui::PopID();
 		}
 
@@ -95,7 +91,7 @@ namespace Tomato {
 
 	}
 
-	bool AssetPanel::FileIcon(const char* label, bool isSelected, void* icon, glm::vec2 size, glm::vec4 layout /*= { 1, 1, 0, 0 }*/, bool hasPreview /*= false*/, int previewWidth /*= 0*/, int previewHeight /*= 0*/)
+	bool AssetPanel::file_icon(const char* label, bool isSelected, void* icon, glm::vec2 size, glm::vec4 layout /*= { 1, 1, 0, 0 }*/, bool hasPreview /*= false*/, int previewWidth /*= 0*/, int previewHeight /*= 0*/)
 	{
 			ImGuiStyle& style = ImGui::GetStyle();
 			ImGuiContext& g = *GImGui;
@@ -140,12 +136,10 @@ namespace Tomato {
 
 			window->DrawList->AddText(g.Font, g.FontSize, ImVec2(pos.x + (size.x - textSize.x) / 2.0f, pos.y + iconSize), ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_Text]), label, 0, size.x);
 
-
 			float lastButtomPos = ImGui::GetItemRectMax().x;
 			float thisButtonPos = lastButtomPos + style.ItemSpacing.x + size.x; // Expected position if next button was on same line
 			if (thisButtonPos < windowSpace)
 				ImGui::SameLine();
-
 			return ret;
 	}
 

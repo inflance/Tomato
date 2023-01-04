@@ -47,13 +47,13 @@ namespace Tomato {
 				internalformat = GL_RGB8;
 				format = GL_RGB;
 			}
-			m_internalformat = internalformat;
+			m_internal_format = internalformat;
 			m_format = format;
 
 			LOG_ASSERT(internalformat && format, "格式不被支持");
 
 			glCreateTextures(GL_TEXTURE_2D, 1, &m_renderer_id);
-			glTextureStorage2D(m_renderer_id, 1, m_internalformat, m_width, m_height);
+			glTextureStorage2D(m_renderer_id, 1, m_internal_format, m_width, m_height);
 			// 为当前绑定的纹理对象设置环绕、过滤方式
 			glGenerateMipmap(GL_TEXTURE_2D);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -85,12 +85,12 @@ namespace Tomato {
 
 	void OpenGLTexture2D::SetWhiteTexture()
 	{
-		m_internalformat = GL_RGBA8;
+		m_internal_format = GL_RGBA8;
 		m_format = GL_RGBA;
-		LOG_ASSERT(m_internalformat && m_format, "格式不被支持");
+		LOG_ASSERT(m_internal_format && m_format, "格式不被支持");
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_renderer_id);
-		glTextureStorage2D(m_renderer_id, 1, m_internalformat, m_width, m_height);
+		glTextureStorage2D(m_renderer_id, 1, m_internal_format, m_width, m_height);
 		// 为当前绑定的纹理对象设置环绕、过滤方式
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);

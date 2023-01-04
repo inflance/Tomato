@@ -10,7 +10,7 @@
 #define  LOG_ASSERT(x, ...) if(!(x)){LOG_ERROR(__VA_ARGS__); __debugbreak();}
 
 //event bind func
-#define BIND_EVENT_FUNC(...) std::bind(__VA_ARGS__, this, std::placeholders::_1)
+#define BIND_EVENT_FUNC(...) std::bind(&__VA_ARGS__, this, std::placeholders::_1)
 
 
 #include <memory>

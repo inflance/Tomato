@@ -28,12 +28,12 @@ namespace Tomato {
 
 	private:
 		void Init();
-		void Delete();
-		GLenum TextureTarget(bool multisampled);
-		void CreateTextures(bool multisampled, uint32_t* outID, uint32_t count);
-		void BindTexture(bool multisampled, uint32_t colorAttachment);
-		void AttachColorTexture(uint32_t id, int samples, GLenum internalFormat, GLenum format, uint32_t width, uint32_t height, int index);
-		void AttachDepthTexture(uint32_t id, int samples, GLenum format, GLenum attachmentType, uint32_t width, uint32_t height);
+		void Delete() const;
+		GLenum TextureTarget(bool multi_sampled);
+		void CreateTextures(bool multi_sampled, uint32_t* id, uint32_t count);
+		void BindTexture(bool multi_sampled, uint32_t color_attachment);
+		void AttachColorTexture(uint32_t id, int samples, GLenum internal_format, GLenum format, uint32_t width, uint32_t height, int index);
+		void AttachDepthTexture(uint32_t id, int samples, GLenum format, GLenum attachment_type, uint32_t width, uint32_t height);
 	private:
 		uint32_t m_RendererID = 0;
 		FrameBufferProps m_frame_buffer_props;

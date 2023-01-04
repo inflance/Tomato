@@ -13,17 +13,36 @@ namespace Tomato {
 
 	class LogSystem
 	{
-	private:
-		static std::shared_ptr<spdlog::logger> s_loger;
-
 	public:
 		static void Init();
 
-		static void ConsoleLog(const std::string& str, LogType type);
+		template<class... TArgs>
+		static void ConsoleLog(LogType type, TArgs... args)
+		{
+			switch (type)
+			{
+			case Tomato::LogType::Trace:
+				s_loger->trace(args...);
+				break;
+			case Tomato::LogType::Info:
+				s_loger->info(args...);
+				break;
+			case Tomato::LogType::Warn:
+				s_loger->warn(args...);
+				break;
+			case Tomato::LogType::Error:
+				s_loger->error(args...);
+				break;
+			default:
+				break;
+			}
+		}
 
-		inline static std::shared_ptr<spdlog::logger>& GetLoger() { 
+		static std::shared_ptr<spdlog::logger>& GetLoger() { 
 			return s_loger; 
 		}
+	private:
+		static std::shared_ptr<spdlog::logger> s_loger;
 	};
 }
 

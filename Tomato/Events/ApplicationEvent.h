@@ -10,14 +10,10 @@ namespace Tomato {
 		WindowResizeEvent(unsigned int width, unsigned int height)
 			: m_width(width), m_height(height) {}
 
-		inline unsigned int GetWidth() {
-			return m_width;
-		}
-		inline unsigned int GetHeight() {
-			return m_height;
-		}
+		[[nodiscard]] unsigned int GetWidth() const { return m_width; }
+		[[nodiscard]] unsigned int GetHeight() const {return m_height;}
 
-		std::string ToString() const override
+		[[nodiscard]] std::string ToString() const override
 		{
 			std::stringstream ss;
 			ss << "WindowResizeEvent:" << m_width << "," << m_height;
@@ -33,7 +29,7 @@ namespace Tomato {
 	class  WindowCloseEvent : public Event
 	{
 	public:
-		WindowCloseEvent() {}
+		WindowCloseEvent() = default;
 
 		EVENT_CLASS_TYPE(WindowClose)
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
@@ -42,7 +38,7 @@ namespace Tomato {
 	class  AppTickEvent : public Event
 	{
 	public:
-		AppTickEvent() {}
+		AppTickEvent() = default;
 
 		EVENT_CLASS_TYPE(AppTick)
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
@@ -51,7 +47,7 @@ namespace Tomato {
 	class  AppUpdateEvent : public Event
 	{
 	public:
-		AppUpdateEvent() {}
+		AppUpdateEvent() = default;
 
 		EVENT_CLASS_TYPE(AppUpdate)
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
@@ -60,7 +56,7 @@ namespace Tomato {
 	class  AppRenderEvent : public Event
 	{
 	public:
-		AppRenderEvent() {}
+		AppRenderEvent() = default;
 
 		EVENT_CLASS_TYPE(AppRender)
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)

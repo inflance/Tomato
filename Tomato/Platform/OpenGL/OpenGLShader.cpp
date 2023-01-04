@@ -24,48 +24,48 @@ namespace Tomato {
 		return 0;
 	}
 
-	OpenGLShader::OpenGLShader(const std::string& filePath)
+	OpenGLShader::OpenGLShader(const std::string& file_path)
 	{
-		m_name = GetFileName(filePath);
-		std::string shaderStr = ReadFile(filePath);
-		auto shaderSource = Preprocess(shaderStr);
-		Compile(shaderSource);
+		m_name = GetFileName(file_path);
+		auto shader_string = ReadFile(file_path);
+		const auto shader_source = Preprocess(shader_string);
+		Compile(shader_source);
 	}
 
-	OpenGLShader::OpenGLShader( const std::string& vertexPath, const std::string& fragmentPath)
+	OpenGLShader::OpenGLShader( const std::string& vertex_path, const std::string& fragment_path)
 	{
-		m_name = GetFileName(vertexPath);
-		std::string vertexCode;
-		std::string fragmentCode;
-		std::ifstream vShaderFile;
-		std::ifstream fShaderFile;
+		m_name = GetFileName(vertex_path);
+		std::string vertex_code;
+		std::string fragment_code;
+		std::ifstream vertex_shader_fs;
+		std::ifstream fragment_shader_fs;
 		// 保证ifstream对象可以抛出异常
 
-		vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-		fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		vertex_shader_fs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		fragment_shader_fs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
 		try {
 			// 打开文件
-			vShaderFile.open(vertexPath.c_str());
-			fShaderFile.open(fragmentPath.c_str());
+			vertex_shader_fs.open(vertex_path.c_str());
+			fragment_shader_fs.open(vertex_path.c_str());
 			std::stringstream vShaderStream, fShaderStream;
 			// 读取文件的缓冲内容到数据流中
-			vShaderStream << vShaderFile.rdbuf();
-			fShaderStream << fShaderFile.rdbuf();
+			vShaderStream << vertex_shader_fs.rdbuf();
+			fShaderStream << fragment_shader_fs.rdbuf();
 			// 关闭文件处理器
-			vShaderFile.close();
-			fShaderFile.close();
+			vertex_shader_fs.close();
+			fragment_shader_fs.close();
 			// 转换数据流到string
-			vertexCode = vShaderStream.str();
-			fragmentCode = fShaderStream.str();
+			vertex_code = vShaderStream.str();
+			fragment_code = fShaderStream.str();
 		}
 		catch (std::ifstream::failure& e)
 		{
-			LogSystem::ConsoleLog("ERROR::Shader文件读取错误", LogType::Error);
+			LogSystem::ConsoleLog(LogType::Error,"ERROR::Shader文件读取错误");
 		}
 		std::unordered_map<GLenum, std::string> source;
-		source[GL_VERTEX_SHADER] = vertexCode;
-		source[GL_FRAGMENT_SHADER] = fragmentCode;
+		source[GL_VERTEX_SHADER] = vertex_code;
+		source[GL_FRAGMENT_SHADER] = fragment_code;
 		Compile(source);
 	}
 
@@ -90,18 +90,18 @@ namespace Tomato {
 		glUniform1iv(glGetUniformLocation(m_shader_id, name.c_str()),count, values);
 	}
 	
-	void OpenGLShader::CheckCompileErrors(unsigned int shader, std::string type)
+	void OpenGLShader::CheckCompileErrors(unsigned int shader, const std::string& type)
 	{
 		int success;
-		char infoLog[1024];
+		char info_log[1024];
 
 		if (type != "PROGRAM")
 		{
 			glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 			if (!success)
 			{
-				glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-				LOG_ERROR("SHADER ERROR: Shader compilation error of type : {0}\nERROR INFO:{1} ", type, infoLog);
+				glGetShaderInfoLog(shader, 1024, nullptr, info_log);
+				LOG_ERROR("SHADER ERROR:{0} Shader compilation error of type : {1}\nERROR INFO:{2} ", m_name, type, info_log);
 			}
 		}
 		else
@@ -109,8 +109,8 @@ namespace Tomato {
 			glGetProgramiv(shader, GL_LINK_STATUS, &success);
 			if (!success)
 			{
-				glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-				LOG_ERROR("SHADER ERROR: Program linking error of type : {0}\nERROR INFO:{1} ", type, infoLog);
+				glGetProgramInfoLog(shader, 1024, nullptr, info_log);
+				LOG_ERROR("SHADER ERROR:{0} Program linking error of type : {1}\nERROR INFO:{2} ", m_name, type, info_log);
 				glDeleteShader(shader);
 			}
 		}
@@ -118,7 +118,7 @@ namespace Tomato {
 
 	void OpenGLShader::SetMat4(const std::string& name, const glm::mat4& value)
 	{
-		GLint location = glGetUniformLocation(m_shader_id, name.c_str());
+		const GLint location = glGetUniformLocation(m_shader_id, name.c_str());
 
 		glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 
@@ -126,7 +126,7 @@ namespace Tomato {
 
 	void OpenGLShader::SetFloat4(const std::string& name, const glm::vec4& value)
 	{
-		GLint location = glGetUniformLocation(m_shader_id, name.c_str());
+		const GLint location = glGetUniformLocation(m_shader_id, name.c_str());
 
 		glUniform4f(location, value.x, value.y, value.z, value.w);
 
@@ -134,47 +134,47 @@ namespace Tomato {
 
 	void OpenGLShader::SetMat3(const std::string& name, const glm::mat3& value)
 	{
-		GLint location = glGetUniformLocation(m_shader_id, name.c_str());
+		const GLint location = glGetUniformLocation(m_shader_id, name.c_str());
 
 		glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
 	}
 
 	void OpenGLShader::SetFloat1(const std::string& name, float value)
 	{
-		GLint location = glGetUniformLocation(m_shader_id, name.c_str());
+		const GLint location = glGetUniformLocation(m_shader_id, name.c_str());
 
 		glUniform1f(location, value);
 	}
 
 	void OpenGLShader::SetFloat2(const std::string& name, const glm::vec2& value)
 	{
-		GLint location = glGetUniformLocation(m_shader_id, name.c_str());
+		const GLint location = glGetUniformLocation(m_shader_id, name.c_str());
 
 		glUniform2f(location, value.x, value.y);
 	}
 
 	void OpenGLShader::SetFloat3(const std::string& name, const glm::vec3& value)
 	{
-		GLint location = glGetUniformLocation(m_shader_id, name.c_str());
+		const GLint location = glGetUniformLocation(m_shader_id, name.c_str());
 
 		glUniform3f(location, value.x, value.y, value.z);
 
 	}
 
-	void OpenGLShader::Compile(const std::unordered_map<GLenum, std::string>& shaderSource)
+	void OpenGLShader::Compile(const std::unordered_map<unsigned int, std::string>& shader_map)
 	{
-		GLuint program = glCreateProgram();
+		const GLuint program = glCreateProgram();
 
-		std::vector<GLenum> shaderIDs;
-		for (auto kv : shaderSource) {
-			GLenum type = kv.first;
+		std::vector<GLenum> shader_ids;
+		for (const auto& kv : shader_map) {
+			const GLenum type = kv.first;
 			const std::string& source = kv.second;
 
 			GLuint shader = glCreateShader(type);
 
-			const GLchar* sourceStr = source.c_str();
+			const GLchar* source_str = source.c_str();
 
-			glShaderSource(shader, 1, &sourceStr, nullptr);
+			glShaderSource(shader, 1, &source_str, nullptr);
 
 			glCompileShader(shader);
 			if (type == GL_VERTEX_SHADER) {
@@ -184,7 +184,7 @@ namespace Tomato {
 			}
 			
 			glAttachShader(program, shader);
-			shaderIDs.push_back(shader);
+			shader_ids.push_back(shader);
 		}
 
 		m_shader_id = program;
@@ -194,7 +194,7 @@ namespace Tomato {
 		CheckCompileErrors(m_shader_id, "PROGRAM");
 
 		//链接完成，删除占用的着色器资源
-		for (auto id : shaderIDs) {
+		for (const auto id : shader_ids) {
 			glDeleteShader(id);
 		}
 	}
@@ -250,14 +250,14 @@ namespace Tomato {
 	}
 
 	//从文件名中提取名字
-	std::string OpenGLShader::GetFileName(const std::string& filePath)
+	std::string OpenGLShader::GetFileName(const std::string& file_path)
 	{
-		auto lastSlash = filePath.find_last_of("/\\");
-		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
-		auto lastDot = filePath.rfind('.');
-		auto count = lastDot == std::string::npos ? filePath.size() - lastSlash : lastDot - lastSlash;
+		auto last_slash = file_path.find_last_of("/\\");
+		last_slash = last_slash == std::string::npos ? 0 : last_slash + 1;
+		const auto last_dot = file_path.rfind('.');
+		const auto count = last_dot == std::string::npos ? file_path.size() - last_slash : last_dot - last_slash;
 
-		return filePath.substr(lastSlash, count);
+		return file_path.substr(last_slash, count);
 	}
 
 

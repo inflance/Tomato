@@ -61,14 +61,14 @@ namespace Tomato {
 			case ShaderDataType::Float3:
 			case ShaderDataType::Float4:
 			{
-				glEnableVertexAttribArray(m_VertexBufferIndex);
-				glVertexAttribPointer(m_VertexBufferIndex,
-					element.getComponentCount(),
+				glEnableVertexAttribArray(m_vertex_buffer_Index);
+				glVertexAttribPointer(m_vertex_buffer_Index,
+					element.GetComponentCount(),
 					ShaderDataTypeToOpenGLBaseType(element.Type),
 					element.Normalized ? GL_TRUE : GL_FALSE,
 					layout.GetStride(),
 					(const void*)element.Offset);
-				m_VertexBufferIndex++;
+				m_vertex_buffer_Index++;
 				break;
 			}
 			case ShaderDataType::Int:
@@ -77,30 +77,30 @@ namespace Tomato {
 			case ShaderDataType::Int4:
 			case ShaderDataType::Bool:
 			{
-				glEnableVertexAttribArray(m_VertexBufferIndex);
-				glVertexAttribIPointer(m_VertexBufferIndex,
-					element.getComponentCount(),
+				glEnableVertexAttribArray(m_vertex_buffer_Index);
+				glVertexAttribIPointer(m_vertex_buffer_Index,
+					element.GetComponentCount(),
 					ShaderDataTypeToOpenGLBaseType(element.Type),
 					layout.GetStride(),
 					(const void*)element.Offset);
-				m_VertexBufferIndex++;
+				m_vertex_buffer_Index++;
 				break;
 			}
 			case ShaderDataType::Mat3:
 			case ShaderDataType::Mat4:
 			{
-				uint8_t count = element.getComponentCount();
+				uint8_t count = element.GetComponentCount();
 				for (uint8_t i = 0; i < count; i++)
 				{
-					glEnableVertexAttribArray(m_VertexBufferIndex);
-					glVertexAttribPointer(m_VertexBufferIndex,
+					glEnableVertexAttribArray(m_vertex_buffer_Index);
+					glVertexAttribPointer(m_vertex_buffer_Index,
 						count,
 						ShaderDataTypeToOpenGLBaseType(element.Type),
 						element.Normalized ? GL_TRUE : GL_FALSE,
 						layout.GetStride(),
 						(const void*)(element.Offset + sizeof(float) * count * i));
-					glVertexAttribDivisor(m_VertexBufferIndex, 1);
-					m_VertexBufferIndex++;
+					glVertexAttribDivisor(m_vertex_buffer_Index, 1);
+					m_vertex_buffer_Index++;
 				}
 				break;
 			}

@@ -24,8 +24,10 @@ namespace Tomato {
 		Entity CreateSprite(const std::string& name = std::string());
 		Entity CreateCamera(const std::string& name = std::string());
 		Entity CreateStaticMesh(const std::string& name = std::string());
+		Entity CreateBaseShape(const std::string& name = std::string());
+		Entity CreateLight(const std::string& name = std::string());
 
-		void TickEditor(float deltaTime, const EditorCamera& camera, const Ref<Shader>& shader);
+		void TickEditor(float deltaTime, const EditorCamera& camera);
 
 		void Tick(float deltaTime);
 

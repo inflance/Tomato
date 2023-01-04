@@ -134,7 +134,7 @@ namespace Tomato {
 	void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
 	{
 
-		glm::mat4 ViewProjection = camera.GetProjection() * glm::inverse(transform);
+		const glm::mat4 ViewProjection = camera.GetProjection() * glm::inverse(transform);
 
 		s_quad_data.TextureShader->Bind();
 		s_quad_data.TextureShader->SetMat4("u_ViewProjection", ViewProjection);
@@ -148,8 +148,7 @@ namespace Tomato {
 
 	void Renderer2D::BeginScene(const EditorCamera& camera)
 	{
-
-		glm::mat4 ViewProjection = camera.GetViewProjection();
+		const glm::mat4 ViewProjection = camera.GetViewProjection();
 
 		s_quad_data.TextureShader->Bind();
 		s_quad_data.TextureShader->SetMat4("u_ViewProjection", ViewProjection);
@@ -171,7 +170,8 @@ namespace Tomato {
 	{
 		if (s_quad_data.QuadIndexCount)
 		{
-			uint32_t dataSize = (uint32_t)((uint8_t*)s_quad_data.QuadVertexBufferPtr - (uint8_t*)s_quad_data.QuadVertexBufferArr);
+			const uint32_t dataSize = static_cast<uint32_t>((s_quad_data.QuadVertexBufferPtr)
+				- (s_quad_data.QuadVertexBufferArr));
 			s_quad_data.QuadVertexBuffer->SetData(s_quad_data.QuadVertexBufferArr, dataSize);
 			//bind texture
 
@@ -264,7 +264,7 @@ namespace Tomato {
 			if (s_quad_data.TextureSlotIndex >= s_quad_data.MaxTextureSlot)
 				NextBatch();
 
-			textureIndex = (float)s_quad_data.TextureSlotIndex;
+			textureIndex = static_cast<float>(s_quad_data.TextureSlotIndex);
 			s_quad_data.TextureSlots[s_quad_data.TextureSlotIndex] = texture;
 			s_quad_data.TextureSlotIndex++;
 		}

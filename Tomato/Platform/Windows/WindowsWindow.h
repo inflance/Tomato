@@ -6,12 +6,20 @@
 struct GLFWwindow;
 
 namespace Tomato{
-	
+
+	struct WindowData
+	{
+		std::string Title;
+		unsigned int Width, Height;
+		bool VSync;
+		EventCallbackFn EventCallback;
+	};
+
 	class WindowsWindow : public Window
 	{
 	public:
 		WindowsWindow(const WindowProps& props);
-		virtual ~WindowsWindow();
+		~WindowsWindow() override;
 
 		void Tick() override;
 		unsigned int GetWidth() const override { return m_window_data.Width; }
@@ -22,23 +30,13 @@ namespace Tomato{
 		void SetVSync(bool enabled) override;
 		bool IsVSync() const override;
 		void* GetNativeWindow() const override;
-
+	private:
+		virtual void Init(const WindowProps& props);
+		virtual void ShutDown();
 	private:
 		GLFWwindow* m_window;
 		std::shared_ptr<GraphicsContext> m_context;
 
-		struct WindowData
-		{
-			std::string Title;
-			unsigned int Width, Height;
-			bool VSync;
-			EventCallbackFn EventCallback;
-		};
-
 		WindowData m_window_data;
-		
-	private:
-		virtual void Init(const WindowProps& props);
-		virtual void ShutDown();
 	};
 }

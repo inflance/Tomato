@@ -4,6 +4,7 @@
 #include "Components.h"
 #include "Tomato/Renderer/Renderer.h"
 #include "Tomato/Renderer/Renderer2D.h"
+#include "Tomato/Renderer/ShaderFactory.h"
 
 namespace Tomato {
 
@@ -12,7 +13,7 @@ namespace Tomato {
 		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		auto& tag = entity.AddComponent<NameComponent>();
-		tag.Name = name.empty() ? ("Empty Entity"+std::to_string(entity)) : name;
+		tag.Name = name.empty() ? ("Empty Entity"+std::to_string((uint32_t)entity)) : name;
 
 		return entity;
 	}
@@ -52,12 +53,46 @@ namespace Tomato {
 		return entity;
 	}
 
-	void Scene::TickEditor(float deltaTime, const EditorCamera& camera, const Ref<Shader>& shader)
+	Tomato::Entity Scene::CreateBaseShape(const std::string& name /*= std::string()*/)
 	{
+		Entity entity = { m_Registry.create(), this };
+		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<BaseShapeComponent>();
+		entity.AddComponent<SpriteComponent>();
+		entity.AddComponent<MatirialComponent>();
+		MatirialTextureData diffuse;
+		MatirialTextureData specular;
+		diffuse.Texture= Texture2D::Create(std::string("PreCompile/Assets/Image/container2.png"));
+		specular.Texture = Texture2D::Create(std::string("PreCompile/Assets/Image/container2_specular.png"));
+		entity.GetComponent<MatirialComponent>().matiral.SetDiffuseMap(diffuse);
+		entity.GetComponent<MatirialComponent>().matiral.SetSpecularMap(specular);
+		auto& tag = entity.AddComponent<NameComponent>();
+		tag.Name = name.empty() ? "Cube" : name;
 
+		entity.GetComponent<BaseShapeComponent>().BaseShape.CreateCube(uint32_t(entity));
+
+		return entity;
+	}
+
+	Tomato::Entity Scene::CreateLight(const std::string& name /*= std::string()*/)
+	{
+		Entity entity = { m_Registry.create(), this };
+		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<LightComponent>();
+		entity.AddComponent<BaseShapeComponent>();
+		auto& tag = entity.AddComponent<NameComponent>();
+		tag.Name = name.empty() ? "Light" : name;
+
+		entity.GetComponent<BaseShapeComponent>().BaseShape.CreateCube(uint32_t(entity));
+
+		return entity;
+	}
+
+	void Scene::TickEditor(float deltaTime, const EditorCamera& camera)
+	{
 		{
 			Renderer2D::BeginScene(camera);
-			auto& view = m_Registry.view<TransformComponent, SpriteComponent>();
+			const auto& view = m_Registry.view<TransformComponent, SpriteComponent>();
 
 			for (auto& entity : view)
 			{
@@ -69,16 +104,61 @@ namespace Tomato {
 			}
 			Renderer2D::EndScene();
 		}
-		auto& view = m_Registry.view<TransformComponent, StaticMeshComponent>();
 
-		for (auto& entity : view)
+
+		const auto& shader = ShaderFactory::GetInstance().GetShader("BaseCube");
+		shader->Bind();
+		shader->SetFloat3("u_CameraPos", camera.GetPosition());
 		{
-			auto& transformComponent = view.get<TransformComponent>(entity);
-			auto& staticMeshComponent = view.get<StaticMeshComponent>(entity);
+			const auto& view = m_Registry.view<TransformComponent, StaticMeshComponent>();
 
-			Renderer::RenderBaseShape(staticMeshComponent.StaticMesh, shader, camera.GetViewProjection(), transformComponent.GetTransform());
+			for (auto& entity : view)
+			{
+				auto& transformComponent = view.get<TransformComponent>(entity);
+				auto& staticMeshComponent = view.get<StaticMeshComponent>(entity);
 
+				Renderer::RenderBaseShape(staticMeshComponent.StaticMesh, camera.GetViewProjection(), transformComponent.GetTransform());
+
+			}
 		}
+
+		{
+
+			const auto& view = m_Registry.view<TransformComponent, BaseShapeComponent, SpriteComponent, MatirialComponent>();
+			for (auto& entity : view)
+			{
+				auto& transformComponent = view.get<TransformComponent>(entity);
+				auto& baseShapeComponent = view.get<BaseShapeComponent>(entity);
+				auto& spriteComponent = view.get<SpriteComponent>(entity);
+				auto& matirialComponent = view.get<MatirialComponent>(entity);
+
+				Renderer::RenderBaseShapeWithMatirial(baseShapeComponent.BaseShape, spriteComponent.Color, matirialComponent.matiral, camera.GetViewProjection(), transformComponent.GetTransform());
+
+			}
+		}
+
+		{
+			const auto& lcv = m_Registry.view<LightComponent>();
+			int pointLightSize = 0;
+			for (auto& entity : lcv)
+			{
+				auto& lightComponent = lcv.get<LightComponent>(entity);
+				if(lightComponent.Light.GetLightType() == LightType::PointLight)
+					pointLightSize++;
+			}
+
+			const auto& view = m_Registry.view<TransformComponent, BaseShapeComponent, LightComponent>();
+			for (auto& entity : view)
+			{
+				auto& transformComponent = view.get<TransformComponent>(entity);
+				auto& baseShapeComponent = view.get<BaseShapeComponent>(entity);
+				auto& lightComponent = view.get<LightComponent>(entity);
+
+				Renderer::RenderBaseLight(baseShapeComponent.BaseShape, lightComponent.Light, camera.GetViewProjection(), transformComponent.GetTransform(), transformComponent.Position, pointLightSize);
+
+			}
+		}
+		
 		
 	}
 
@@ -86,7 +166,7 @@ namespace Tomato {
 	{
 
 		{
-			auto& view = m_Registry.view<NativeScriptComponent>();
+			const auto& view = m_Registry.view<NativeScriptComponent>();
 
 			for (auto& entity : view)
 			{
@@ -105,7 +185,7 @@ namespace Tomato {
 		Camera* mainCamera = nullptr;
 		glm::mat4 mainCameraTransform;
 		{
-			auto& view = m_Registry.view<TransformComponent, CameraComponent>();
+			const auto& view = m_Registry.view<TransformComponent, CameraComponent>();
 			for (auto entity : view)
 			{
 				auto& transform = view.get<TransformComponent>(entity);
@@ -123,7 +203,7 @@ namespace Tomato {
 		if (mainCamera) 
 		{
 			Renderer2D::BeginScene(*mainCamera, mainCameraTransform);
-			auto& view = m_Registry.view<TransformComponent, SpriteComponent>();
+			const auto& view = m_Registry.view<TransformComponent, SpriteComponent>();
 	
 			for (auto entity : view)
 			{
@@ -140,7 +220,7 @@ namespace Tomato {
 	{
 		m_viewPortWidth = width;
 		m_viewPortHeight = height;
-		auto& view = m_Registry.view<CameraComponent>();
+		const auto& view = m_Registry.view<CameraComponent>();
 		for (auto entity : view)
 		{
 			auto& camera = view.get<CameraComponent>(entity);

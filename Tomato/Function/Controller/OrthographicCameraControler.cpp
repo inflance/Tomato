@@ -45,7 +45,7 @@ namespace Tomato {
 	void OrthgraphicCameraControler::OnEvent(Event& e)
 	{
 		EventDispatcher dispather(e);
-		dispather.Dispatch<MouseScrolledEvent>(BIND_EVENT_FUNC(&OrthgraphicCameraControler::OnMouseScrolled));
+		dispather.Dispatch<MouseScrolledEvent>(BIND_EVENT_FUNC(OrthgraphicCameraControler::OnMouseScrolled));
 		//dispather.Dispatch<WindowResizeEvent>(BIND_EVENT_FUNC(&OrthgraphicCameraControler::OnWindowResized));
 	}
 

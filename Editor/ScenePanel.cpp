@@ -67,6 +67,14 @@ namespace Tomato {
 			{
 				m_context->CreateStaticMesh();
 			}
+			if (ImGui::MenuItem("Create Cube"))
+			{
+				m_context->CreateBaseShape();
+			}
+			if (ImGui::MenuItem("Create Light"))
+			{
+				m_context->CreateLight();
+			}
 			if (m_selectedEntity)
 			{
 				if (ImGui::MenuItem("Delete Entity")) {
@@ -185,14 +193,12 @@ namespace Tomato {
 			{
 				if (ImGui::MenuItem("Transform"))
 				{
-
 					m_selectedEntity.AddComponent<TransformComponent>();
 
 					ImGui::CloseCurrentPopup();
 				}
 			}
-			else
-				LOG_WARN("This entity already has the Sprite Component!");
+		
 
 			if (!m_selectedEntity.HasComponent<SpriteComponent>())
 			{
@@ -202,8 +208,7 @@ namespace Tomato {
 					ImGui::CloseCurrentPopup();
 				}
 			}
-			else
-				LOG_WARN("This entity already has the Sprite Component!");
+			
 
 			if (!m_selectedEntity.HasComponent<CameraComponent>())
 			{
@@ -213,21 +218,33 @@ namespace Tomato {
 					ImGui::CloseCurrentPopup();
 				}
 			}
-			else
-				LOG_WARN("This entity already has the Camera Component!");
+		
 			
 			if (!m_selectedEntity.HasComponent<StaticMeshComponent>()) 
 			{
 				if (ImGui::MenuItem("StaticMesh"))
 				{
-
 					m_selectedEntity.AddComponent<StaticMeshComponent>();
-
 					ImGui::CloseCurrentPopup();
 				}
 			}
-			else
-				LOG_WARN("This entity already has the StaticMesh Component!");
+			if (!m_selectedEntity.HasComponent<BaseShapeComponent>())
+			{
+				if (ImGui::MenuItem("BaseShape"))
+				{
+					m_selectedEntity.AddComponent<BaseShapeComponent>((uint32_t)m_selectedEntity);
+					ImGui::CloseCurrentPopup();
+				}
+			}
+			if (!m_selectedEntity.HasComponent<LightComponent>())
+			{
+				if (ImGui::MenuItem("BaseShape"))
+				{
+					m_selectedEntity.AddComponent<LightComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+			
 
 			ImGui::EndPopup();
 		}
@@ -257,6 +274,30 @@ namespace Tomato {
 				{
 					path = std::string(buffer);
 				}
+			});
+
+		DrawComponents<MatirialComponent>("MatirialComponent", entity,
+			[&](auto& component) {
+				auto& matirial = component.matiral;
+				auto& ambient =  matirial.GetAmbient();
+				float ambient_strage = ambient.x;
+				ImGui::DragFloat("ambient", &ambient_strage, 0.01f, 0.0f, 1.0f);
+				matirial.SetAmbient(glm::vec3(ambient_strage));
+				
+				auto& diffuse = matirial.GetDiffuse();
+				float diffuse_strage = diffuse.x;
+				ImGui::DragFloat("diffuse", &diffuse_strage, 0.01f, 0.0f, 1.0f);
+				matirial.SetDiffuse(glm::vec3(diffuse_strage));
+
+				auto& specular = matirial.GetSpecular();
+				float specular_strage = specular.x;
+				ImGui::DragFloat("specular",&specular_strage, 0.01f, 0.0f, 1.0f);
+				matirial.SetSpecular(glm::vec3(specular_strage));
+
+				float Shininess = matirial.GetShininess();
+				ImGui::DragFloat("Shininess", &Shininess, 1.0f, 0.0f, 500.0f);
+				matirial.SetShininess(Shininess);
+			
 			});
 
 		DrawComponents<SpriteComponent>("Sprite", entity,
@@ -363,6 +404,65 @@ namespace Tomato {
 						camera.SetPerspFar(perspFar);
 				}
 			});
+
+		LightComponent lc;
+		
+
+		DrawComponents<LightComponent>("Light", entity,
+		[](auto& component)
+		{
+		auto& light_component = component;
+
+		auto& light = light_component.Light;
+
+		const char* light_type_str[] = { "Direction Light", "Point Light", "Spot Light" };
+
+		const char* cur_light_type = light_type_str[(int)light.GetLightType()];
+
+		if (ImGui::BeginCombo("Projection", cur_light_type))
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				bool selected = cur_light_type == light_type_str[i];
+				if (ImGui::Selectable(light_type_str[i], selected))
+				{
+					cur_light_type = light_type_str[i];
+					light.SetLightType(LightType(i));
+				}
+				if (selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+		if (light.GetLightType() == LightType::DirectionLight)
+		{
+			auto& color = light.GetColor();
+			if (ImGui::ColorEdit3("Color", glm::value_ptr(color)))
+				light.SetColor(color);
+
+			auto& direction = light.GetDirection();
+			if (ImGui::DragFloat3("Near", glm::value_ptr(direction), 0.1f))
+				light.SetDirection(direction);
+
+			float intensity = light.GetIntensity();
+			if (ImGui::DragFloat("Far", &intensity, 0.1f))
+				light.SetIntensity(intensity);
+		}
+		else if (light.GetLightType() == LightType::PointLight)
+		{
+			auto& color = light.GetColor();
+			if (ImGui::ColorEdit3("Color", glm::value_ptr(color)))
+				light.SetColor(color);
+			float intensity = light.GetIntensity();
+			if (ImGui::DragFloat("Far", &intensity, 0.1f))
+				light.SetIntensity(intensity);
+		}
+		else if (light.GetLightType() == LightType::SpotLight)
+		{
+
+		}
+		});
 	}
 
 	void ScenePanel::SetContex(const std::shared_ptr<Scene>& context)

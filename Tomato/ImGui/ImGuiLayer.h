@@ -7,7 +7,6 @@ namespace Tomato {
 	class ImGuiLayer : public Layer 
 	{
 	public:
-
 		ImGuiLayer()
 			: Layer("ImGuiLayer"){}
 		~ImGuiLayer() = default;

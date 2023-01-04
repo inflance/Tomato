@@ -61,7 +61,7 @@ namespace Tomato {
 		m_window_data.Height = props.Height;
 
 		if (s_glfw_window_count == 0) {
-			int success = glfwInit();
+			const int success = glfwInit();
 			LOG_ASSERT(success, "Could not initialize GLFW!");
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
@@ -121,7 +121,7 @@ namespace Tomato {
 
 		glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int keycode)
 			{
-				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				const WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 				KeyTypedEvent event(keycode);
 				data.EventCallback(event);
 			});
@@ -163,9 +163,6 @@ namespace Tomato {
 			data.EventCallback(event);
 
 		});
-
-		
-
 	}
 
 	void WindowsWindow::ShutDown()

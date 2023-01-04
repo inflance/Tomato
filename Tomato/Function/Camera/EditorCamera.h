@@ -13,7 +13,7 @@ namespace Tomato {
 		float Yaw = 0.0f, Pitch = 0.0f, Roll = 0.0f;
 
 		operator glm::vec3()const {
-			return glm::vec3(-Yaw, -Pitch, Roll);
+			return { -Yaw, -Pitch, Roll };
 		}
 	};
 
@@ -32,22 +32,22 @@ namespace Tomato {
 		void Tick(float deltaTime);
 		void OnEvent(Event& e);
 
-		inline float GetZoomLevel() const { return m_ZoomLevel; }
-		inline void SetZoomLevel(float zoomLevel) { m_ZoomLevel = zoomLevel; }
-		void SetPosition(const glm::vec3& position) { m_Position = position; }
-		inline void SetViewportSize(float width, float height) { m_ViewportWidth = width; m_ViewportHeight = height; UpdateProjection(); }
+		[[nodiscard]] float GetZoomLevel() const { return m_zoom_level; }
+		[[nodiscard]] void SetZoomLevel(float zoomLevel) { m_zoom_level = zoomLevel; }
+		void SetPosition(const glm::vec3& position) { m_position = position; }
+		inline void SetViewportSize(float width, float height) { m_viewport_width = width; m_viewport_height = height; UpdateProjection(); }
 
-		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
-		glm::mat4 GetViewProjection() const { return m_projection * m_ViewMatrix; }
+		[[nodiscard]] const glm::mat4& GetViewMatrix() const { return m_view_mat; }
+		[[nodiscard]] glm::mat4 GetViewProjection() const { return m_projection * m_view_mat; }
 
-		glm::vec3 GetUp() const;
-		glm::vec3 GetRight() const;
-		glm::vec3 GetForward() const;
-		const glm::vec3& GetPosition() const { return m_Position; }
-		glm::quat GetOrientation() const;
+		[[nodiscard]] glm::vec3 GetUp() const;
+		[[nodiscard]] glm::vec3 GetRight() const;
+		[[nodiscard]] glm::vec3 GetForward() const;
+		[[nodiscard]] const glm::vec3& GetPosition() const { return m_position; }
+		[[nodiscard]] glm::quat GetOrientation() const;
 
-		float GetPitch() const { return m_Pitch; }
-		float GetYaw() const { return m_Yaw; }
+		[[nodiscard]] float GetPitch() const { return m_pitch; }
+		[[nodiscard]] float GetYaw() const { return m_yaw; }
 
 	private:
 		void UpdateProjection();
@@ -56,27 +56,26 @@ namespace Tomato {
 		bool OnMouseScroll(MouseScrolledEvent& e);
 
 		void CameraRotate(const glm::vec2& delta);
-		void CameraRotatoByTarget(const glm::vec2& delta);
+		void CameraRotateByTarget(const glm::vec2& delta);
 		void CameraZoom(float delta);
 		void CameraMove(CameraMovement, float delta);
 
-		glm::vec3 CalculatePosition() const;
+		[[nodiscard]] glm::vec3 CalculatePosition() const;
 
-		std::pair<float, float> PanSpeed() const;
-		float RotationSpeed() const;
-		float ZoomSpeed() const;
+		[[nodiscard]] std::pair<float, float> PanSpeed() const;
+		[[nodiscard]] float RotationSpeed() const;
+		[[nodiscard]] float ZoomSpeed() const;
 	private:
-		float m_FOV = 45.0f, m_AspectRatio = 1.778f, m_NearClip = 0.1f, m_FarClip = 1000.0f;
+		float m_fov = 45.0f, m_aspect_ratio = 1.778f, m_near = 0.1f, m_far = 1000.0f;
 
-		glm::mat4 m_ViewMatrix;
-		glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 m_Target = { 0.0f, 0.0f, 0.0f };
+		glm::mat4 m_view_mat;
+		glm::vec3 m_position = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 m_target = { 0.0f, 0.0f, 0.0f };
+		glm::vec2 m_last_mouse_pos = { 0.0f, 0.0f };
 
-		glm::vec2 m_lastMousePosition = { 0.0f, 0.0f };
+		float m_zoom_level = 10.0f;
+		float m_pitch = 0.0f, m_yaw = 0.0f;
 
-		float m_ZoomLevel = 10.0f;
-		float m_Pitch = 0.0f, m_Yaw = 0.0f;
-
-		float m_ViewportWidth = 1280, m_ViewportHeight = 720;
+		float m_viewport_width = 1280, m_viewport_height = 720;
 	};
 }

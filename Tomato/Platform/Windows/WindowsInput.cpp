@@ -9,14 +9,14 @@ namespace Tomato {
 	bool Input::IsKeyPressed(KeyCode key)
 	{
 		auto* window = static_cast<GLFWwindow*>(TomatoEngine::GetInstance().GetWindow().GetNativeWindow());
-		auto state = glfwGetKey(window, key);
+		const auto state = glfwGetKey(window, key);
 		return state == GLFW_PRESS || state == GLFW_REPEAT;
 	}
 
 	bool Input::IsMouseButtonPressed(MouseCode button)
 	{
 		auto* window = static_cast<GLFWwindow*>(TomatoEngine::GetInstance().GetWindow().GetNativeWindow());
-		auto state = glfwGetMouseButton(window, button);
+		const auto state = glfwGetMouseButton(window, button);
 		return state == GLFW_PRESS;
 	}
 
@@ -26,7 +26,7 @@ namespace Tomato {
 		double xPos, yPos;
 		glfwGetCursorPos(window, &xPos, &yPos);
 
-		return { (float)xPos, (float)yPos };
+		return { static_cast<float>(xPos), static_cast<float>(yPos)};
 	}
 
 	float Input::GetMouseX()

@@ -17,29 +17,27 @@ namespace Tomato {
 		layer->OnCreate();
 	}
 
-	void LayerStack::PushOverLayer(Layer* overLayer)
+	void LayerStack::PushOverLayer(Layer* over_layer)
 	{
-		m_layers.emplace_back(overLayer);
-		overLayer->OnCreate();
+		m_layers.emplace_back(over_layer);
+		over_layer->OnCreate();
 	}
 
 	void LayerStack::PopLayer(Layer* layer)
 	{
 		auto it = std::find(m_layers.begin(), m_layers.begin() + m_layer_insert, layer);
-		if (it != m_layers.begin() + m_layer_insert)
-		{
+		if (it != m_layers.begin() + m_layer_insert){
 			layer->OnDestroy();
 			m_layers.erase(it);
 			--m_layer_insert;
 		}
 	}
 
-	void LayerStack::PopOverLayer(Layer* overLayer)
+	void LayerStack::PopOverLayer(Layer* over_layer)
 	{
-		auto it = std::find(m_layers.begin() + m_layer_insert, m_layers.end(), overLayer);
-		if (it != m_layers.end())
-		{
-			overLayer->OnDestroy();
+		auto it = std::find(m_layers.begin() + m_layer_insert, m_layers.end(), over_layer);
+		if (it != m_layers.end()){
+			over_layer->OnDestroy();
 			m_layers.erase(it);
 		}
 	}

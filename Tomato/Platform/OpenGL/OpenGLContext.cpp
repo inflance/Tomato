@@ -8,21 +8,15 @@
 namespace Tomato {
 
 	OpenGLContext::OpenGLContext(GLFWwindow* windowHandle)
-		:m_window_handle(windowHandle)
-	{
-
-	}
+		:m_window_handle(windowHandle){}
 
 	OpenGLContext::OpenGLContext(void* windowHandle)
-		:m_window_handle((GLFWwindow*)windowHandle)
-	{
-
-	}
+		:m_window_handle(static_cast<GLFWwindow*>(windowHandle)){}
 
 	void OpenGLContext::Init()
 	{
 		glfwMakeContextCurrent(m_window_handle);
-		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+		const int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		LOG_ASSERT(status, "");
 	}
 

@@ -14,6 +14,8 @@
 #include "Tomato/Function/Camera/EditorCamera.h"
 #include "Tomato/Renderer/Texture.h"
 #include "Tomato/Renderer/Mesh.h"
+#include "Tomato/Renderer/BaseShape.h"
+#include "Materiral.h"
 
 namespace Tomato {
 
@@ -25,7 +27,7 @@ namespace Tomato {
 
 		TransformComponent() = default;
 		TransformComponent(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale)
-			:Position(position), Rotation(rotation), Scale(scale){}
+			:Position(position), Rotation(rotation), Scale(scale) {}
 
 		glm::mat4 GetTransform() const
 		{
@@ -40,7 +42,6 @@ namespace Tomato {
 		{
 			Math::DecomposeTransform(transform, Position, Rotation, Scale);
 		}
-
 	};
 
 	struct CameraComponent
@@ -52,7 +53,6 @@ namespace Tomato {
 
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent& other) = default;
-
 	};
 
 	struct NameComponent
@@ -61,27 +61,29 @@ namespace Tomato {
 
 		NameComponent() = default;
 		NameComponent(const std::string& name)
-			:Name(name){}
+			:Name(name) {}
 		NameComponent(const NameComponent& other) = default;
 	};
 
 	struct SpriteComponent
 	{
-		glm::vec4 Color{1.0f};
+		glm::vec4 Color{ 1.0f };
 		//white texture
 		std::shared_ptr<Texture2D> Texture = Texture2D::Create(std::string());
 		float TilingFactor = 1.0f;
 
-		//TODO:BPR
-		/*glm::vec3 Diffuse;
-		glm::vec3 Specular;
-		float Ambient{0.1};
-		float Roughness = 1.0f;*/
-
 		SpriteComponent() = default;
 		SpriteComponent(const glm::vec4& color)
-			:Color(color){}
+			:Color(color) {}
 		SpriteComponent(const SpriteComponent& other) = default;
+	};
+
+	struct MatirialComponent
+	{
+		Matirial matiral;
+
+		MatirialComponent() = default;
+		MatirialComponent(const MatirialComponent& other) = default;
 	};
 
 	struct NativeScriptComponent
@@ -104,7 +106,7 @@ namespace Tomato {
 
 		LightComponent() = default;
 		LightComponent(LightType lightType, float intensity, const glm::vec4& color, const glm::vec3& direction)
-			:Light(lightType, intensity, color, direction){}
+			:Light(lightType, intensity, color, direction) {}
 	};
 
 	struct StaticMeshComponent {
@@ -112,9 +114,18 @@ namespace Tomato {
 
 		StaticMeshComponent() = default;
 		StaticMeshComponent(StaticMeshComponent& other)
-			:StaticMesh(other.StaticMesh){}
+			:StaticMesh(other.StaticMesh) {}
 	};
 
+	struct BaseShapeComponent {
+		BaseShape BaseShape;
 
-
+		BaseShapeComponent() = default;
+		BaseShapeComponent(int entityID)
+		{
+			BaseShape.CreateCube(entityID);
+		}
+		BaseShapeComponent(BaseShapeComponent& other)
+			:BaseShape(other.BaseShape) {}
+	};
 }

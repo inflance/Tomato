@@ -21,6 +21,8 @@ namespace Tomato {
 	class VertexBuffer;
 	class IndexBuffer;
 	class Shader;
+
+	using Index = uint32_t;
 	
 	struct Vertex {
 
@@ -50,16 +52,16 @@ namespace Tomato {
 	{
 	public:
 		SubMesh() = default;
-		SubMesh(const std::vector<Vertex>& verties, const std::vector<uint32_t>& indices);
-		SubMesh(const std::vector<Vertex>& verties, const std::vector<uint32_t>& indices, const std::vector<MatirialTextureData>& m_texture);
+		SubMesh(std::vector<Vertex> vertices, std::vector<uint32_t> indices);
+		SubMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, const std::vector<MatirialTextureData>& m_texture);
 
 		template<typename Func>
-		void Draw(Func func) const {
-			func(m_VertexArray, m_VertexBuffer, m_Verties, m_texture);
+		void Draw(const Func& func) const {
+			func(m_VertexArray, m_VertexBuffer, m_vertices, m_texture);
 		}
 	
 	private:
-		std::vector<Vertex> m_Verties;
+		std::vector<Vertex> m_vertices;
 		std::vector<uint32_t> m_Indices;
 		std::vector<MatirialTextureData> m_texture;
 
@@ -76,7 +78,7 @@ namespace Tomato {
 
 		void Load(int entityID = -1, const std::string& path = "PreCompile/Assets/Mesh/bbl/bbl.pmx");
 		const std::vector<SubMesh>& GetMesh(){ return m_submeshs; };
-		const AssetID GetID() const { return m_ID; };
+		[[nodiscard]] AssetID GetID() const { return m_id; };
 		std::string& GetPath() { return m_path; };
 
 	private:
@@ -85,7 +87,7 @@ namespace Tomato {
 		std::vector<MatirialTextureData> LoadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureType typeName);
 		
 	private:
-		int m_ID;
+		int m_id;
 		std::string m_directory;
 		std::string m_path;
 		std::vector<SubMesh> m_submeshs;

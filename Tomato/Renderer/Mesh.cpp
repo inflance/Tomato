@@ -16,16 +16,16 @@ namespace Tomato {
 	void Mesh::Load(int entityID, const std::string& path)
 	{
 		Timer timer("load");
-		if (!m_path.empty())
-		{
+
+		if (!m_path.empty()){
 			m_submeshs.clear();
 		}
 		m_path = path;
-		m_ID = entityID;
-		if (MeshFactory::Getnstance().Exist(m_path)) {
-			*this = MeshFactory::Getnstance().GetMesh(m_path);
-		}
-		else {
+		m_id = entityID;
+
+		if (MeshFactory::GetInstance().Exist(m_path)) {
+			*this = MeshFactory::GetInstance().GetMesh(m_path);
+		}else{
 			Assimp::Importer importer;
 			const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 			//¼ì²é´íÎó
@@ -36,7 +36,7 @@ namespace Tomato {
 
 			// process ASSIMP's root node recursively
 			ProcessNode(scene->mRootNode, scene);
-			MeshFactory::Getnstance().Add(m_path, *this);
+			MeshFactory::GetInstance().Add(m_path, *this);
 		}
 		
 	}
@@ -78,7 +78,7 @@ namespace Tomato {
 				vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
 			}
 			else {
-				LogSystem::ConsoleLog("Mesh don`t have normal", LogType::Warn);
+				LogSystem::ConsoleLog(LogType::Warn, "Mesh don`t have normal");
 			}
 			// texture coordinates
 			if (mesh->mTextureCoords[0])
@@ -102,19 +102,16 @@ namespace Tomato {
 			}
 			else
 				vertex.TexCoords = glm::vec2(0.0f, 0.0f);
-			vertex.EntityID = m_ID;
+			vertex.EntityID = m_id;
 			veries.push_back(vertex);
 		}
-		// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
+
 		for (unsigned int i = 0; i < mesh->mNumFaces; i++)
 		{
 			aiFace face = mesh->mFaces[i];
-			// retrieve all indices of the face and store them in the indices vector
 			for (unsigned int j = 0; j < face.mNumIndices; j++)
 				indices.push_back(face.mIndices[j]);
 		}
-
-		
 		// process materials
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
@@ -129,7 +126,7 @@ namespace Tomato {
 		// 4. height maps
 		std::vector<MatirialTextureData> heightMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, TextureType::Ambient);
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-		m_submeshs.push_back(SubMesh(veries, indices, textures));
+		m_submeshs.emplace_back(SubMesh(veries, indices, textures));
 	}
 
 	std::vector<MatirialTextureData> Mesh::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureType typeName)
@@ -160,12 +157,12 @@ namespace Tomato {
 	}
 
 
-	SubMesh::SubMesh(const std::vector<Vertex>& verties, const std::vector<uint32_t>& indices)
-		:m_Verties(verties), m_Indices(indices)
+	SubMesh::SubMesh(std::vector<Vertex> vertices, std::vector<uint32_t> indices)
+		:m_vertices(std::move(vertices)), m_Indices(std::move(indices))
 	{
 		m_VertexArray = VertexArray::Create();
 
-		m_VertexBuffer = VertexBuffer::Create(sizeof(Vertex) * m_Verties.size());
+		m_VertexBuffer = VertexBuffer::Create(sizeof(Vertex) * m_vertices.size());
 		m_VertexBuffer->SetLayout({
 					{ ShaderDataType::Float3, "a_Position"},
 					{ ShaderDataType::Float3, "a_Normal"},
@@ -183,8 +180,8 @@ namespace Tomato {
 	}
 
 
-	SubMesh::SubMesh(const std::vector<Vertex>& verties, const std::vector<uint32_t>& indices, const std::vector<MatirialTextureData>& texture)
-		:SubMesh(verties, indices)
+	SubMesh::SubMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, const std::vector<MatirialTextureData>& texture)
+		:SubMesh(vertices, indices)
 	{
 		m_texture = texture;
 	}

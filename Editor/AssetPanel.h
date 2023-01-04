@@ -13,9 +13,7 @@ namespace Tomato {
 		AssetPanel();
 
 		void OnImGuiRenderer();
-
-		static bool FileIcon(const char* label, bool isSelected, void* icon, glm::vec2 size, glm::vec4 layout = { 1, 1, 0, 0 }, bool hasPreview = false, int previewWidth = 0, int previewHeight = 0);
-
+		static bool file_icon(const char* label, bool isSelected, void* icon, glm::vec2 size, glm::vec4 layout = { 1, 1, 0, 0 }, bool hasPreview = false, int previewWidth = 0, int previewHeight = 0);
 	private:
 		std::filesystem::path m_cur_asset_path;
 		std::filesystem::directory_entry m_cur_selected_dir;

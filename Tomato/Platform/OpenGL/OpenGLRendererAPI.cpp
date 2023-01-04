@@ -19,7 +19,7 @@ namespace Tomato {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		//ø™∆Ù…Ó∂»≤‚ ‘
 		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_CULL_FACE);
+		//glEnable(GL_CULL_FACE);
 
 		//glEnable(GL_MULTISAMPLE);
 
@@ -40,12 +40,18 @@ namespace Tomato {
 		glClearColor(color.r, color.g, color.b, color.a);
 	}
 
-	void OpenGLRendererAPI::DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray, uint32_t indexCount)
+	void OpenGLRendererAPI::DrawIndexed(const std::shared_ptr<VertexArray>& vertex_array, uint32_t index_count)
 	{
-		vertexArray->Bind();
-		uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount() ;
+		vertex_array->Bind();
+		const uint32_t count = index_count ? index_count : vertex_array->GetIndexBuffer()->GetCount() ;
 		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
 
+	}
+
+	void OpenGLRendererAPI::DrawArray(const std::shared_ptr<VertexArray>& vertex_array, uint32_t count /*= 0*/)
+	{
+		vertex_array->Bind();
+		glDrawArrays(GL_TRIANGLES, 0, count);
 	}
 
 }

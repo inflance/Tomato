@@ -48,6 +48,8 @@ namespace Tomato{
 		std::shared_ptr<SubTexture2D> m_subtexture;
 		std::shared_ptr<FrameBuffer> m_frameBuffer;
 		Ref<Shader> m_MeshShader;
+		Ref<Shader> m_ShapeShader;
+		Ref<Shader> m_LightShader;
 
 		std::shared_ptr<Scene> m_Scene;
 		Entity m_hoveredEntity;

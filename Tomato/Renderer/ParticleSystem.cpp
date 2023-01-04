@@ -63,15 +63,15 @@ namespace Tomato
 		Particle& particle = m_particle_pool[m_pool_index];
 		particle.Active = true;
 		particle.Position = particleProps.Position;
-		particle.Rotation = Random::GetFloat() * 2.0f * glm::pi<float>();
+		particle.Rotation = Random::Get().GetDouble(0.0, 1.0) * 2.0f * glm::pi<float>();
 
 		//LOG_INFO(Random::GetFloat());
 
 		// Velocity
 		particle.Velocity = particleProps.Velocity;
-		particle.Velocity.x += particleProps.VelocityVariation.x * (Random::GetFloat() - 0.5f);
+		particle.Velocity.x += particleProps.VelocityVariation.x * (Random::Get().GetDouble(0.0, 1.0) - 0.5f);
 		//LOG_INFO(Random::GetFloat());
-		particle.Velocity.y += particleProps.VelocityVariation.y * (Random::GetFloat() - 0.5f);
+		particle.Velocity.y += particleProps.VelocityVariation.y * (Random::Get().GetDouble(0.0, 1.0) - 0.5f);
 
 		// Color
 		particle.ColorBegin = particleProps.ColorBegin;
@@ -79,7 +79,7 @@ namespace Tomato
 
 		particle.LifeTime = particleProps.LifeTime;
 		particle.LifeRemaining = particleProps.LifeTime;
-		particle.SizeBegin = particleProps.SizeBegin + particleProps.SizeVariation * (Random::GetFloat() - 0.5f);
+		particle.SizeBegin = particleProps.SizeBegin + particleProps.SizeVariation * (Random::Get().GetDouble(0.0, 1.0) - 0.5f);
 		particle.SizeEnd = particleProps.SizeEnd;
 
 		m_pool_index = --m_pool_index % m_particle_pool.size();
