@@ -1,14 +1,13 @@
 ﻿#pragma once
 
 #include <random>
+#include "PublicSingleton.h"
 
-namespace Tomato{
-
-	class Random
+namespace Tomato
+{
+	class Random : public PublicSingleton<Random>
 	{
 	public:
-		static Random& Get() { static Random instance; return instance;}
-
 		void Init()
 		{
 			s_RandomEngine.seed(std::random_device()());
@@ -20,9 +19,6 @@ namespace Tomato{
 			return s_real_dist(s_RandomEngine);
 		}
 
-	private:
-		Random() = default;
-		~Random() = default;
 	private:
 		std::mt19937 s_RandomEngine;
 		std::uniform_int_distribution<int> s_int_dist;

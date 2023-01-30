@@ -6,8 +6,8 @@
 #include "Buffer.h"
 #include "Mesh.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	struct BaseShapeData
 	{
 		std::vector<Vertex> Vertices;
@@ -25,15 +25,14 @@ namespace Tomato {
 		void SetData();
 
 		[[nodiscard]] Ref<VertexArray> GetVertexArray() const { return m_vertex_array; }
-		[[nodiscard]] Ref<VertexBuffer> GetVertexBuffer() const { return m_vertex_buffer; }
-		[[nodiscard]] Ref<IndexBuffer> GetIndexArray() const { return m_index_buffer; }
+		[[nodiscard]] Ref<VertexBuffer> GetVertexBuffer() const { return mVertexBuffer; }
+		[[nodiscard]] Ref<IndexBuffer> GetIndexArray() const { return mIndexBuffer; }
 		[[nodiscard]] const BaseShapeData& GetBaseShape() const { return m_base_shape; }
 
 	private:
 		BaseShapeData m_base_shape;
 		Ref<VertexArray> m_vertex_array;
-		Ref<VertexBuffer> m_vertex_buffer;
-		Ref<IndexBuffer> m_index_buffer;
+		Ref<VertexBuffer> mVertexBuffer;
+		Ref<IndexBuffer> mIndexBuffer;
 	};
-
 }

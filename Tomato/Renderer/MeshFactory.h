@@ -5,14 +5,18 @@
 #include "Mesh.h"
 #include "Tomato/Core/UUID.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	using AssetID = UUID;
 
 	class MeshFactory
 	{
 	public:
-		static MeshFactory& GetInstance() { static MeshFactory instance; return instance; }
+		static MeshFactory& Get()
+		{
+			static MeshFactory instance;
+			return instance;
+		}
 
 		void Add(const std::string& path, const Mesh& data);
 
@@ -25,5 +29,4 @@ namespace Tomato {
 	private:
 		std::unordered_map<std::string, Mesh> m_mesh_factory;
 	};
-
 }

@@ -1,15 +1,16 @@
 #pragma once
-
+#include "Tomato/Core/Core.h"
 #include "Editor/Editor.h"
+#include "Tomato/Renderer/Vulkan/Test.h"
 
 int main(int argc, char** argv)
 {
 	Tomato::LogSystem::Init();
-	Tomato::TomatoEngine::GetInstance().StartUp();
-	Tomato::TomatoEngine::GetInstance().PushLayer(new Tomato::Editor());
-	//”Œœ∑—≠ª∑
-	Tomato::TomatoEngine::GetInstance().Run();
-	Tomato::TomatoEngine::GetInstance().ShutDown();
+	Tomato::TomatoEngine::Get().StartUp();
+
+	Tomato::TomatoEngine::Get().PushLayer(new Tomato::Editor());
+	Tomato::TomatoEngine::Get().Run();
+	Tomato::TomatoEngine::Get().ShutDown();
 
 	return 0;
 }

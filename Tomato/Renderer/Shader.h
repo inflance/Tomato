@@ -1,8 +1,28 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <filesystem>
 
-namespace Tomato {
+namespace Tomato
+{
+	enum class ShaderType : int32_t
+	{
+		None = -1,
+		Vertex = 0,
+		Fragment,
+		Geometry,
+		Compute,
+		TesselationControl,
+		TesselationEvaluation
+	};
+
+	struct ShaderResource
+	{
+		ShaderType Type;
+		std::filesystem::path Path;
+		std::string Code;
+		std::vector<uint32_t> Data;
+	};
 
 	class Shader
 	{
@@ -26,7 +46,7 @@ namespace Tomato {
 
 		virtual const std::string& GetName() const = 0;
 
-		static std::shared_ptr<Shader> Create(const std::string& vertexPath, const std::string& fragmentPath);
+		static std::shared_ptr<Shader> Create(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath);
 		static std::shared_ptr<Shader> Create(const std::string& filePath);
 	};
 }

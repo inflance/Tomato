@@ -8,11 +8,10 @@
 
 #include "Tomato/Scene/Components.h"
 #include "Tomato/Renderer/Texture.h"
-#include "Tomato/Platform/OpenGL/OpenGLTexture.h"
 #include "AssetPanel.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	const std::filesystem::path g_asset_path = "PreCompile/Assets";
 
 	ScenePanel::ScenePanel(const std::shared_ptr<Scene>& context)
@@ -37,19 +36,19 @@ namespace Tomato {
 				name = std::string(buffer);
 			}
 		}
-		
+
 		m_context->m_Registry.each(
 			[=](auto entity)
 			{
-				Entity Entity = { entity, m_context.get() };
-				
+				Entity Entity = {entity, m_context.get()};
+
 				DrawScenePanel(Entity);
 			}
 		);
-		
+
 		//
 		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 8.0f);
-		if (ImGui::BeginPopupContextWindow(0, 1, true))
+		if (ImGui::BeginPopupContextWindow(nullptr, 1, true))
 		{
 			if (ImGui::MenuItem("Create Empty Entity"))
 			{
@@ -77,7 +76,8 @@ namespace Tomato {
 			}
 			if (m_selectedEntity)
 			{
-				if (ImGui::MenuItem("Delete Entity")) {
+				if (ImGui::MenuItem("Delete Entity"))
+				{
 					m_context->DestroyEntity(m_selectedEntity);
 					m_selectedEntity = {};
 				}
@@ -93,7 +93,7 @@ namespace Tomato {
 
 		//ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(40, 40));
 		ImGui::Begin("Detail");
-		int isSelectedEntityID = m_selectedEntity ? (uint32_t)m_selectedEntity : -1;
+		int isSelectedEntityID = m_selectedEntity ? static_cast<uint32_t>(m_selectedEntity) : -1;
 		ImGui::Text("Current select entityID: %d", isSelectedEntityID);
 		if (m_selectedEntity)
 		{
@@ -103,17 +103,18 @@ namespace Tomato {
 		//ImGui::PopStyleVar();
 	}
 
-	template<typename T, typename Func>
-	void Tomato::ScenePanel::DrawComponents(const std::string& name, Entity Entity, Func uiFunction)
+	template <typename T, typename Func>
+	void ScenePanel::DrawComponents(const std::string& name, Entity Entity, Func uiFunction)
 	{
-		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
+		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed |
+			ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
 		if (Entity.HasComponent<T>())
 		{
 			auto context = ImGui::GetCurrentContext();
 			auto& component = Entity.GetComponent<T>();
 			ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 20, 6 });
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{20, 6});
 			float lineHeight = 18.0f;
 			ImGui::Separator();
 			bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, name.c_str());
@@ -122,7 +123,7 @@ namespace Tomato {
 			ImGui::SameLine(contentRegionAvailable.x - lineHeight);
 
 			uint32_t id = m_moreBtn.get()->GetID();
-			if (ImGui::ImageButton((void*)id, ImVec2{ lineHeight, lineHeight }))
+			if (ImGui::ImageButton((void*)id, ImVec2{lineHeight, lineHeight}))
 			{
 				ImGui::OpenPopup("ComponentSettings");
 			}
@@ -152,12 +153,13 @@ namespace Tomato {
 	{
 		ImGui::PushID(entity);
 
-		ImGuiTreeNodeFlags flags = ((entity == m_selectedEntity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-		
+		ImGuiTreeNodeFlags flags = ((entity == m_selectedEntity) ? ImGuiTreeNodeFlags_Selected : 0) |
+			ImGuiTreeNodeFlags_OpenOnArrow;
+
 		auto& name = m_context->m_Registry.get<NameComponent>(entity).Name;
 		bool selected = entity == m_selectedEntity;
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize,5.0f);
-		ImGui::Selectable(name.c_str(), &selected, flags, { ImGui::GetContentRegionAvail().x, 28.0f});
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 5.0f);
+		ImGui::Selectable(name.c_str(), &selected, flags, {ImGui::GetContentRegionAvail().x, 28.0f});
 		ImGui::PopStyleVar();
 		ImGui::PopID();
 		if (ImGui::IsItemClicked())
@@ -198,7 +200,7 @@ namespace Tomato {
 					ImGui::CloseCurrentPopup();
 				}
 			}
-		
+
 
 			if (!m_selectedEntity.HasComponent<SpriteComponent>())
 			{
@@ -208,7 +210,7 @@ namespace Tomato {
 					ImGui::CloseCurrentPopup();
 				}
 			}
-			
+
 
 			if (!m_selectedEntity.HasComponent<CameraComponent>())
 			{
@@ -218,9 +220,9 @@ namespace Tomato {
 					ImGui::CloseCurrentPopup();
 				}
 			}
-		
-			
-			if (!m_selectedEntity.HasComponent<StaticMeshComponent>()) 
+
+
+			if (!m_selectedEntity.HasComponent<StaticMeshComponent>())
 			{
 				if (ImGui::MenuItem("StaticMesh"))
 				{
@@ -232,7 +234,7 @@ namespace Tomato {
 			{
 				if (ImGui::MenuItem("BaseShape"))
 				{
-					m_selectedEntity.AddComponent<BaseShapeComponent>((uint32_t)m_selectedEntity);
+					m_selectedEntity.AddComponent<BaseShapeComponent>(static_cast<uint32_t>(m_selectedEntity));
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -244,225 +246,241 @@ namespace Tomato {
 					ImGui::CloseCurrentPopup();
 				}
 			}
-			
+
 
 			ImGui::EndPopup();
 		}
 
-		DrawComponents<TransformComponent>("Transform", entity,
-			[&](auto& component){
-				auto& position = component.Position;
-				auto& scale = component.Scale;
-				DrawVector3("Position", position, 0.1f, dPosition);
+		DrawComponents<TransformComponent>
+		("Transform", entity,
+		 [&](auto& component)
+		 {
+			 auto& position = component.Position;
+			 auto& scale = component.Scale;
+			 DrawVector3("Position", position, 0.1f, dPosition);
 
-				glm::vec3 rotation = glm::degrees(component.Rotation);
-				DrawVector3("Rotation", rotation, 1.0f, dRotation);
-				component.Rotation = glm::radians(rotation);
+			 glm::vec3 rotation = glm::degrees(component.Rotation);
+			 DrawVector3("Rotation", rotation, 1.0f, dRotation);
+			 component.Rotation = radians(rotation);
 
-				DrawVector3("Scale", scale, 0.1f, dScale);
-			});
+			 DrawVector3("Scale", scale, 0.1f, dScale);
+		 });
 
-		DrawComponents<StaticMeshComponent>("StaticMesh", entity,
-			[&](auto& component) {
-				auto& staticMesh = component.StaticMesh;
-				auto& path = staticMesh.GetPath();
-				char buffer[256];
-				memset(buffer, 0, sizeof(buffer));
-				strcpy_s(buffer, sizeof(buffer), path.c_str());
+		DrawComponents<StaticMeshComponent>
+		("StaticMesh", entity,
+		 [&](auto& component)
+		 {
+			 auto& staticMesh = component.StaticMesh;
+			 auto& path = staticMesh.GetPath();
+			 char buffer[256];
+			 memset(buffer, 0, sizeof(buffer));
+			 strcpy_s(buffer, sizeof(buffer), path.c_str());
 
-				if (ImGui::InputText("##Path", buffer, sizeof(buffer)))
-				{
-					path = std::string(buffer);
-				}
-			});
+			 if (ImGui::InputText("##Path", buffer, sizeof(buffer)))
+			 {
+				 path = std::string(buffer);
+			 }
+		 });
 
-		DrawComponents<MatirialComponent>("MatirialComponent", entity,
-			[&](auto& component) {
-				auto& matirial = component.matiral;
-				auto& ambient =  matirial.GetAmbient();
-				float ambient_strage = ambient.x;
-				ImGui::DragFloat("ambient", &ambient_strage, 0.01f, 0.0f, 1.0f);
-				matirial.SetAmbient(glm::vec3(ambient_strage));
-				
-				auto& diffuse = matirial.GetDiffuse();
-				float diffuse_strage = diffuse.x;
-				ImGui::DragFloat("diffuse", &diffuse_strage, 0.01f, 0.0f, 1.0f);
-				matirial.SetDiffuse(glm::vec3(diffuse_strage));
+		DrawComponents<MatirialComponent>
+		("MatirialComponent", entity,
+		 [&](auto& component)
+		 {
+			 auto& matirial = component.matiral;
+			 auto& ambient = matirial.GetAmbient();
+			 float ambient_strage = ambient.x;
+			 ImGui::DragFloat("ambient", &ambient_strage, 0.01f, 0.0f, 1.0f);
+			 matirial.SetAmbient(glm::vec3(ambient_strage));
 
-				auto& specular = matirial.GetSpecular();
-				float specular_strage = specular.x;
-				ImGui::DragFloat("specular",&specular_strage, 0.01f, 0.0f, 1.0f);
-				matirial.SetSpecular(glm::vec3(specular_strage));
+			 auto& diffuse = matirial.GetDiffuse();
+			 float diffuse_strage = diffuse.x;
+			 ImGui::DragFloat("diffuse", &diffuse_strage, 0.01f, 0.0f, 1.0f);
+			 matirial.SetDiffuse(glm::vec3(diffuse_strage));
 
-				float Shininess = matirial.GetShininess();
-				ImGui::DragFloat("Shininess", &Shininess, 1.0f, 0.0f, 500.0f);
-				matirial.SetShininess(Shininess);
-			
-			});
+			 auto& specular = matirial.GetSpecular();
+			 float specular_strage = specular.x;
+			 ImGui::DragFloat("specular", &specular_strage, 0.01f, 0.0f, 1.0f);
+			 matirial.SetSpecular(glm::vec3(specular_strage));
 
-		DrawComponents<SpriteComponent>("Sprite", entity,
-			[&](auto& component) {
-				auto& color = component.Color;
-				ImGui::Columns(2);
-				ImGui::SetColumnWidth(0,120.0f);
-				ImGui::Text("Color");
+			 float Shininess = matirial.GetShininess();
+			 ImGui::DragFloat("Shininess", &Shininess, 1.0f, 0.0f, 500.0f);
+			 matirial.SetShininess(Shininess);
+		 });
 
-				ImGui::NextColumn();
-				ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
-				ImGui::ColorEdit4("##Color", glm::value_ptr(color));
-				ImGui::PopItemWidth();
-				
-				ImGui::NextColumn();
-				ImGui::Text("Texture");
+		DrawComponents<SpriteComponent>
+		("Sprite", entity,
+		 [&](auto& component)
+		 {
+			 auto& color = component.Color;
+			 ImGui::Columns(2);
+			 ImGui::SetColumnWidth(0, 120.0f);
+			 ImGui::Text("Color");
 
-				ImGui::NextColumn();
-				ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
-				if(component.Texture)
-					ImGui::ImageButton((void*)component.Texture->GetID(), {80, 80}, {0, 1}, {1, 0});
-				else
-				{
-					ImGui::ImageButton((void*)m_default_texture->GetID(), { 80, 80 }, { 0, 1 }, { 1, 0 });
-				}
-					
-				ImGui::PopItemWidth();
+			 ImGui::NextColumn();
+			 ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
+			 ImGui::ColorEdit4("##Color", glm::value_ptr(color));
+			 ImGui::PopItemWidth();
 
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Assets_Panel"))
-					{
-						const wchar_t* path = (const wchar_t*)payload->Data;
-						std::filesystem::path texturePath = std::filesystem::path(g_asset_path) / path;
-						Ref<Texture2D> texture = Texture2D::Create(texturePath.string());
-						//if (texture->IsLoaded())
-						component.Texture = texture;
-					}
-					ImGui::EndDragDropTarget();
-				}
-				ImGui::NextColumn();
-				ImGui::Text("Tiling Factor");
-				ImGui::NextColumn();
-				ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
-				ImGui::DragFloat("##Tiling Factor", &component.TilingFactor, 0.1f);
-				ImGui::PopItemWidth();
-			});
-		
-		DrawComponents<CameraComponent>("Camera", entity,
-			[](auto& component)
-			{
-				auto& cameraComponent = component;
+			 ImGui::NextColumn();
+			 ImGui::Text("Texture");
 
-				auto& camera = cameraComponent.Camera;
+			 ImGui::NextColumn();
+			 ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
+			 if (component.Texture)
+				 ImGui::ImageButton((void*)(component.Texture->GetID()),
+				                    {80, 80}, {0, 1}, {1, 0});
+			 else
+			 {
+				 ImGui::ImageButton((void*)m_default_texture->GetID(), {80, 80}, {0, 1},
+				                    {1, 0});
+			 }
 
-				const char* cameraTypeString[] = { "Orthographic", "Perspective" };
+			 ImGui::PopItemWidth();
 
-				const char* currCameraType = cameraTypeString[(int)camera.GetSceneCameraType()];
+			 if (ImGui::BeginDragDropTarget())
+			 {
+				 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(
+					 "Assets_Panel"))
+				 {
+					 auto path = static_cast<const wchar_t*>(payload->Data);
+					 std::filesystem::path texturePath = std::filesystem::path(
+						 g_asset_path) / path;
+					 Ref<Texture2D> texture = Texture2D::Create(texturePath.string());
+					 //if (texture->IsLoaded())
+					 component.Texture = texture;
+				 }
+				 ImGui::EndDragDropTarget();
+			 }
+			 ImGui::NextColumn();
+			 ImGui::Text("Tiling Factor");
+			 ImGui::NextColumn();
+			 ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
+			 ImGui::DragFloat("##Tiling Factor", &component.TilingFactor, 0.1f);
+			 ImGui::PopItemWidth();
+		 });
 
-				ImGui::Checkbox("IsMainCamera", &cameraComponent.IsMain);
+		DrawComponents<CameraComponent>
+		("Camera", entity,
+		 [](auto& component)
+		 {
+			 auto& cameraComponent = component;
 
-				if (ImGui::BeginCombo("Projection", currCameraType))
-				{
-					for (int i = 0; i < 2; i++)
-					{
-						bool selected = currCameraType == cameraTypeString[i];
-						if (ImGui::Selectable(cameraTypeString[i], selected))
-						{
-							currCameraType = cameraTypeString[i];
-							camera.SetSceneCameraType((SceneCameraType)i);
-						}
-						if (selected)
-							ImGui::SetItemDefaultFocus();
-					}
-					ImGui::EndCombo();
-				}
+			 auto& camera = cameraComponent.Camera;
 
-				if (camera.GetSceneCameraType() == SceneCameraType::Orthographic)
-				{
-					float zoomLevel = camera.GetOrthoZoomLevel();
-					if (ImGui::DragFloat("ZoomLevel", &zoomLevel, 0.1f))
-						camera.SetOrthoZoomLevel(zoomLevel);
+			 const char* cameraTypeString[] = {"Orthographic", "Perspective"};
 
-					float orthoNear = camera.GetOrthoNear();
-					if (ImGui::DragFloat("Near", &orthoNear, 0.1f))
-						camera.SetOrthoNear(orthoNear);
+			 const char* currCameraType = cameraTypeString[static_cast<int>(camera.
+				 GetSceneCameraType())];
 
-					float orthoFar = camera.GetOrthoFar();
-					if (ImGui::DragFloat("Far", &orthoFar, 0.1f))
-						camera.SetOrthoFar(orthoFar);
-				}
-				if (camera.GetSceneCameraType() == SceneCameraType::Perspective)
-				{
-					float FOV = glm::degrees(camera.GetPerspFOV());
-					if (ImGui::DragFloat("FOV", &FOV, 0.1f))
-						camera.SetPerspFOV(glm::radians(FOV));
+			 ImGui::Checkbox("IsMainCamera", &cameraComponent.IsMain);
 
-					float perspNear = camera.GetPerspNear();
-					if (ImGui::DragFloat("Near", &perspNear, 0.1f))
-						camera.SetPerspNear(perspNear);
+			 if (ImGui::BeginCombo("Projection", currCameraType))
+			 {
+				 for (int i = 0; i < 2; i++)
+				 {
+					 bool selected = currCameraType == cameraTypeString[i];
+					 if (ImGui::Selectable(cameraTypeString[i], selected))
+					 {
+						 currCameraType = cameraTypeString[i];
+						 camera.SetSceneCameraType(static_cast<SceneCameraType>(i));
+					 }
+					 if (selected)
+						 ImGui::SetItemDefaultFocus();
+				 }
+				 ImGui::EndCombo();
+			 }
 
-					float perspFar = camera.GetPerspFar();
-					if (ImGui::DragFloat("Far", &perspFar, 0.1f))
-						camera.SetPerspFar(perspFar);
-				}
-			});
+			 if (camera.GetSceneCameraType() == SceneCameraType::Orthographic)
+			 {
+				 float zoomLevel = camera.GetOrthoZoomLevel();
+				 if (ImGui::DragFloat("ZoomLevel", &zoomLevel, 0.1f))
+					 camera.SetOrthoZoomLevel(zoomLevel);
+
+				 float orthoNear = camera.GetOrthoNear();
+				 if (ImGui::DragFloat("Near", &orthoNear, 0.1f))
+					 camera.SetOrthoNear(orthoNear);
+
+				 float orthoFar = camera.GetOrthoFar();
+				 if (ImGui::DragFloat("Far", &orthoFar, 0.1f))
+					 camera.SetOrthoFar(orthoFar);
+			 }
+			 if (camera.GetSceneCameraType() == SceneCameraType::Perspective)
+			 {
+				 float FOV = glm::degrees(camera.GetPerspFOV());
+				 if (ImGui::DragFloat("FOV", &FOV, 0.1f))
+					 camera.SetPerspFOV(glm::radians(FOV));
+
+				 float perspNear = camera.GetPerspNear();
+				 if (ImGui::DragFloat("Near", &perspNear, 0.1f))
+					 camera.SetPerspNear(perspNear);
+
+				 float perspFar = camera.GetPerspFar();
+				 if (ImGui::DragFloat("Far", &perspFar, 0.1f))
+					 camera.SetPerspFar(perspFar);
+			 }
+		 });
 
 		LightComponent lc;
-		
 
-		DrawComponents<LightComponent>("Light", entity,
-		[](auto& component)
-		{
-		auto& light_component = component;
 
-		auto& light = light_component.Light;
+		DrawComponents<LightComponent>
+		("Light", entity,
+		 [](auto& component)
+		 {
+			 auto& light_component = component;
 
-		const char* light_type_str[] = { "Direction Light", "Point Light", "Spot Light" };
+			 auto& light = light_component.Light;
 
-		const char* cur_light_type = light_type_str[(int)light.GetLightType()];
+			 const char* light_type_str[] = {
+				 "Direction Light", "Point Light", "Spot Light"
+			 };
 
-		if (ImGui::BeginCombo("Projection", cur_light_type))
-		{
-			for (int i = 0; i < 3; i++)
-			{
-				bool selected = cur_light_type == light_type_str[i];
-				if (ImGui::Selectable(light_type_str[i], selected))
-				{
-					cur_light_type = light_type_str[i];
-					light.SetLightType(LightType(i));
-				}
-				if (selected)
-					ImGui::SetItemDefaultFocus();
-			}
-			ImGui::EndCombo();
-		}
+			 const char* cur_light_type = light_type_str[static_cast<int>(light.
+				 GetLightType())];
 
-		if (light.GetLightType() == LightType::DirectionLight)
-		{
-			auto& color = light.GetColor();
-			if (ImGui::ColorEdit3("Color", glm::value_ptr(color)))
-				light.SetColor(color);
+			 if (ImGui::BeginCombo("Projection", cur_light_type))
+			 {
+				 for (int i = 0; i < 3; i++)
+				 {
+					 bool selected = cur_light_type == light_type_str[i];
+					 if (ImGui::Selectable(light_type_str[i], selected))
+					 {
+						 cur_light_type = light_type_str[i];
+						 light.SetLightType(static_cast<LightType>(i));
+					 }
+					 if (selected)
+						 ImGui::SetItemDefaultFocus();
+				 }
+				 ImGui::EndCombo();
+			 }
 
-			auto& direction = light.GetDirection();
-			if (ImGui::DragFloat3("Near", glm::value_ptr(direction), 0.1f))
-				light.SetDirection(direction);
+			 if (light.GetLightType() == LightType::DirectionLight)
+			 {
+				 auto& color = light.GetColor();
+				 if (ImGui::ColorEdit3("Color", glm::value_ptr(color)))
+					 light.SetColor(color);
 
-			float intensity = light.GetIntensity();
-			if (ImGui::DragFloat("Far", &intensity, 0.1f))
-				light.SetIntensity(intensity);
-		}
-		else if (light.GetLightType() == LightType::PointLight)
-		{
-			auto& color = light.GetColor();
-			if (ImGui::ColorEdit3("Color", glm::value_ptr(color)))
-				light.SetColor(color);
-			float intensity = light.GetIntensity();
-			if (ImGui::DragFloat("Far", &intensity, 0.1f))
-				light.SetIntensity(intensity);
-		}
-		else if (light.GetLightType() == LightType::SpotLight)
-		{
+				 auto& direction = light.GetDirection();
+				 if (ImGui::DragFloat3("Near", glm::value_ptr(direction), 0.1f))
+					 light.SetDirection(direction);
 
-		}
-		});
+				 float intensity = light.GetIntensity();
+				 if (ImGui::DragFloat("Far", &intensity, 0.1f))
+					 light.SetIntensity(intensity);
+			 }
+			 else if (light.GetLightType() == LightType::PointLight)
+			 {
+				 auto& color = light.GetColor();
+				 if (ImGui::ColorEdit3("Color", glm::value_ptr(color)))
+					 light.SetColor(color);
+				 float intensity = light.GetIntensity();
+				 if (ImGui::DragFloat("Far", &intensity, 0.1f))
+					 light.SetIntensity(intensity);
+			 }
+			 else if (light.GetLightType() == LightType::SpotLight)
+			 {
+			 }
+		 });
 	}
 
 	void ScenePanel::SetContex(const std::shared_ptr<Scene>& context)
@@ -476,24 +494,23 @@ namespace Tomato {
 
 	void ScenePanel::DrawVector3(const std::string& label, glm::vec3& values, float speed, const glm::vec3& defaltValue)
 	{
-		
 		ImGui::PushID(label.c_str());
 
 		ImGui::Columns(2);
-		ImGui::SetColumnWidth(0,90.0f);
+		ImGui::SetColumnWidth(0, 90.0f);
 		ImGui::Text(label.c_str());
 
 		ImGui::NextColumn();
 
-		ImGui::PushMultiItemsWidths(3, (ImGui::GetColumnWidth()-50.0f)/2*1.3);
+		ImGui::PushMultiItemsWidths(3, (ImGui::GetColumnWidth() - 50.0f) / 2 * 1.3);
 
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-		ImVec2 buttonSize = { lineHeight-3 , lineHeight-3 };
+		ImVec2 buttonSize = {lineHeight - 3, lineHeight - 3};
 
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 6, 6 });
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.9f, 0.2f, 0.2f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{6, 6});
 		if (ImGui::Button("X", buttonSize))
 			values.x = defaltValue.x;
 		ImGui::PopStyleColor(3);
@@ -504,9 +521,9 @@ namespace Tomato {
 		ImGui::SameLine();
 
 
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.7f, 0.15f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{  0.2f, 0.8f, 0.2f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.7f, 0.15f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.1f, 0.7f, 0.15f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.2f, 0.8f, 0.2f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.1f, 0.7f, 0.15f, 1.0f});
 		if (ImGui::Button("Y", buttonSize))
 			values.y = defaltValue.y;
 		ImGui::PopStyleColor(3);
@@ -517,9 +534,9 @@ namespace Tomato {
 		ImGui::SameLine();
 
 
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.5f, 0.85f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{  0.2f, 0.6f, 0.9f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.5f, 0.85f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.1f, 0.5f, 0.85f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.2f, 0.6f, 0.9f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.1f, 0.5f, 0.85f, 1.0f});
 		if (ImGui::Button("Z", buttonSize))
 			values.z = defaltValue.z;
 		ImGui::PopStyleColor(3);
@@ -532,7 +549,4 @@ namespace Tomato {
 
 		ImGui::PopID();
 	}
-
 }
-
-

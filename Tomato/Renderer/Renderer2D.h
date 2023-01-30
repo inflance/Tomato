@@ -10,15 +10,15 @@
 #include "Tomato/Renderer/Texture.h"
 #include "Tomato/Renderer/SubTexture2D.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	class Renderer2D
 	{
 	public:
 		static void Init();
 		static void Shutdown();
 
-		static void BeginScene(const Camera& camera, const glm::mat4& transform );
+		static void BeginScene(const Camera& camera, const glm::mat4& transform);
 		static void BeginScene(const OrthographicCamera& camera);
 		static void BeginScene(const EditorCamera& camera);
 		static void EndScene();
@@ -27,11 +27,13 @@ namespace Tomato {
 
 		static void StartNewBatch();
 		static void NextBatch();
-		
+
 		static void DrawQuad(const glm::mat4& transform, const SpriteComponent& cc, int GID = -1);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::mat4& transform, const std::shared_ptr<Texture2D> texture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::mat4& transform, const std::shared_ptr<SubTexture2D> subtexture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
+		static void DrawQuad(const glm::mat4& transform, std::shared_ptr<Texture2D> texture, float tilingFactor = 1.0f,
+		                     const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
+		static void DrawQuad(const glm::mat4& transform, std::shared_ptr<SubTexture2D> subtexture,
+		                     float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
 
 #ifdef DEBUG
 		//

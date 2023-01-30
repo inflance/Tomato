@@ -7,19 +7,22 @@
 #include "Tomato/Renderer/Shader.h"
 #include "Tomato/Core/Core.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	class Entity;
 
 	class Scene
 	{
 	public:
 		Scene() = default;
-		Scene(const std::string& scenenName)
-			:m_sceneName(m_sceneName) {}
+
+		Scene(const std::string& sceneName)
+			: m_sceneName(sceneName)
+		{
+		}
 
 		virtual ~Scene() = default;
-		
+
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateSprite(const std::string& name = std::string());
 		Entity CreateCamera(const std::string& name = std::string());
@@ -45,7 +48,7 @@ namespace Tomato {
 
 		float m_viewPortWidth = 0.0f;
 		float m_viewPortHeight = 0.0f;
-		
+
 		friend class Entity;
 		friend class ScenePanel;
 		friend class SceneSerializater;

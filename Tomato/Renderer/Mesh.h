@@ -15,17 +15,17 @@ struct aiMesh;
 struct aiMaterial;
 enum aiTextureType;
 
-namespace Tomato {
-
+namespace Tomato
+{
 	class VertexArray;
 	class VertexBuffer;
 	class IndexBuffer;
 	class Shader;
 
 	using Index = uint32_t;
-	
-	struct Vertex {
 
+	struct Vertex
+	{
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoords;
@@ -35,7 +35,8 @@ namespace Tomato {
 		int EntityID = -1;
 	};
 
-	struct SkeletonVertex {
+	struct SkeletonVertex
+	{
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoords;
@@ -53,13 +54,15 @@ namespace Tomato {
 	public:
 		SubMesh() = default;
 		SubMesh(std::vector<Vertex> vertices, std::vector<uint32_t> indices);
-		SubMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, const std::vector<MatirialTextureData>& m_texture);
+		SubMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,
+		        const std::vector<MatirialTextureData>& m_texture);
 
-		template<typename Func>
-		void Draw(const Func& func) const {
+		template <typename Func>
+		void Draw(const Func& func) const
+		{
 			func(m_VertexArray, m_VertexBuffer, m_vertices, m_texture);
 		}
-	
+
 	private:
 		std::vector<Vertex> m_vertices;
 		std::vector<uint32_t> m_Indices;
@@ -70,28 +73,27 @@ namespace Tomato {
 		Ref<IndexBuffer> m_IndexBuffer;
 	};
 
-	class Mesh 
+	class Mesh
 	{
 	public:
 		Mesh() = default;
 		Mesh(const Mesh&) = default;
 
 		void Load(int entityID = -1, const std::string& path = "PreCompile/Assets/Mesh/bbl/bbl.pmx");
-		const std::vector<SubMesh>& GetMesh(){ return m_submeshs; };
+		const std::vector<SubMesh>& GetMesh() { return m_submeshs; };
 		[[nodiscard]] AssetID GetID() const { return m_id; };
 		std::string& GetPath() { return m_path; };
 
 	private:
 		void ProcessNode(aiNode* node, const aiScene* scene);
-		void GetStaticMeshData(aiMesh* mesh,  const aiScene* scene);
-		std::vector<MatirialTextureData> LoadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureType typeName);
-		
+		void GetStaticMeshData(aiMesh* mesh, const aiScene* scene);
+		std::vector<MatirialTextureData>
+		LoadMaterialTextures(aiMaterial* mat, aiTextureType type, PBRTextureType typeName);
+
 	private:
 		int m_id;
 		std::string m_directory;
 		std::string m_path;
 		std::vector<SubMesh> m_submeshs;
 	};
-
-	
 }

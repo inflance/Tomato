@@ -1,18 +1,16 @@
-#include "Tomato/tmtpch.h"
+#include "Tomato/pch.h"
 
 #include "Renderer2D.h"
 
 #include "VertexArray.h"
 #include "Shader.h"
 #include "RendererCommand.h"
-#include "Tomato/Platform/OpenGL/OpenGLShader.h"
-
 #include <glm/gtc/matrix_transform.hpp>
 #include <Tomato/Scene/Entity.h>
 
 
-namespace Tomato {
-
+namespace Tomato
+{
 	struct QuadVertex
 	{
 		glm::vec3 Position;
@@ -26,7 +24,8 @@ namespace Tomato {
 		int EntityID;
 	};
 
-	struct QuadData {
+	struct QuadData
+	{
 		static const uint32_t MaxQuads = 10000;
 		static const uint32_t MaxVertices = MaxQuads * 4;
 		static const uint32_t MaxIndices = MaxQuads * 6;
@@ -48,32 +47,31 @@ namespace Tomato {
 		//for vertex position
 		glm::vec4 QuadVertexPosition[4];
 
-		Tomato::Renderer2D::Statistics Stats;
+		Renderer2D::Statistics Stats;
 	};
 
 	static QuadData s_quad_data;
 
 	void Renderer2D::Init()
 	{
-
 		s_quad_data.QuadVertexArray = VertexArray::Create();
 		s_quad_data.QuadVertexBuffer = VertexBuffer::Create(s_quad_data.MaxVertices * sizeof(QuadVertex));
 
 		//设置顶点布局
 		s_quad_data.QuadVertexBuffer->SetLayout({
-			{ShaderDataType::Float3		, "a_Position"		},
-			{ShaderDataType::Float4		, "a_Color"			},
-			{ShaderDataType::Float2		, "a_TexCoord"		},
-			{ShaderDataType::Float		, "a_TexIndex"		},
-			{ShaderDataType::Float		, "a_TilingFactor"	},
-			{ShaderDataType::Int		, "a_EntityID"		},
+			{ShaderDataType::Float3, "a_Position"},
+			{ShaderDataType::Float4, "a_Color"},
+			{ShaderDataType::Float2, "a_TexCoord"},
+			{ShaderDataType::Float, "a_TexIndex"},
+			{ShaderDataType::Float, "a_TilingFactor"},
+			{ShaderDataType::Int, "a_EntityID"},
 		});
 		s_quad_data.QuadVertexArray->AddVertexBuffer(s_quad_data.QuadVertexBuffer);
 
 		s_quad_data.QuadVertexBufferArr = new QuadVertex[s_quad_data.MaxVertices];
 
-		uint32_t* quadIndices = new uint32_t[s_quad_data.MaxIndices];
-		
+		auto quadIndices = new uint32_t[s_quad_data.MaxIndices];
+
 		uint32_t offset = 0;
 		for (uint32_t i = 0; i < s_quad_data.MaxIndices; i += 6)
 		{
@@ -86,14 +84,14 @@ namespace Tomato {
 			quadIndices[i + 5] = offset + 0;
 
 			offset += 4;
-		}																
+		}
 
-		std::shared_ptr<IndexBuffer> squareIndexBuffer = IndexBuffer::Create(quadIndices, s_quad_data.MaxIndices );
+		std::shared_ptr<IndexBuffer> squareIndexBuffer = IndexBuffer::Create(quadIndices, s_quad_data.MaxIndices);
 		s_quad_data.QuadVertexArray->SetIndexBuffer(squareIndexBuffer);
 		delete[] quadIndices;
-		
+
 		//white
-		s_quad_data.WhiteTexture = Texture2D::Create(1,1);
+		//s_quad_data.WhiteTexture = Texture2D::Create(1, 1);
 		uint32_t whiteTextureData = 0xffffffff;
 		s_quad_data.WhiteTexture->SetData(&whiteTextureData, sizeof(whiteTextureData));
 
@@ -106,13 +104,12 @@ namespace Tomato {
 		s_quad_data.TextureShader->SetIntArray("u_Textures", samplers, s_quad_data.MaxTextureSlot);
 
 		//init vertex position
-		s_quad_data.QuadVertexPosition[0] = { -0.5f, -0.5f, 0.0f, 1.0f}; //left buttom 
-		s_quad_data.QuadVertexPosition[1] = {  0.5f, -0.5f, 0.0f, 1.0f};  //left top
-		s_quad_data.QuadVertexPosition[2] = {  0.5f,  0.5f, 0.0f, 1.0f}; //right top
-		s_quad_data.QuadVertexPosition[3] = { -0.5f,  0.5f, 0.0f, 1.0f}; //right buttom
+		s_quad_data.QuadVertexPosition[0] = {-0.5f, -0.5f, 0.0f, 1.0f}; //left buttom 
+		s_quad_data.QuadVertexPosition[1] = {0.5f, -0.5f, 0.0f, 1.0f}; //left top
+		s_quad_data.QuadVertexPosition[2] = {0.5f, 0.5f, 0.0f, 1.0f}; //right top
+		s_quad_data.QuadVertexPosition[3] = {-0.5f, 0.5f, 0.0f, 1.0f}; //right buttom
 
 		s_quad_data.TextureSlots[0] = s_quad_data.WhiteTexture;
-
 	}
 
 	void Renderer2D::Shutdown()
@@ -128,13 +125,11 @@ namespace Tomato {
 		s_quad_data.QuadVertexBufferPtr = s_quad_data.QuadVertexBufferArr;
 
 		s_quad_data.TextureSlotIndex = 1;
-	
 	}
 
 	void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
 	{
-
-		const glm::mat4 ViewProjection = camera.GetProjection() * glm::inverse(transform);
+		const glm::mat4 ViewProjection = camera.GetProjection() * inverse(transform);
 
 		s_quad_data.TextureShader->Bind();
 		s_quad_data.TextureShader->SetMat4("u_ViewProjection", ViewProjection);
@@ -142,7 +137,6 @@ namespace Tomato {
 		s_quad_data.QuadVertexBufferPtr = s_quad_data.QuadVertexBufferArr;
 
 		s_quad_data.TextureSlotIndex = 1;
-
 	}
 
 
@@ -186,8 +180,6 @@ namespace Tomato {
 			++s_quad_data.Stats.DrawCalls;
 #endif // DEBUG
 		}
-		
-
 	}
 
 	void Renderer2D::NextBatch()
@@ -210,10 +202,10 @@ namespace Tomato {
 		}
 
 		constexpr glm::vec2 texcoord[] = {
-			{ 0.0f, 0.0f },
-			{ 1.0f, 0.0f },
-			{ 1.0f, 1.0f },
-			{ 0.0f, 1.0f }
+			{0.0f, 0.0f},
+			{1.0f, 0.0f},
+			{1.0f, 1.0f},
+			{0.0f, 1.0f}
 		};
 		const float textureIndex = 0.0f;
 		const float tilingFactor = 1.0f;
@@ -238,13 +230,14 @@ namespace Tomato {
 #endif // DEBUG
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const std::shared_ptr<Texture2D> texture, const float tilingFactor, const glm::vec4& color, int GID)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const std::shared_ptr<Texture2D> texture,
+	                          const float tilingFactor, const glm::vec4& color, int GID)
 	{
 		glm::vec2 texcoord[] = {
-			{ 0.0f, 0.0f },
-			{ 1.0f, 0.0f },
-			{ 1.0f, 1.0f },
-			{ 0.0f, 1.0f }
+			{0.0f, 0.0f},
+			{1.0f, 0.0f},
+			{1.0f, 1.0f},
+			{0.0f, 1.0f}
 		};
 
 		float textureIndex = 0.0f;
@@ -254,7 +247,7 @@ namespace Tomato {
 		{
 			if (*s_quad_data.TextureSlots[i] == *texture)
 			{
-				textureIndex = (float)i;
+				textureIndex = static_cast<float>(i);
 				break;
 			}
 		}
@@ -287,9 +280,9 @@ namespace Tomato {
 #endif // DEBUG
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const std::shared_ptr<SubTexture2D> subTexture, const float tilingFactor, const glm::vec4& color,int GID)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const std::shared_ptr<SubTexture2D> subTexture,
+	                          const float tilingFactor, const glm::vec4& color, int GID)
 	{
-
 		if (s_quad_data.QuadIndexCount >= QuadData::MaxIndices)
 		{
 			StartNewBatch();
@@ -305,14 +298,14 @@ namespace Tomato {
 		{
 			if (*s_quad_data.TextureSlots[i].get() == *texture.get())
 			{
-				textureIndex = (float)i;
+				textureIndex = static_cast<float>(i);
 				break;
 			}
 		}
 
 		if (textureIndex == 0.0f)
 		{
-			textureIndex = (float)s_quad_data.TextureSlotIndex;
+			textureIndex = static_cast<float>(s_quad_data.TextureSlotIndex);
 			s_quad_data.TextureSlots[s_quad_data.TextureSlotIndex] = texture;
 			s_quad_data.TextureSlotIndex++;
 		}
@@ -337,7 +330,7 @@ namespace Tomato {
 #endif // DEBUG
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const SpriteComponent& cc, int GID )
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const SpriteComponent& cc, int GID)
 	{
 		if (cc.Texture)
 			DrawQuad(transform, cc.Texture, cc.TilingFactor, cc.Color, GID);
@@ -346,7 +339,7 @@ namespace Tomato {
 	}
 
 #ifdef DEBUG
-	Tomato::Renderer2D::Statistics Renderer2D::GetStats()
+	Renderer2D::Statistics Renderer2D::GetStats()
 	{
 		return s_quad_data.Stats;
 	}
@@ -357,9 +350,4 @@ namespace Tomato {
 	}
 
 #endif // DEBUG
-
-	
-	
-
 }
-

@@ -8,7 +8,7 @@ project (TomatoEditor)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(${PROJECT_NAME}  "Main.cpp" )
+add_executable(${PROJECT_NAME}  "Main.cpp"  "ThirdParty/VulkanMemoryAllocator/include/vk_mem_alloc.h" "ThirdParty/VulkanMemoryAllocator/src/Common.cpp" "ThirdParty/VulkanMemoryAllocator/src/Common.h" "ThirdParty/VulkanMemoryAllocator/src/SparseBindingTest.cpp" "ThirdParty/VulkanMemoryAllocator/src/SparseBindingTest.h" "ThirdParty/VulkanMemoryAllocator/src/Tests.cpp" "ThirdParty/VulkanMemoryAllocator/src/Tests.h" "ThirdParty/VulkanMemoryAllocator/src/VmaUsage.cpp" "ThirdParty/VulkanMemoryAllocator/src/VmaUsage.h" "ThirdParty/VulkanMemoryAllocator/src/VulkanSample.cpp")
 
 set(ENGINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 

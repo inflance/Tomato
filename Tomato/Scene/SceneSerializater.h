@@ -4,13 +4,12 @@
 
 #include "Scene.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	using Json = nlohmann::json;
 
 	class SceneSerializater
 	{
-	
 	public:
 		SceneSerializater(const std::shared_ptr<Scene>& scene);
 
@@ -18,6 +17,7 @@ namespace Tomato {
 		bool DeSerialization(const std::string& filepath);
 
 		void SerializeEntity(Json& json, Entity entity);
+
 	private:
 		std::shared_ptr<Scene> m_Scene;
 	};

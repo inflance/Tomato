@@ -2,21 +2,21 @@
 
 #include "Tomato/Core/Core.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	void MeshFactory::Add(const std::string& path, const Mesh& data)
 	{
 		LOG_ASSERT(!Exist(path), "");
 		m_mesh_factory[path] = data;
 	}
 
-	Tomato::Mesh& MeshFactory::Load(const std::string& path, Mesh& data)
+	Mesh& MeshFactory::Load(const std::string& path, Mesh& data)
 	{
 		Add(path, data);
 		return m_mesh_factory[path];
 	}
 
-	Tomato::Mesh& MeshFactory::GetMesh(const std::string& path)
+	Mesh& MeshFactory::GetMesh(const std::string& path)
 	{
 		LOG_ASSERT(Exist(path), "");
 		return m_mesh_factory[path];
@@ -24,7 +24,6 @@ namespace Tomato {
 
 	bool MeshFactory::Exist(const std::string& path)
 	{
-		return m_mesh_factory.find(path) != m_mesh_factory.end();
+		return m_mesh_factory.contains(path);
 	}
-
 }

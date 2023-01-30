@@ -2,13 +2,15 @@
 
 #include "Event.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	class MouseMovedEvent : public Event
 	{
 	public:
 		MouseMovedEvent(const float x, const float y)
-			: m_mouse_x(x), m_mouse_y(y) {}
+			: m_mouse_x(x), m_mouse_y(y)
+		{
+		}
 
 		[[nodiscard]] float GetX() const { return m_mouse_x; }
 		[[nodiscard]] float GetY() const { return m_mouse_y; }
@@ -22,6 +24,7 @@ namespace Tomato {
 
 		EVENT_CLASS_TYPE(MouseMoved);
 		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput);
+
 	private:
 		float m_mouse_x, m_mouse_y;
 	};
@@ -30,7 +33,9 @@ namespace Tomato {
 	{
 	public:
 		MouseScrolledEvent(const float x_offset, const float y_offset)
-			: m_x_offset(x_offset), m_y_offset(y_offset) {}
+			: m_x_offset(x_offset), m_y_offset(y_offset)
+		{
+		}
 
 		[[nodiscard]] float GetXOffset() const { return m_x_offset; }
 		[[nodiscard]] float GetYOffset() const { return m_y_offset; }
@@ -44,6 +49,7 @@ namespace Tomato {
 
 		EVENT_CLASS_TYPE(MouseScrolled)
 		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
+
 	private:
 		float m_x_offset, m_y_offset;
 	};
@@ -54,9 +60,12 @@ namespace Tomato {
 		[[nodiscard]] int GetMouseButton() const { return m_button; }
 
 		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput | EventCategoryMouseButton);
+
 	protected:
 		MouseButtOnEvent(const int button)
-			: m_button(button) {}
+			: m_button(button)
+		{
+		}
 
 		int m_button;
 	};
@@ -65,7 +74,9 @@ namespace Tomato {
 	{
 	public:
 		MouseButtonPressedEvent(const int button)
-			: MouseButtOnEvent(button) {}
+			: MouseButtOnEvent(button)
+		{
+		}
 
 		[[nodiscard]] std::string ToString() const override
 		{
@@ -81,7 +92,9 @@ namespace Tomato {
 	{
 	public:
 		MouseButtonReleasedEvent(const int button)
-			: MouseButtOnEvent(button) {}
+			: MouseButtOnEvent(button)
+		{
+		}
 
 		[[nodiscard]] std::string ToString() const override
 		{
@@ -92,5 +105,4 @@ namespace Tomato {
 
 		EVENT_CLASS_TYPE(MouseButtonReleased);
 	};
-
 }

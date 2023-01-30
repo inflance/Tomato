@@ -2,19 +2,25 @@
 
 #include <glm/glm.hpp>
 
-namespace Tomato {
-
-	enum class LightType {
+namespace Tomato
+{
+	enum class LightType
+	{
 		DirectionLight = 0,
 		PointLight,
 		SpotLight
 	};
 
-	class Light {
+	class Light
+	{
 	public:
 		Light() = default;
+
 		Light(LightType lightType, float intensity, const glm::vec4& color, const glm::vec3& direction)
-			:m_light_type(lightType), m_intensity(intensity), m_color(color), m_direction(direction){}
+			: m_light_type(lightType), m_intensity(intensity), m_color(color), m_direction(direction)
+		{
+		}
+
 		~Light() = default;
 
 		void SetLightType(LightType lightType) { m_light_type = lightType; }
@@ -39,6 +45,5 @@ namespace Tomato {
 		glm::vec3 m_color = glm::vec3(1.0f);
 		//z axis
 		glm::vec3 m_direction = glm::vec3(-0.2f, -1.0f, -0.3f);
-		
 	};
 }

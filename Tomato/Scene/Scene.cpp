@@ -6,21 +6,21 @@
 #include "Tomato/Renderer/Renderer2D.h"
 #include "Tomato/Renderer/ShaderFactory.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	Entity Scene::CreateEntity(const std::string& name)
 	{
-		Entity entity = { m_Registry.create(), this };
+		Entity entity = {m_Registry.create(), this};
 		entity.AddComponent<TransformComponent>();
 		auto& tag = entity.AddComponent<NameComponent>();
-		tag.Name = name.empty() ? ("Empty Entity"+std::to_string((uint32_t)entity)) : name;
+		tag.Name = name.empty() ? ("Empty Entity" + std::to_string(static_cast<uint32_t>(entity))) : name;
 
 		return entity;
 	}
 
-	Tomato::Entity Scene::CreateSprite(const std::string& name /*= std::string()*/)
+	Entity Scene::CreateSprite(const std::string& name /*= std::string()*/)
 	{
-		Entity entity = { m_Registry.create(), this };
+		Entity entity = {m_Registry.create(), this};
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<SpriteComponent>();
 		auto& tag = entity.AddComponent<NameComponent>();
@@ -29,61 +29,61 @@ namespace Tomato {
 		return entity;
 	}
 
-	Tomato::Entity Scene::CreateCamera(const std::string& name /*= std::string()*/)
+	Entity Scene::CreateCamera(const std::string& name /*= std::string()*/)
 	{
-		Entity entity = { m_Registry.create(), this };
+		Entity entity = {m_Registry.create(), this};
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<CameraComponent>();
 		auto& tag = entity.AddComponent<NameComponent>();
 		tag.Name = name.empty() ? "Camera" : name;
-		
+
 		return entity;
 	}
 
-	Tomato::Entity Scene::CreateStaticMesh(const std::string& name /*= std::string()*/)
+	Entity Scene::CreateStaticMesh(const std::string& name /*= std::string()*/)
 	{
-		Entity entity = { m_Registry.create(), this };
+		Entity entity = {m_Registry.create(), this};
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<StaticMeshComponent>();
 		auto& tag = entity.AddComponent<NameComponent>();
 		tag.Name = name.empty() ? "StaticMesh" : name;
 
-		entity.GetComponent<StaticMeshComponent>().StaticMesh.Load(uint32_t(entity));
+		entity.GetComponent<StaticMeshComponent>().StaticMesh.Load(static_cast<uint32_t>(entity));
 
 		return entity;
 	}
 
-	Tomato::Entity Scene::CreateBaseShape(const std::string& name /*= std::string()*/)
+	Entity Scene::CreateBaseShape(const std::string& name /*= std::string()*/)
 	{
-		Entity entity = { m_Registry.create(), this };
+		Entity entity = {m_Registry.create(), this};
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<BaseShapeComponent>();
 		entity.AddComponent<SpriteComponent>();
 		entity.AddComponent<MatirialComponent>();
 		MatirialTextureData diffuse;
 		MatirialTextureData specular;
-		diffuse.Texture= Texture2D::Create(std::string("PreCompile/Assets/Image/container2.png"));
+		diffuse.Texture = Texture2D::Create(std::string("PreCompile/Assets/Image/container2.png"));
 		specular.Texture = Texture2D::Create(std::string("PreCompile/Assets/Image/container2_specular.png"));
 		entity.GetComponent<MatirialComponent>().matiral.SetDiffuseMap(diffuse);
 		entity.GetComponent<MatirialComponent>().matiral.SetSpecularMap(specular);
 		auto& tag = entity.AddComponent<NameComponent>();
 		tag.Name = name.empty() ? "Cube" : name;
 
-		entity.GetComponent<BaseShapeComponent>().BaseShape.CreateCube(uint32_t(entity));
+		entity.GetComponent<BaseShapeComponent>().BaseShape.CreateCube(static_cast<uint32_t>(entity));
 
 		return entity;
 	}
 
-	Tomato::Entity Scene::CreateLight(const std::string& name /*= std::string()*/)
+	Entity Scene::CreateLight(const std::string& name /*= std::string()*/)
 	{
-		Entity entity = { m_Registry.create(), this };
+		Entity entity = {m_Registry.create(), this};
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<LightComponent>();
 		entity.AddComponent<BaseShapeComponent>();
 		auto& tag = entity.AddComponent<NameComponent>();
 		tag.Name = name.empty() ? "Light" : name;
 
-		entity.GetComponent<BaseShapeComponent>().BaseShape.CreateCube(uint32_t(entity));
+		entity.GetComponent<BaseShapeComponent>().BaseShape.CreateCube(static_cast<uint32_t>(entity));
 
 		return entity;
 	}
@@ -99,16 +99,15 @@ namespace Tomato {
 				auto& transformComponent = view.get<TransformComponent>(entity);
 				auto& spriteComponent = view.get<SpriteComponent>(entity);
 
-				Renderer2D::DrawQuad(transformComponent.GetTransform(), spriteComponent, (int)entity);
-
+				Renderer2D::DrawQuad(transformComponent.GetTransform(), spriteComponent, static_cast<int>(entity));
 			}
 			Renderer2D::EndScene();
 		}
 
 
-		const auto& shader = ShaderFactory::GetInstance().GetShader("BaseCube");
+		/*const auto& shader = ShaderFactory::Get().GetShader("BaseCube");
 		shader->Bind();
-		shader->SetFloat3("u_CameraPos", camera.GetPosition());
+		shader->SetFloat3("u_CameraPos", camera.GetPosition());*/
 		{
 			const auto& view = m_Registry.view<TransformComponent, StaticMeshComponent>();
 
@@ -117,14 +116,14 @@ namespace Tomato {
 				auto& transformComponent = view.get<TransformComponent>(entity);
 				auto& staticMeshComponent = view.get<StaticMeshComponent>(entity);
 
-				Renderer::RenderBaseShape(staticMeshComponent.StaticMesh, camera.GetViewProjection(), transformComponent.GetTransform());
-
+				Renderer::RenderBaseShape(staticMeshComponent.StaticMesh, camera.GetViewProjection(),
+				                          transformComponent.GetTransform());
 			}
 		}
 
 		{
-
-			const auto& view = m_Registry.view<TransformComponent, BaseShapeComponent, SpriteComponent, MatirialComponent>();
+			const auto& view = m_Registry.view<TransformComponent, BaseShapeComponent, SpriteComponent,
+			                                   MatirialComponent>();
 			for (auto& entity : view)
 			{
 				auto& transformComponent = view.get<TransformComponent>(entity);
@@ -132,8 +131,9 @@ namespace Tomato {
 				auto& spriteComponent = view.get<SpriteComponent>(entity);
 				auto& matirialComponent = view.get<MatirialComponent>(entity);
 
-				Renderer::RenderBaseShapeWithMatirial(baseShapeComponent.BaseShape, spriteComponent.Color, matirialComponent.matiral, camera.GetViewProjection(), transformComponent.GetTransform());
-
+				Renderer::RenderBaseShapeWithMatirial(baseShapeComponent.BaseShape, spriteComponent.Color,
+				                                      matirialComponent.matiral, camera.GetViewProjection(),
+				                                      transformComponent.GetTransform());
 			}
 		}
 
@@ -143,7 +143,7 @@ namespace Tomato {
 			for (auto& entity : lcv)
 			{
 				auto& lightComponent = lcv.get<LightComponent>(entity);
-				if(lightComponent.Light.GetLightType() == LightType::PointLight)
+				if (lightComponent.Light.GetLightType() == LightType::PointLight)
 					pointLightSize++;
 			}
 
@@ -154,17 +154,15 @@ namespace Tomato {
 				auto& baseShapeComponent = view.get<BaseShapeComponent>(entity);
 				auto& lightComponent = view.get<LightComponent>(entity);
 
-				Renderer::RenderBaseLight(baseShapeComponent.BaseShape, lightComponent.Light, camera.GetViewProjection(), transformComponent.GetTransform(), transformComponent.Position, pointLightSize);
-
+				Renderer::RenderBaseLight(baseShapeComponent.BaseShape, lightComponent.Light,
+				                          camera.GetViewProjection(), transformComponent.GetTransform(),
+				                          transformComponent.Position, pointLightSize);
 			}
 		}
-		
-		
 	}
 
 	void Scene::Tick(float deltaTime)
 	{
-
 		{
 			const auto& view = m_Registry.view<NativeScriptComponent>();
 
@@ -174,7 +172,7 @@ namespace Tomato {
 				if (!nsc.Instance)
 				{
 					nsc.Instance = nsc.InstantiateScript();
-					nsc.Instance->m_entity = Entity{ entity, this };
+					nsc.Instance->m_entity = Entity{entity, this};
 					nsc.Instance->OnCreate();
 				}
 
@@ -191,20 +189,20 @@ namespace Tomato {
 				auto& transform = view.get<TransformComponent>(entity);
 				auto& camera = view.get<CameraComponent>(entity);
 
-				if (camera.IsMain) {
+				if (camera.IsMain)
+				{
 					mainCamera = &camera.Camera;
 					mainCameraTransform = transform.GetTransform();
 					break;
 				}
 			}
-
 		}
 
-		if (mainCamera) 
+		if (mainCamera)
 		{
 			Renderer2D::BeginScene(*mainCamera, mainCameraTransform);
 			const auto& view = m_Registry.view<TransformComponent, SpriteComponent>();
-	
+
 			for (auto entity : view)
 			{
 				auto& transform = view.get<TransformComponent>(entity);
@@ -213,7 +211,6 @@ namespace Tomato {
 			}
 			Renderer2D::EndScene();
 		}
-
 	}
 
 	void Scene::SetViewPortResize(float width, float height)
@@ -239,13 +236,14 @@ namespace Tomato {
 
 	void Scene::Clear()
 	{
-		m_Registry.each([&](entt::entity entity) {
-			LOG_ERROR((int)entity);
+		m_Registry.each([&](entt::entity entity)
+		{
+			LOG_ERROR(static_cast<int>(entity));
 			m_Registry.destroy(entity);
-			});
+		});
 	}
 
-	Tomato::Entity Scene::GetMainCameraEntity()
+	Entity Scene::GetMainCameraEntity()
 	{
 		auto view = m_Registry.view<CameraComponent>();
 		for (auto en : view)
@@ -253,10 +251,9 @@ namespace Tomato {
 			auto& camera = view.get<CameraComponent>(en);
 			if (camera.IsMain)
 			{
-				return Entity{ en, this };
+				return Entity{en, this};
 			}
 		}
 		return {};
 	}
-
 }

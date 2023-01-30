@@ -1,15 +1,15 @@
 #include "Layer.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	Layer::Layer(const std::string& name /*= "Layer"*/)
-		:m_debug_name(name)
+		: m_debug_name(name)
 	{
-		LogSystem::ConsoleLog(LogType::Trace, m_debug_name + " Created");
+		LogSystem::Log(LogType::Trace, m_debug_name + " Created");
 	}
+
 	Layer::~Layer()
 	{
-		LogSystem::ConsoleLog(LogType::Trace, m_debug_name + " Destroyed");
+		LogSystem::Log(LogType::Trace, m_debug_name + " Destroyed");
 	}
-
 }

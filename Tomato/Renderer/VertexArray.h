@@ -4,12 +4,14 @@
 
 class VertexBuffer;
 
-namespace Tomato {
-
+namespace Tomato
+{
 	class VertexArray
 	{
 	public:
-		virtual ~VertexArray() {}
+		virtual ~VertexArray()
+		{
+		}
 
 		virtual void Bind() const = 0;
 		virtual void UnBind() const = 0;

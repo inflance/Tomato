@@ -6,21 +6,24 @@
 #include "Tomato/Core/Core.h"
 #include "Tomato/Core/UUID.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	class Entity
 	{
 	public:
 		Entity() = default;
-		virtual ~Entity() {};
+
+		virtual ~Entity()
+		{
+		};
 
 		Entity(entt::entity handle, Scene* scene);
 		Entity(const Entity& other) = default;
 
-		void SetEntityID(UUID uuid){ m_EntityID = uuid;}
+		void SetEntityID(UUID uuid) { m_EntityID = uuid; }
 		const UUID GetEntityID() const { return m_EntityID; };
 
-		template<typename T, typename... Args>
+		template <typename T, typename... Args>
 		T& AddComponent(Args&&... args)
 		{
 			LOG_ASSERT(!HasComponent<T>(), "Entity already has component!");
@@ -29,20 +32,20 @@ namespace Tomato {
 			return component;
 		}
 
-		template<typename T>
+		template <typename T>
 		T& GetComponent()
 		{
 			LOG_ASSERT(HasComponent<T>(), "Object does not have component!");
 			return m_Scene->m_Registry.get<T>(m_ObjectHandle);
 		}
 
-		template<typename T>
+		template <typename T>
 		bool HasComponent()
 		{
 			return m_Scene->m_Registry.all_of<T>(m_ObjectHandle);
 		}
 
-		template<typename T>
+		template <typename T>
 		void RemoveComponent()
 		{
 			LOG_ASSERT(HasComponent<T>(), "Object does not have component!");
@@ -51,7 +54,7 @@ namespace Tomato {
 
 		operator bool() const { return m_ObjectHandle != entt::null; }
 		operator entt::entity() const { return m_ObjectHandle; }
-		operator uint32_t() const { return (uint32_t)m_ObjectHandle; }
+		operator uint32_t() const { return static_cast<uint32_t>(m_ObjectHandle); }
 
 
 		bool operator==(const Entity& other) const
@@ -68,9 +71,9 @@ namespace Tomato {
 
 	private:
 		UUID m_EntityID;
+
 	protected:
-		entt::entity m_ObjectHandle{ entt::null };
+		entt::entity m_ObjectHandle{entt::null};
 		Scene* m_Scene = nullptr;
 	};
-
 }

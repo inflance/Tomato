@@ -8,10 +8,11 @@
 #undef near
 #undef  far
 
-namespace Tomato {
-
+namespace Tomato
+{
 	EditorCamera::EditorCamera(float fov, float aspect_ratio, float near, float far)
-		: m_fov(fov), m_aspect_ratio(aspect_ratio), m_near(near), m_far(far), Camera(glm::perspective(glm::radians(fov), aspect_ratio, near, far))
+		: Camera(glm::perspective(glm::radians(fov), aspect_ratio, near, far)), m_fov(fov),
+		  m_aspect_ratio(aspect_ratio), m_near(near), m_far(far)
 	{
 		UpdateView();
 	}
@@ -25,8 +26,8 @@ namespace Tomato {
 	void EditorCamera::UpdateView()
 	{
 		const glm::quat orientation = GetOrientation();
-		m_view_mat = glm::translate(glm::mat4(1.0f), m_position) * glm::toMat4(orientation);
-		m_view_mat = glm::inverse(m_view_mat);
+		m_view_mat = translate(glm::mat4(1.0f), m_position) * toMat4(orientation);
+		m_view_mat = inverse(m_view_mat);
 	}
 
 	std::pair<float, float> EditorCamera::PanSpeed() const
@@ -37,7 +38,7 @@ namespace Tomato {
 		float y = std::min(m_viewport_height / 1000.0f, 2.4f); // max = 2.4f
 		float yFactor = 0.0366f * (y * y) - 0.1778f * y + 0.3021f;
 
-		return { xFactor, yFactor };
+		return {xFactor, yFactor};
 	}
 
 	float EditorCamera::RotationSpeed() const
@@ -56,19 +57,21 @@ namespace Tomato {
 
 	void EditorCamera::Tick(float deltaTime)
 	{
-		const glm::vec2& mouse_pos{ Input::GetMouseX(), Input::GetMouseY() };
+		const glm::vec2& mouse_pos{Input::GetMouseX(), Input::GetMouseY()};
 		const glm::vec2 delta = (mouse_pos - m_last_mouse_pos) * 0.003f;
 		m_last_mouse_pos = mouse_pos;
 		const float move_speed = deltaTime * 10.0f;
-		
-		if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle)) {
+
+		if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
+		{
 			//CameraRotate(delta);
 		}
 		else if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
 		{
 			//CameraRotatoByTarget(delta);
 		}
-		else if (Input::IsMouseButtonPressed(Mouse::ButtonRight)) {
+		else if (Input::IsMouseButtonPressed(Mouse::ButtonRight))
+		{
 			CameraRotate(delta);
 			if (Input::IsKeyPressed(Key::W))
 				CameraMove(CameraMovement::Forward, move_speed);
@@ -118,9 +121,12 @@ namespace Tomato {
 	void EditorCamera::CameraZoom(float delta)
 	{
 		m_position -= GetForward() * delta * ZoomSpeed();
-		if (m_fov < 1.0f){
+		if (m_fov < 1.0f)
+		{
 			m_fov = 1.0f;
-		}else if (m_fov > 90.0f){
+		}
+		else if (m_fov > 90.0f)
+		{
 			m_fov = 90.0f;
 		}
 		UpdateView();
@@ -144,17 +150,17 @@ namespace Tomato {
 
 	glm::vec3 EditorCamera::GetUp() const
 	{
-		return glm::rotate(GetOrientation(), glm::vec3(0.0f, 1.0f, 0.0f));
+		return rotate(GetOrientation(), glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
 	glm::vec3 EditorCamera::GetRight() const
 	{
-		return glm::rotate(GetOrientation(), glm::vec3(1.0f, 0.0f, 0.0f));
+		return rotate(GetOrientation(), glm::vec3(1.0f, 0.0f, 0.0f));
 	}
 
 	glm::vec3 EditorCamera::GetForward() const
 	{
-		return glm::rotate(GetOrientation(), glm::vec3(0.0f, 0.0f, -1.0f));
+		return rotate(GetOrientation(), glm::vec3(0.0f, 0.0f, -1.0f));
 	}
 
 	glm::vec3 EditorCamera::CalculatePosition() const
@@ -166,5 +172,4 @@ namespace Tomato {
 	{
 		return glm::quat(glm::vec3(-m_pitch, -m_yaw, 0.0f));
 	}
-
 }

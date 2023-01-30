@@ -4,19 +4,19 @@
 
 #include "Tomato/Function/Camera/Camera.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	enum class SceneCameraType
 	{
 		Orthographic = 0,
 		Perspective = 1
 	};
 
-	class SceneCamera : public Camera 
+	class SceneCamera : public Camera
 	{
 	public:
 		SceneCamera() = default;
-		virtual ~SceneCamera() = default;
+		~SceneCamera() override = default;
 
 		void SetOrthgraphic(float zoomLevel, float orthoNear, float orthoFar);
 		void SetPerspective(float FOV, float perspNear, float perspFar);
@@ -30,7 +30,7 @@ namespace Tomato {
 
 		void SetOrthoZoomLevel(float zoomLevel);
 		float GetOrthoZoomLevel() const { return m_ortho_zoom_level; }
-		
+
 
 		float GetPerspFar() const { return m_persp_far; };
 		void SetPerspFar(float perspFar);
@@ -42,7 +42,7 @@ namespace Tomato {
 		float GetPerspFOV() const { return m_persp_FOV; }
 
 		void SetSceneCameraType(SceneCameraType type);
-		SceneCameraType GetSceneCameraType() const { return m_SceneCameraType; }
+		[[nodiscard]] SceneCameraType GetSceneCameraType() const { return m_SceneCameraType; }
 
 		void SetViewPortSize(float width, float height);
 
@@ -59,7 +59,6 @@ namespace Tomato {
 		float m_persp_far = 1000.0f;
 		float m_persp_aspectRadio = 0.0f;
 
-		SceneCameraType m_SceneCameraType ;
-
+		SceneCameraType m_SceneCameraType;
 	};
 }

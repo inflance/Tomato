@@ -2,12 +2,16 @@
 
 #include "Shader.h"
 
-namespace Tomato {
-
-	class ShaderFactory 
+namespace Tomato
+{
+	class ShaderFactory
 	{
 	public:
-		static ShaderFactory& GetInstance() { static ShaderFactory instance; return instance; }
+		static ShaderFactory& Get()
+		{
+			static ShaderFactory instance;
+			return instance;
+		}
 
 		void Add(const std::shared_ptr<Shader>& shader);
 		void Add(const std::string& name, const std::shared_ptr<Shader>& shader);

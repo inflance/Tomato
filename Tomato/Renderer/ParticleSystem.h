@@ -23,6 +23,7 @@ namespace Tomato
 		void OnRender(OrthographicCamera& camera);
 
 		void EmitParticle(const ParticleProps& particleProps);
+
 	private:
 		struct Particle
 		{
@@ -37,6 +38,7 @@ namespace Tomato
 
 			bool Active = false;
 		};
+
 		std::vector<Particle> m_particle_pool;
 		uint32_t m_pool_index = 0;
 	};

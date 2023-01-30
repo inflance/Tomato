@@ -1,7 +1,7 @@
 #include "SceneCamera.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	void SceneCamera::SetOrthgraphic(float zoomLevel, float orthoNear, float orthoFar)
 	{
 		m_SceneCameraType = SceneCameraType::Orthographic;
@@ -28,14 +28,13 @@ namespace Tomato {
 			float bottom = -m_ortho_zoom_level;
 			m_projection = glm::ortho(left, right, bottom, top, m_ortho_near, m_ortho_far);
 		}
-		else 
+		else
 		{
 			m_projection = glm::perspective(m_persp_FOV, m_persp_aspectRadio, m_persp_near, m_persp_far);
 		}
-		
 	}
 
-	
+
 	void SceneCamera::SetOrthoFar(float orthoFar)
 	{
 		m_ortho_far = orthoFar;
@@ -86,7 +85,4 @@ namespace Tomato {
 		m_SceneCameraType = type;
 		RecalculationProjection();
 	}
-
 }
-
-

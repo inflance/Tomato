@@ -6,8 +6,8 @@
 #include "Tomato/Scene/Scene.h"
 #include "Tomato/Renderer/Texture.h"
 
-namespace Tomato{
-
+namespace Tomato
+{
 	class ScenePanel
 	{
 	public:
@@ -23,15 +23,18 @@ namespace Tomato{
 		void DrawScenePanel(Entity entity);
 		void DrewDetailPanel(Entity entity);
 
-		template<typename T, typename Func>
+		template <typename T, typename Func>
 		void DrawComponents(const std::string& name, Entity entity, Func uiFunction);
 
-		void DrawVector3(const std::string& label, glm::vec3& values, float speed = 0.1f,const glm::vec3& defaltValue = glm::vec3(0.0f));
+		void DrawVector3(const std::string& label, glm::vec3& values, float speed = 0.1f,
+		                 const glm::vec3& defaltValue = glm::vec3(0.0f));
 
 		Entity GetSelectedEntity() const { return m_selectedEntity; }
 
-		void SetSelectedEntity(Entity entity) {
-			m_selectedEntity = entity; LOG_INFO("Selected Entity:{0}", (uint32_t)entity);
+		void SetSelectedEntity(Entity entity)
+		{
+			m_selectedEntity = entity;
+			LOG_INFO("Selected Entity:{0}", static_cast<uint32_t>(entity));
 		}
 
 	private:
@@ -46,7 +49,4 @@ namespace Tomato{
 		std::shared_ptr<Texture2D> m_moreBtn;
 		std::shared_ptr<Texture2D> m_default_texture;
 	};
-
-	
-
 }

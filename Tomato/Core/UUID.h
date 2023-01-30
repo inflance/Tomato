@@ -1,7 +1,7 @@
 #pragma once
 
-namespace Tomato {
-
+namespace Tomato
+{
 	class UUID
 	{
 	public:
@@ -19,14 +19,14 @@ namespace Tomato {
 		{
 			return m_uuid;
 		}
+
 	private:
 		uint64_t m_uuid;
 	};
-
 }
 
-namespace std {
-
+namespace std
+{
 	template <>
 	struct hash<Tomato::UUID>
 	{

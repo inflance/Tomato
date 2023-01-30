@@ -2,9 +2,10 @@
 
 #include <spdlog/spdlog.h>
 
-namespace Tomato {
-
-	enum class LogType {
+namespace Tomato
+{
+	enum class LogType
+	{
 		Trace = 0,
 		Info,
 		Warn,
@@ -15,34 +16,57 @@ namespace Tomato {
 	{
 	public:
 		static void Init();
+		static void Destroy();
 
-		template<class... TArgs>
-		static void ConsoleLog(LogType type, TArgs... args)
+		template <typename... TArgs>
+		static void Log(LogType type, TArgs&&... args)
 		{
 			switch (type)
 			{
-			case Tomato::LogType::Trace:
-				s_loger->trace(args...);
+			case LogType::Trace:
+				s_logger->trace(std::forward<TArgs>(args)...);
 				break;
-			case Tomato::LogType::Info:
-				s_loger->info(args...);
+			case LogType::Info:
+				s_logger->info(std::forward<TArgs>(args)...);
 				break;
-			case Tomato::LogType::Warn:
-				s_loger->warn(args...);
+			case LogType::Warn:
+				s_logger->warn(std::forward<TArgs>(args)...);
 				break;
-			case Tomato::LogType::Error:
-				s_loger->error(args...);
+			case LogType::Error:
+				s_logger->error(std::forward<TArgs>(args)...);
 				break;
 			default:
 				break;
 			}
 		}
 
-		static std::shared_ptr<spdlog::logger>& GetLoger() { 
-			return s_loger; 
+		template <typename... TArgs>
+		static void LogInfo(TArgs&&... args)
+		{
+			GetLoger()->info(std::forward<TArgs>(args)...);
 		}
+
+		template <typename... TArgs>
+		static void LogError(TArgs&&... args)
+		{
+			GetLoger()->error(std::forward<TArgs>(args)...);
+		}
+
+		template <typename... TArgs>
+		static void LogTrace(TArgs&&... args)
+		{
+			GetLoger()->trace(std::forward<TArgs>(args)...);
+		}
+
+		template <typename... TArgs>
+		static void LogWarn(TArgs&&... args)
+		{
+			GetLoger()->warn(std::forward<TArgs>(args)...);
+		}
+
+		static auto GetLoger() { return s_logger; }
+
 	private:
-		static std::shared_ptr<spdlog::logger> s_loger;
+		inline static std::shared_ptr<spdlog::logger> s_logger;
 	};
 }
-
