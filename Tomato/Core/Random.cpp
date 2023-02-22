@@ -1,5 +1,5 @@
 #include "Random.h"
 
-namespace Tomato
-{
+namespace Tomato {
+
 }

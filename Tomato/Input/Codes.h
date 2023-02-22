@@ -1,51 +1,33 @@
 #pragma once
 
-namespace Tomato
-{
+namespace Tomato {
+
 	using KeyCode = uint32_t;
 	using MouseCode = uint32_t;
 
-	namespace Key
-	{
-		enum Key : KeyCode
-		{
+	namespace Key {
+
+		enum Key : KeyCode {
 			Space = 32,
-			Apostrophe = 39,
-			/* ' */
-			Comma = 44,
-			/* , */
-			Minus = 45,
-			/* - */
-			Period = 46,
-			/* . */
-			Slash = 47,
-			/* / */
+			Apostrophe = 39, /* ' */
+			Comma = 44, /* , */
+			Minus = 45, /* - */
+			Period = 46, /* . */
+			Slash = 47, /* / */
 
-			Key0 = 48,
-			/* 0 */
-			Key1 = 49,
-			/* 1 */
-			Key2 = 50,
-			/* 2 */
-			Key3 = 51,
-			/* 3 */
-			Key4 = 52,
-			/* 4 */
-			Key5 = 53,
-			/* 5 */
-			Key6 = 54,
-			/* 6 */
-			Key7 = 55,
-			/* 7 */
-			Key8 = 56,
-			/* 8 */
-			Key9 = 57,
-			/* 9 */
+			Key0 = 48, /* 0 */
+			Key1 = 49, /* 1 */
+			Key2 = 50, /* 2 */
+			Key3 = 51, /* 3 */
+			Key4 = 52, /* 4 */
+			Key5 = 53, /* 5 */
+			Key6 = 54, /* 6 */
+			Key7 = 55, /* 7 */
+			Key8 = 56, /* 8 */
+			Key9 = 57, /* 9 */
 
-			Semicolon = 59,
-			/* ; */
-			Equal = 61,
-			/* = */
+			Semicolon = 59, /* ; */
+			Equal = 61, /* = */
 
 			A = 65,
 			B = 66,
@@ -74,19 +56,13 @@ namespace Tomato
 			Y = 89,
 			Z = 90,
 
-			LeftBracket = 91,
-			/* [ */
-			Backslash = 92,
-			/* \ */
-			RightBracket = 93,
-			/* ] */
-			GraveAccent = 96,
-			/* ` */
+			LeftBracket = 91,  /* [ */
+			Backslash = 92,  /* \ */
+			RightBracket = 93,  /* ] */
+			GraveAccent = 96,  /* ` */
 
-			World1 = 161,
-			/* non-US #1 */
-			World2 = 162,
-			/* non-US #2 */
+			World1 = 161, /* non-US #1 */
+			World2 = 162, /* non-US #2 */
 
 			/* Function keys */
 			Escape = 256,
@@ -163,10 +139,10 @@ namespace Tomato
 			RightSuper = 347,
 			Menu = 348
 		};
-	}
 
-	namespace Mouse
-	{
+	}
+	namespace Mouse {
+
 		enum MouseButton : MouseCode
 		{
 			Button0 = 0,
@@ -185,3 +161,4 @@ namespace Tomato
 		};
 	}
 }
+

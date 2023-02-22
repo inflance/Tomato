@@ -6,8 +6,8 @@
 #include "Tomato/Core/Core.h"
 #include "Matirial.h"
 
-namespace Tomato
-{
+namespace Tomato {
+	
 	class MatirialFactory
 	{
 	private:
@@ -15,11 +15,7 @@ namespace Tomato
 		~MatirialFactory() = default;
 
 	public:
-		static MatirialFactory& Get()
-		{
-			static MatirialFactory instance;
-			return instance;
-		}
+		static MatirialFactory& GetInstance() { static MatirialFactory instance; return instance; }
 
 		void Add(const std::string& path, const MatirialTextureData& data);
 
@@ -32,4 +28,5 @@ namespace Tomato
 	private:
 		std::unordered_map<std::string, MatirialTextureData> m_matirial_factory;
 	};
+
 }

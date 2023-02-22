@@ -6,33 +6,19 @@
 #include "Tomato/Events/KeyEvent.h"
 #include "Tomato/Events/MouseEvent.h"
 
-namespace Tomato
-{
+namespace Tomato {
+
 	class Layer
 	{
 	public:
 		Layer(const std::string& name = "Layer");
 		virtual ~Layer();
 
-		virtual void OnCreate()
-		{
-		}
-
-		virtual void OnDestroy()
-		{
-		}
-
-		virtual void Tick(float delta_time)
-		{
-		}
-
-		virtual void OnImGuiRenderer()
-		{
-		}
-
-		virtual void OnEvent(Event& event)
-		{
-		}
+		virtual void OnCreate() {}
+		virtual void OnDestroy(){}
+		virtual void Tick(float delta_time){}
+		virtual void OnImGuiRenderer(){}
+		virtual void OnEvent(Event& event){}
 
 		const std::string& GetName() const { return m_debug_name; }
 

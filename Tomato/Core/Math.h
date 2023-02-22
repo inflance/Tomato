@@ -2,10 +2,9 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
 
-namespace Tomato::Math
-{
-	static bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation,
-	                               glm::vec3& scale)
+namespace Tomato::Math {
+
+	static bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
 	{
 		// From glm::decompose in matrix_decompose.inl
 
@@ -64,17 +63,16 @@ namespace Tomato::Math
 #endif
 
 		rotation.y = asin(-Row[0][2]);
-		if (cos(rotation.y) != 0)
-		{
+		if (cos(rotation.y) != 0) {
 			rotation.x = atan2(Row[1][2], Row[2][2]);
 			rotation.z = atan2(Row[0][1], Row[0][0]);
 		}
-		else
-		{
+		else {
 			rotation.x = atan2(-Row[2][0], Row[1][1]);
 			rotation.z = 0;
 		}
 
 		return true;
 	}
+
 }

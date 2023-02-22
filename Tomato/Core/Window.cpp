@@ -1,14 +1,14 @@
 #include "Window.h"
 
 #include "Tomato/Platform/Windows/WindowsWindow.h"
-#include "Tomato/Renderer/GraphicsContext.h"
 
-namespace Tomato
-{
+namespace Tomato {
+
 #ifdef TMT_PLATFORM_WINDOWS
-	std::shared_ptr<Window> Window::Create(const WindowProps& props /*= WindowProps()*/)
+	std::unique_ptr<Window> Window::Create(const WindowProps& props /*= WindowProps()*/)
 	{
-		return std::make_shared<WindowsWindow>(props);
+		return std::make_unique<WindowsWindow>(props);
 	}
 #endif
+
 }

@@ -4,8 +4,8 @@
 
 #include "Tomato/Input/Codes.h"
 
-namespace Tomato
-{
+namespace Tomato {
+
 	class Input
 	{
 	public:
