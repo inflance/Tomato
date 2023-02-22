@@ -1,66 +1,112 @@
 #include "Engine.h"
-#include "Engine.h"
 
 #include <glm/glm.hpp>
 
-#include "Tomato/Core/Core.h"
+#include "Timer.h"
 #include "Tomato/Events/ApplicationEvent.h"
+#include "Tomato/Platform/Windows/WindowsWindow.h"
 #include "Tomato/Renderer/Renderer.h"
+#include "Tomato/World/World.h"
 
-namespace Tomato {
-
-	void TomatoEngine::StartUp()
+namespace Tomato
+{
+	void Engine::StartUp()
 	{
-		LogSystem::ConsoleLog(LogType::Info,"TMT Engine StartUp", 12);
+		try
+		{
+			LOG_TRACE("Engine StartUp");
 
-		//Window Init
-		m_window = Window::Create();
-		m_window->SetVSync(true);
-		m_window->SetEventCallback(BIND_EVENT_FUNC(TomatoEngine::OnEvent));
-		
-		//Renderer Init
-		Renderer::Init();
+			//Window Init
+			m_window = Window::Create();
+			m_window->SetVSync(true);
+			m_window->SetEventCallback(BIND_EVENT_FUNC(Engine::OnEvent));
+			m_context = GraphicsContext::Create(m_window.get());
+			m_context->Init();
+			const auto props = m_window->GetDeviceProps();
+			m_device_props = props;
+			m_device_str = std::format("Tomato Engine - {} - ", m_device_props.device_name_);
+			//Renderer Init
+			Renderer::Init(m_context);
+			Renderer::OnWindowResize(0, 0, m_window->GetWidth(), m_window->GetHeight());
+		}
+		catch (vk::SystemError& err)
+		{
+			std::cout << "vk::SystemError: " << err.what() << std::endl;
+			exit(-1);
+		}
+		catch (std::exception& err)
+		{
+			std::cout << "std::exception: " << err.what() << std::endl;
+			exit(-1);
+		}
+		catch (...)
+		{
+			std::cout << "unknown error\n";
+			exit(-1);
+		}
 
 		//ImGuiLayer Init
-		m_imgui_layer = new ImGuiLayer();
-		PushOverLayer(m_imgui_layer);	
+		m_imgui_layer = ImGuiLayer::Create();
+		PushOverLayer(m_imgui_layer);
 	}
 
-	void TomatoEngine::ShutDown()
+	void Engine::ShutDown()
 	{
-		LogSystem::ConsoleLog(LogType::Info, "Engine ShutDown");
+		LOG_INFO("Engine ShutDown");
+		Renderer::WaitAndRender();
+		Renderer::Destroy();
 	}
 
-	void TomatoEngine::Run()
+	void Engine::Run()
 	{
-		LogSystem::ConsoleLog(LogType::Info, "Engine Running");
+		LOG_TRACE("Engine Run");
+		static Timer timer;
 
 		while (m_running)
 		{
+			m_window->Tick();
 			const float delta_time = CalculateDeltaTime();
 			CalculateFPS(delta_time);
-			if (!m_minimized) {
+
+			if (!m_minimized)
+			{
+				m_context->Begin();
+
+				auto app = this;
+
+				m_world.LogicTick(delta_time);
+
 				for (Layer* layer : m_layer_stack)
 				{
 					layer->Tick(delta_time);
 				}
+				Renderer::Submit([app]
+				{
+					app->m_imgui_layer->Begin();
+					for (Layer* layer : app->m_layer_stack)
+					{
+						layer->OnImGuiRenderer();
+					}
+					app->m_imgui_layer->End();
+				});
+
+				Renderer::WaitAndRender();
+				m_context->Present();
 			}
 
-			m_imgui_layer->Begin();
-			for (Layer* layer : m_layer_stack)
+			if (timer.CountTime() > 1000.0f)
 			{
-				layer->OnImGuiRenderer();
+				m_window->SetWindowTitle(std::format("{1}{0} fps", m_fps, m_device_str));
+				timer.Reset();
 			}
-			m_imgui_layer->End();
-			m_window->Tick();
 		}
 	}
 
-	void TomatoEngine::OnEvent(Event& e)
+	void Engine::OnEvent(Event& e)
 	{
 		EventDispatcher dispatcher(e);
-		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUNC(TomatoEngine::OnWindowClose));
-		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUNC(TomatoEngine::OnWindowResize));
+		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUNC(Engine::OnWindowClose));
+		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUNC(Engine::OnWindowResize));
 
 		for (auto it = m_layer_stack.end(); it != m_layer_stack.begin();)
 		{
@@ -70,42 +116,43 @@ namespace Tomato {
 		}
 	}
 
-	void TomatoEngine::Close()
+	void Engine::Close()
 	{
 		m_running = false;
 	}
 
-	void TomatoEngine::PushLayer(Layer* layer)
+	void Engine::PushLayer(Layer* layer)
 	{
 		m_layer_stack.PushLayer(layer);
 	}
 
-	void TomatoEngine::PushOverLayer(Layer* over_layer)
+	void Engine::PushOverLayer(Layer* over_layer)
 	{
 		m_layer_stack.PushOverLayer(over_layer);
 	}
 
-	void TomatoEngine::PopLayer(Layer* layer)
+	void Engine::PopLayer(Layer* layer)
 	{
 		m_layer_stack.PopLayer(layer);
 	}
 
-	void TomatoEngine::PopOverLayer(Layer* over_layer)
+	void Engine::PopOverLayer(Layer* over_layer)
 	{
 		m_layer_stack.PopOverLayer(over_layer);
 	}
 
-	bool TomatoEngine::OnWindowClose(WindowCloseEvent& e)
+	bool Engine::OnWindowClose(WindowCloseEvent& e)
 	{
 		Close();
 		return false;
 	}
 
-	bool TomatoEngine::OnWindowResize(WindowResizeEvent& e)
+	bool Engine::OnWindowResize(WindowResizeEvent& e)
 	{
 		const uint32_t width = e.GetWidth(), height = e.GetHeight();
-		
-		if (width == 0 || height == 0) {
+
+		if (width == 0 || height == 0)
+		{
 			m_minimized = true;
 			return false;
 		}
@@ -114,7 +161,7 @@ namespace Tomato {
 		return false;
 	}
 
-	float TomatoEngine::CalculateDeltaTime()
+	float Engine::CalculateDeltaTime()
 	{
 		float delta_time;
 		{
@@ -129,12 +176,9 @@ namespace Tomato {
 		return delta_time;
 	}
 
-	void  TomatoEngine::CalculateFPS(float delta_time)
+	void Engine::CalculateFPS(float delta_time)
 	{
 		m_average_duration = m_average_duration * (1 - k_fps_alpha) + delta_time * k_fps_alpha;
-		m_fps = static_cast<uint32_t> (1.0f / m_average_duration);
+		m_fps = static_cast<uint32_t>(1.0f / m_average_duration);
 	}
-
 }
-
-

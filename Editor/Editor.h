@@ -7,9 +7,12 @@
 #include "Tomato/Renderer/Mesh.h"
 
 
-namespace Tomato{
+namespace Tomato
+{
+	class Pipeline;
 
-	enum class EditorMode {
+	enum class EditorMode
+	{
 		DefaultMode = 0,
 		CameraMode,
 		GizmoMode
@@ -19,25 +22,26 @@ namespace Tomato{
 	{
 	public:
 		Editor();
-		virtual ~Editor() = default;
+		~Editor() override = default;
 
-		virtual void OnCreate() override;
-		virtual void OnDestroy() override;
+		void OnCreate() override;
+		void OnDestroy() override;
 
-		virtual void Tick(float deltaTime) override;
-		virtual void OnImGuiRenderer() override;
-		virtual void OnEvent(Event& event) override;
-		
-		void  CreateNewScene();
-		void  OpenScene();
-		void  SaveSceneAs();
+		void Tick(float deltaTime) override;
+		void OnImGuiRenderer() override;
+		void OnEvent(Event& event) override;
+
+		void CreateNewScene();
+		void OpenScene();
+		void SaveSceneAs();
+
 	private:
 		bool OnKeyPressed(KeyPressedEvent& e);
 		bool OnMouseButtonReleased(MouseButtonReleasedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
 		void DeBugInfoPanel();
-	
+
 	private:
 		OrthgraphicCameraControler m_cameraControler;
 
@@ -46,7 +50,9 @@ namespace Tomato{
 		std::shared_ptr<Texture2D> m_texture1;
 		std::shared_ptr<TextureCube> m_texture2;
 		std::shared_ptr<SubTexture2D> m_subtexture;
-		std::shared_ptr<FrameBuffer> m_frameBuffer;
+		std::shared_ptr<Framebuffer> m_frameBuffer;
+		std::shared_ptr<Pipeline> m_pipeline;
+		std::shared_ptr<CommandBuffer> m_command_buffer_;
 		Ref<Shader> m_MeshShader;
 		Ref<Shader> m_ShapeShader;
 		Ref<Shader> m_LightShader;

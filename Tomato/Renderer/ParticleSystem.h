@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Tomato/Renderer/OrthographicCamera.h"
+//#include "Tomato/Renderer/OrthographicCamera.h"
 #include "Tomato/Renderer/Shader.h"
 
 namespace Tomato
@@ -20,9 +20,10 @@ namespace Tomato
 		ParticleSystem(uint32_t size = 10000);
 
 		void Tick(float deltaTime);
-		void OnRender(OrthographicCamera& camera);
+		//void OnRender(OrthographicCamera& camera);
 
 		void EmitParticle(const ParticleProps& particleProps);
+
 	private:
 		struct Particle
 		{
@@ -37,6 +38,7 @@ namespace Tomato
 
 			bool Active = false;
 		};
+
 		std::vector<Particle> m_particle_pool;
 		uint32_t m_pool_index = 0;
 	};

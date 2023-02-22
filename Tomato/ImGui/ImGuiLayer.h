@@ -2,28 +2,44 @@
 
 #include "Tomato/Core/Layer.h"
 
-namespace Tomato {
-
-	class ImGuiLayer : public Layer 
+namespace Tomato
+{
+	class ImGuiLayer : public Layer
 	{
 	public:
 		ImGuiLayer()
-			: Layer("ImGuiLayer"){}
-		~ImGuiLayer() = default;
+			: Layer("ImGuiLayer")
+		{
+		}
 
-		virtual void OnCreate() override;
-		virtual void OnDestroy() override;
-		virtual void OnEvent(Event& event) override;
-		virtual void OnImGuiRenderer() override;
-		
-		void Begin();
-		void End();
-		
-		void SetDarkModeColor();
+		~ImGuiLayer() override = default;
 
-		void SetBlock(bool block) { m_block = block; }
+		void OnCreate() override
+		{
+		};
 
-	private:
+		void OnDestroy() override
+		{
+		};
+
+		void OnEvent(Event& event) override
+		{
+		};
+
+		void OnImGuiRenderer() override
+		{
+		};
+
+		virtual void Begin() = 0;
+		virtual void End() = 0;
+
+		virtual void SetDarkModeColor() = 0;
+
+		virtual void SetBlock(bool block) { m_block = block; }
+
+		static ImGuiLayer* Create();
+
+	protected:
 		bool m_block = true;
 	};
 }

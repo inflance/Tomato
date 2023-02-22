@@ -6,39 +6,45 @@
 
 #include <Tomato/Core/Core.h>
 
-#include <Tomato/Function/Timer.h>
-#include "VertexArray.h"
-#include "Buffer.h"
+#include <Tomato/Core/Timer.h>
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 #include "MeshFactory.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	void Mesh::Load(int entityID, const std::string& path)
 	{
-		Timer timer("load");
+		//Timer timer("load");
 
-		if (!m_path.empty()){
+		if (!m_path.empty())
+		{
 			m_submeshs.clear();
 		}
 		m_path = path;
 		m_id = entityID;
 
-		if (MeshFactory::GetInstance().Exist(m_path)) {
-			*this = MeshFactory::GetInstance().GetMesh(m_path);
-		}else{
+		if (MeshFactory::Get().Exist(m_path))
+		{
+			*this = MeshFactory::Get().GetMesh(m_path);
+		}
+		else
+		{
 			Assimp::Importer importer;
-			const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+			const aiScene* scene = importer.ReadFile(
+				path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
+				aiProcess_CalcTangentSpace);
 			//¼ì²é´íÎó
 
-			LOG_ASSERT(scene || !(scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || scene->mRootNode, "ERROR::ASSIMP::{0} ", importer.GetErrorString());
+			LOG_ASSERT(scene || !(scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || scene->mRootNode, "ERROR::ASSIMP::{0} ",
+			           importer.GetErrorString());
 			// retrieve the directory path of the filepath
 			m_directory = path.substr(0, path.find_last_of('/'));
 
 			// process ASSIMP's root node recursively
 			ProcessNode(scene->mRootNode, scene);
-			MeshFactory::GetInstance().Add(m_path, *this);
+			MeshFactory::Get().Add(m_path, *this);
 		}
-		
 	}
 
 
@@ -50,7 +56,7 @@ namespace Tomato {
 			// the node object only contains indices to index the actual objects in the scene. 
 			// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			
+
 			// walk through each of the mesh's vertices
 			GetStaticMeshData(mesh, scene);
 		}
@@ -64,27 +70,28 @@ namespace Tomato {
 	void Mesh::GetStaticMeshData(aiMesh* mesh, const aiScene* scene)
 	{
 		//Timer timer("GetStaticMeshData");
-		std::vector<Vertex> veries;
+		std::vector<Vertex1> veries;
 		std::vector<uint32_t> indices;
 		std::vector<MatirialTextureData> textures;
 		for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 		{
-			Vertex vertex;
+			Vertex1 vertex;
 			// positions
-			vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
+			vertex.Position = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
 			// normals
 			if (mesh->HasNormals())
 			{
-				vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+				vertex.Normal = {mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z};
 			}
-			else {
-				LogSystem::ConsoleLog(LogType::Warn, "Mesh don`t have normal");
+			else
+			{
+				LOG_WARN("Mesh don`t have normal");
 			}
 			// texture coordinates
 			if (mesh->mTextureCoords[0])
 			{
 				vertex.TexCoords = {
-					mesh->mTextureCoords[0][i].x ,
+					mesh->mTextureCoords[0][i].x,
 					mesh->mTextureCoords[0][i].y
 				};
 				// tangent
@@ -115,21 +122,26 @@ namespace Tomato {
 		// process materials
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-		std::vector<MatirialTextureData> diffuseMaps = LoadMaterialTextures(material, aiTextureType_DIFFUSE, TextureType::Diffuse);
+		std::vector<MatirialTextureData> diffuseMaps = LoadMaterialTextures(
+			material, aiTextureType_DIFFUSE, PBRTextureType::Diffuse);
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 		// 2. specular maps
-		std::vector<MatirialTextureData> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, TextureType::Specular);
+		std::vector<MatirialTextureData> specularMaps = LoadMaterialTextures(
+			material, aiTextureType_SPECULAR, PBRTextureType::Specular);
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 		// 3. normal maps
-		std::vector<MatirialTextureData> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, TextureType::Normal);
+		std::vector<MatirialTextureData> normalMaps = LoadMaterialTextures(
+			material, aiTextureType_HEIGHT, PBRTextureType::Normal);
 		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 		// 4. height maps
-		std::vector<MatirialTextureData> heightMaps = LoadMaterialTextures(material, aiTextureType_AMBIENT, TextureType::Ambient);
+		std::vector<MatirialTextureData> heightMaps = LoadMaterialTextures(
+			material, aiTextureType_AMBIENT, PBRTextureType::Ambient);
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 		m_submeshs.emplace_back(SubMesh(veries, indices, textures));
 	}
 
-	std::vector<MatirialTextureData> Mesh::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, TextureType typeName)
+	std::vector<MatirialTextureData> Mesh::LoadMaterialTextures(aiMaterial* mat, aiTextureType type,
+	                                                            PBRTextureType typeName)
 	{
 		//Timer timer("LoadMaterialTextures");
 		std::vector<MatirialTextureData> textures;
@@ -137,19 +149,20 @@ namespace Tomato {
 		{
 			aiString str;
 			mat->GetTexture(type, i, &str);
-			std::string path = m_directory+ '/'+std::string(str.C_Str());
+			std::string path = m_directory + '/' + std::string(str.C_Str());
 			LOG_ERROR(path);
-			if (MatirialFactory::GetInstance().Exist(path))
+			if (MatirialFactory::Get().Exist(path))
 			{
 				//Timer timer("skip");
-				textures.push_back(MatirialFactory::GetInstance().GetMatirial(path));
+				textures.push_back(MatirialFactory::Get().GetMatirial(path));
 			}
-			else {
+			else
+			{
 				//Timer timer("!skip");
 				MatirialTextureData texture;
 				texture.Type = typeName;
 				texture.Path = str.C_Str();
-				texture = MatirialFactory::GetInstance().Load(path, texture);
+				texture = MatirialFactory::Get().Load(path, texture);
 				textures.push_back(texture);
 			}
 		}
@@ -157,33 +170,16 @@ namespace Tomato {
 	}
 
 
-	SubMesh::SubMesh(std::vector<Vertex> vertices, std::vector<uint32_t> indices)
-		:m_vertices(std::move(vertices)), m_Indices(std::move(indices))
+	SubMesh::SubMesh(std::vector<Vertex1> vertices, std::vector<uint32_t> indices)
+		: m_vertices(std::move(vertices)), m_Indices(std::move(indices))
 	{
-		m_VertexArray = VertexArray::Create();
-
-		m_VertexBuffer = VertexBuffer::Create(sizeof(Vertex) * m_vertices.size());
-		m_VertexBuffer->SetLayout({
-					{ ShaderDataType::Float3, "a_Position"},
-					{ ShaderDataType::Float3, "a_Normal"},
-					{ ShaderDataType::Float2, "a_TexCoord"},
-					{ ShaderDataType::Float3, "a_Tangent"},
-					{ ShaderDataType::Float3, "a_Bitangent"},
-					{ ShaderDataType::Int,	  "a_EntityID"},
-			});
-
-		m_VertexArray->AddVertexBuffer(m_VertexBuffer);
-
-		m_IndexBuffer = IndexBuffer::Create(m_Indices.data(), m_Indices.size());
-
-		m_VertexArray->SetIndexBuffer(m_IndexBuffer);
 	}
 
 
-	SubMesh::SubMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, const std::vector<MatirialTextureData>& texture)
-		:SubMesh(vertices, indices)
+	SubMesh::SubMesh(const std::vector<Vertex1>& vertices, const std::vector<uint32_t>& indices,
+	                 const std::vector<MatirialTextureData>& texture)
+		: SubMesh(vertices, indices)
 	{
 		m_texture = texture;
 	}
-
 }

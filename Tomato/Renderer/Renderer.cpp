@@ -1,52 +1,33 @@
 #include "Renderer.h"
 
 #include "Renderer2D.h"
-#include "Tomato/Platform/OpenGL/OpenGLShader.h"
-#include "Tomato/Function/Timer.h"
+#include "Tomato/Core/Timer.h"
 #include "ShaderFactory.h"
+#include "RendererConfig.h"
 
-namespace Tomato {
+namespace Tomato
+{
+	std::shared_ptr<Renderer::SceneData> Renderer::m_scene_data = std::make_shared<SceneData>();
 
-	std::shared_ptr<Renderer::SceneData> Renderer::m_scene_data = std::make_shared<Renderer::SceneData>();
-
-	//设置相机，视角
-	void Renderer::BeginScene(OrthographicCamera& camera)
-	{
-		m_scene_data->ViewProjection = camera.GetViewProjectionMat();
-	}
 
 	void Renderer::EndScene()
 	{
-		
+	}
+
+	void Renderer::RenderQuad(Ref<CommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline,
+	                          Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer)
+	{
+		s_renderer_api_->RenderQuad(renderCommandBuffer, pipeline, vertexBuffer, indexBuffer);
 	}
 
 	void Renderer::RenderBaseShape(Mesh& mesh, const glm::mat4& ViewProjection, const glm::mat4& transform)
 	{
-		const auto& shader = ShaderFactory::GetInstance().GetShader("StaticMesh");
-		const auto& submeshs = mesh.GetMesh();
-		for (auto& sub_mesh : submeshs) {
-			sub_mesh.Draw(
-				[&](auto& vertexArray,auto& vertexBuffer, auto& verties, auto& texture) {
-
-					vertexBuffer->SetData(verties.data(), sizeof(Vertex) * verties.size());
-
-					shader->Bind();
-					shader->SetMat4("u_ViewProjection", ViewProjection);
-					shader->SetMat4("u_Model", transform);
-					if (texture.size())
-					{
-						shader->SetInt("u_Diffuse", 0);
-						texture[0].Texture->Bind();
-					}
-					RendererCommand::DrawIndexed(vertexArray);
-				}
-			);
-		}
 	}
 
-	void Renderer::RenderBaseShape(BaseShape& baseShap, const glm::vec4& color, const glm::mat4& ViewProjection, const glm::mat4& transform)
+	/*void Renderer::RenderBaseShape(BaseShape& baseShap, const glm::vec4& color, const glm::mat4& ViewProjection,
+		const glm::mat4& transform)
 	{
-		const auto& shader = ShaderFactory::GetInstance().GetShader("BaseCube");
+		const auto& shader = ShaderFactory::Get().GetShader("BaseCube");
 		const auto& vertexArray = baseShap.GetVertexArray();
 		baseShap.SetData();
 
@@ -54,17 +35,18 @@ namespace Tomato {
 		shader->SetMat4("u_ViewProjection", ViewProjection);
 		shader->SetMat4("u_Model", transform);
 		shader->SetFloat4("u_Color", color);
-		shader->SetFloat3("u_Material.Ambient", {0.2, 0.2, 0.2});
-		shader->SetFloat3("u_Material.Diffuse", {0.7, 0.7, 0.7});
-		shader->SetFloat3("u_Material.Specular", {0.7, 0.7, 0.7});
+		shader->SetFloat3("u_Material.Ambient", { 0.2, 0.2, 0.2 });
+		shader->SetFloat3("u_Material.Diffuse", { 0.7, 0.7, 0.7 });
+		shader->SetFloat3("u_Material.Specular", { 0.7, 0.7, 0.7 });
 		shader->SetFloat1("u_Material.Shininess", 32);
 
-		RendererCommand::DrawArray(vertexArray, 36);
+		s_renderer_api_->DrawArray(vertexArray, 36);
 	}
 
-	void Renderer::RenderBaseShapeWithMatirial(BaseShape& baseShap, const glm::vec4& color, Matirial& matirial, const glm::mat4& ViewProjection, const glm::mat4& transform)
+	void Renderer::RenderBaseShapeWithMatirial(BaseShape& baseShap, const glm::vec4& color, Matirial& matirial,
+		const glm::mat4& ViewProjection, const glm::mat4& transform)
 	{
-		const auto& shader = ShaderFactory::GetInstance().GetShader("BaseCube");
+		const auto& shader = ShaderFactory::Get().GetShader("BaseCube");
 		const auto& vertexArray = baseShap.GetVertexArray();
 		baseShap.SetData();
 
@@ -79,18 +61,20 @@ namespace Tomato {
 		matirial.GetDiffuseMap().Texture->BindUnit(0);
 		matirial.GetSpecularMap().Texture->BindUnit(1);
 
-		RendererCommand::DrawArray(vertexArray, 36);
+		s_renderer_api_->DrawArray(vertexArray, 36);
 		shader->SetInt("u_DirLightSize", 0);
 		shader->SetInt("u_PointLightSize", 0);
 	}
 
-	void Renderer::RenderBaseLight(BaseShape& baseShap, Light& baseLight, const glm::mat4& ViewProjection, const glm::mat4& transform, const glm::vec3& lightPos, int pointLightSize)
+	void Renderer::RenderBaseLight(BaseShape& baseShap, Light& baseLight, const glm::mat4& ViewProjection,
+		const glm::mat4& transform, const glm::vec3& lightPos, int pointLightSize)
 	{
 		static int pointLightCount = 0;
-		if (pointLightCount > pointLightSize-1) {
+		if (pointLightCount > pointLightSize - 1)
+		{
 			pointLightCount = 0;
 		}
-		const auto& shader = ShaderFactory::GetInstance().GetShader("BaseLight");
+		const auto& shader = ShaderFactory::Get().GetShader("BaseLight");
 		const auto& vertexArray = baseShap.GetVertexArray();
 		baseShap.SetData();
 
@@ -99,8 +83,8 @@ namespace Tomato {
 		shader->SetMat4("u_Model", transform);
 		shader->SetFloat3("u_Color", baseLight.GetColor());
 
-		RendererCommand::DrawArray(vertexArray, 36);
-		const auto& lightshader = ShaderFactory::GetInstance().GetShader("BaseCube");
+		s_renderer_api_->DrawArray(vertexArray, 36);
+		const auto& lightshader = ShaderFactory::Get().GetShader("BaseCube");
 		lightshader->Bind();
 		switch (baseLight.GetLightType())
 		{
@@ -112,44 +96,101 @@ namespace Tomato {
 			break;
 		case LightType::PointLight:
 			lightshader->SetInt("u_PointLightSize", pointLightSize);
-			lightshader->SetFloat3("u_PointLights["+ std::to_string(pointLightCount) +"].Color", baseLight.GetColor());
+			lightshader->SetFloat3("u_PointLights[" + std::to_string(pointLightCount) + "].Color",
+				baseLight.GetColor());
 			lightshader->SetFloat3("u_PointLights[" + std::to_string(pointLightCount) + "].Position", lightPos);
-			lightshader->SetFloat1("u_PointLights[" + std::to_string(pointLightCount) + "].Intensity", baseLight.GetIntensity());
-			lightshader->SetFloat1("u_PointLights[" + std::to_string(pointLightCount) + "].Constant", baseLight.GetConstant());
-			lightshader->SetFloat1("u_PointLights[" + std::to_string(pointLightCount) + "].Linear", baseLight.GetLinear());
-			lightshader->SetFloat1("u_PointLights[" + std::to_string(pointLightCount) + "].Quadratic", baseLight.GetQuadratic());
+			lightshader->SetFloat1("u_PointLights[" + std::to_string(pointLightCount) + "].Intensity",
+				baseLight.GetIntensity());
+			lightshader->SetFloat1("u_PointLights[" + std::to_string(pointLightCount) + "].Constant",
+				baseLight.GetConstant());
+			lightshader->SetFloat1("u_PointLights[" + std::to_string(pointLightCount) + "].Linear",
+				baseLight.GetLinear());
+			lightshader->SetFloat1("u_PointLights[" + std::to_string(pointLightCount) + "].Quadratic",
+				baseLight.GetQuadratic());
 			++pointLightCount;
 			break;
 		default:
 			break;
 		}
-		
-		
-	}
+	}*/
 
 	void Renderer::OnWindowResize(int x, int y, uint32_t width, uint32_t height)
 	{
-		//RendererCommand::SetViewPort(x, y, width, height);
+		s_renderer_api_->SetViewPort(x, y, width, height);
+	}
+
+	//uint32_t Renderer::GetCurrentFrameIndex()
+	//{
+	//	return VulkanContext::GetCurrentSwapChain()->GetCurrentBufferIndex();
+	//}
+
+	void Renderer::WaitAndRender()
+	{
+		Begin();
+		BeginRenderPass();
+		//LOG_INFO("Renderer::WaitAndRender");
+		s_SubmitQueue.Execute();
+		EndRenderPass();
+		End();
 	}
 
 	//render
-	void Renderer::Submit(const std::shared_ptr<Shader> shader, const std::shared_ptr<VertexArray>& vertexArray, glm::mat4 transform )
+	void Renderer::Submit(const std::shared_ptr<Shader> shader, const std::shared_ptr<VertexArray>& vertexArray,
+	                      glm::mat4 transform)
 	{
 		shader->Bind();
-		
-		//设置视角投影矩阵
-		std::dynamic_pointer_cast<Tomato::OpenGLShader>(shader)->SetMat4("m_viewProjection", m_scene_data->ViewProjection);
-		//设置变换矩阵
-		std::dynamic_pointer_cast<Tomato::OpenGLShader>(shader)->SetMat4("m_transform", transform);
 
-		vertexArray->Bind();
-		RendererCommand::DrawIndexed(vertexArray);
+		/*	vertexArray->Bind();
+			s_renderer_api_->DrawIndexed(vertexArray);*/
 	}
 
-	void Renderer::Init()
+	CommandQueue& Renderer::GetRenderResourceReleaseQueue(uint32_t index)
 	{
-		RendererCommand::Init();
-		Renderer2D::Init();
+		LOG_ASSERT(index < 3, "");
+		return s_ResourceFreeQueue[index];
 	}
 
+	void Renderer::Init(Ref<GraphicsContext> context)
+	{
+		s_renderer_api_->Init(context);
+	}
+
+	void Renderer::Destroy()
+	{
+		LOG_INFO("Renderer Destroy");
+		for (int i = 0; i < RendererConfig::MaxFrameInFlight; i++)
+		{
+			GetRenderResourceReleaseQueue(i).Execute();
+		}
+	}
+
+	auto Renderer::CreateWhiteTexture()
+	{
+		
+	}
+
+	void Renderer::BeginRenderPass(Ref<RenderPass> renderPass)
+	{
+		s_renderer_api_->BeginRenderPass(renderPass);
+	}
+
+	void Renderer::BeginRenderPass()
+	{
+		s_renderer_api_->BeginRenderPass();
+	}
+
+	void Renderer::EndRenderPass()
+	{
+		s_renderer_api_->EndRenderPass();
+	}
+
+	void Renderer::Begin()
+	{
+		s_renderer_api_->Begin();
+	}
+
+	void Renderer::End()
+	{
+		s_renderer_api_->End();
+	}
 }

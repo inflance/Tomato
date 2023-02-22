@@ -4,9 +4,9 @@
 
 #include "Tomato/Core/Layer.h"
 
-namespace Tomato {
-
-	class LayerStack 
+namespace Tomato
+{
+	class LayerStack
 	{
 	public:
 		LayerStack() = default;
@@ -19,9 +19,9 @@ namespace Tomato {
 
 		std::vector<Layer*>::iterator begin() { return m_layers.begin(); }
 		std::vector<Layer*>::iterator end() { return m_layers.end(); }
-		
+
 	private:
 		std::vector<Layer*> m_layers;
-		unsigned int  m_layer_insert = 0;
+		unsigned int m_layer_insert = 0;
 	};
 }

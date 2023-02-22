@@ -1,7 +1,7 @@
 #include "LayerStack.h"
 
-namespace Tomato {
-
+namespace Tomato
+{
 	LayerStack::~LayerStack()
 	{
 		for (Layer* layer : m_layers)
@@ -10,7 +10,7 @@ namespace Tomato {
 			delete layer;
 		}
 	}
-	
+
 	void LayerStack::PushLayer(Layer* layer)
 	{
 		m_layers.emplace(m_layers.begin(), layer);
@@ -26,7 +26,8 @@ namespace Tomato {
 	void LayerStack::PopLayer(Layer* layer)
 	{
 		auto it = std::find(m_layers.begin(), m_layers.begin() + m_layer_insert, layer);
-		if (it != m_layers.begin() + m_layer_insert){
+		if (it != m_layers.begin() + m_layer_insert)
+		{
 			layer->OnDestroy();
 			m_layers.erase(it);
 			--m_layer_insert;
@@ -36,10 +37,10 @@ namespace Tomato {
 	void LayerStack::PopOverLayer(Layer* over_layer)
 	{
 		auto it = std::find(m_layers.begin() + m_layer_insert, m_layers.end(), over_layer);
-		if (it != m_layers.end()){
+		if (it != m_layers.end())
+		{
 			over_layer->OnDestroy();
 			m_layers.erase(it);
 		}
 	}
-
 }

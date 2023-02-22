@@ -1,54 +1,52 @@
 #pragma once
 
-#define DEBUG
-
-#include "OrthographicCamera.h"
-
-#include "Tomato/Scene/Components.h"
+#include "Tomato/ECS/Components.h"
 #include "Tomato/Function/Camera/Camera.h"
 #include "Tomato/Function/Camera/EditorCamera.h"
 #include "Tomato/Renderer/Texture.h"
 #include "Tomato/Renderer/SubTexture2D.h"
 
-namespace Tomato {
+namespace Tomato
+{
+	struct Vertex2D
+	{
+		glm::vec3 position_;
+		glm::vec4 color_;
+		glm::vec2 tex_coord_;
+		float tex_index_;
+		float tiling_factor_;
+	};
+
+	struct TextVertex
+	{
+		glm::vec3 position_;
+		glm::vec4 color_;
+		glm::vec2 tex_coord_;
+		float tex_index_;
+	};
+
+	struct LineVertex
+	{
+		glm::vec3 position_;
+		glm::vec4 color_;
+	};
+
+	struct CircleVertex
+	{
+		glm::vec3 world_position_;
+		float thickness_;
+		glm::vec2 local_position_;
+		glm::vec4 color_;
+	};
 
 	class Renderer2D
 	{
 	public:
 		static void Init();
 		static void Shutdown();
-
-		static void BeginScene(const Camera& camera, const glm::mat4& transform );
-		static void BeginScene(const OrthographicCamera& camera);
-		static void BeginScene(const EditorCamera& camera);
-		static void EndScene();
-
-		static void Flush();
-
-		static void StartNewBatch();
-		static void NextBatch();
-		
-		static void DrawQuad(const glm::mat4& transform, const SpriteComponent& cc, int GID = -1);
-		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::mat4& transform, const std::shared_ptr<Texture2D> texture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-		static void DrawQuad(const glm::mat4& transform, const std::shared_ptr<SubTexture2D> subtexture, const float tilingFactor = 1.0f, const glm::vec4& color = glm::vec4(1.0f), int GID = -1);
-
-#ifdef DEBUG
-		//
-		struct Statistics
-		{
-			//渲染调用的批次
-			uint32_t DrawCalls = 0;
-			//矩形个数
-			uint32_t QuadCount = 0;
-			//顶点总数
-			const uint32_t GetTotalVertexCount() const { return QuadCount * 4; }
-			//索引总数
-			const uint32_t GetTotalIndexCount() const { return QuadCount * 6; }
-		};
-
-		static Statistics GetStats();
-		static void ResetStats();
-#endif
+		static void RenderQuad(const glm::mat4& transform, const glm::vec4& color);
+		static void RenderQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture, float tilingFactor = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f));
+		static void RenderCircle();
+		static void RenderLine();
 	};
 }

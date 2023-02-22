@@ -1,17 +1,22 @@
 #pragma once
 
-#include "Tomato/Core/Window.h"
+namespace Tomato
+{
+	class Window;
 
-namespace Tomato {
-
-	class GraphicsContext 
+	class GraphicsContext
 	{
 	public:
 		virtual ~GraphicsContext() = default;
 
 		virtual void Init() = 0;
-		virtual void SwapBuffers() = 0;
+		virtual void Begin() = 0;
+		virtual void Destroy() = 0;
+		virtual void Present() = 0;
+		virtual void OnResize(uint32_t width, uint32_t height) = 0;
 
-		static std::shared_ptr<GraphicsContext> Create(void* window);
+		static std::shared_ptr<GraphicsContext> Create(Window* window);
+
+	protected:
 	};
 }
