@@ -9,10 +9,7 @@ add_subdirectory(stb)
 add_subdirectory(entt)
 add_subdirectory(json)
 add_subdirectory(ImGuizmo)
-add_subdirectory(VulkanMemoryAllocator)
-add_subdirectory(vulkan-hpp)
-add_subdirectory(tinyobjloader)
 
-file(GLOB assimpdll "${CMAKE_CURRENT_SOURCE_DIR}/assimp/bin/Debug/assimp-vc142-mtd.dll")
+file(GLOB assimpdll "./assimp/bin/Debug/assimp-vc142-mtd.dll")
 file(COPY ${assimpdll} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 

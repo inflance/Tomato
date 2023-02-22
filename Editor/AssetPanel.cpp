@@ -6,12 +6,12 @@
 #include "Tomato/Core/File.h"
 #include "Tomato/Scene/Scene.h"
 
-namespace Tomato
-{
+namespace Tomato {
+
 	const std::filesystem::path g_asset_path = "PreCompile/Assets";
 
 	AssetPanel::AssetPanel()
-		: m_cur_asset_path(g_asset_path)
+		:m_cur_asset_path(g_asset_path)
 	{
 		m_dir_icon = Texture2D::Create("PreCompile/Assets/Icon/Directory.png");
 		m_file_icon = Texture2D::Create("PreCompile/Assets/Icon/File.png");
@@ -27,7 +27,7 @@ namespace Tomato
 			{
 				m_cur_asset_path = m_cur_asset_path.parent_path();
 				m_cur_selected_dir = std::filesystem::directory_entry();
-			}
+			}		
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("->") && m_cur_selected_dir.is_directory())
@@ -40,11 +40,11 @@ namespace Tomato
 
 		float panelWidth = ImGui::GetContentRegionAvail().x;
 
-		int columnCount = static_cast<int>(panelWidth / cellSize);
+		int columnCount = (int)(panelWidth / cellSize);
 		if (columnCount < 1)
 			columnCount = 1;
 
-		ImGui::Columns(columnCount, nullptr, false);
+		ImGui::Columns(columnCount, 0, false);
 
 		for (auto& directoryEntry : std::filesystem::directory_iterator(m_cur_asset_path))
 		{
@@ -56,28 +56,28 @@ namespace Tomato
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 			bool selected = m_cur_selected_dir == directoryEntry;
 
-			file_icon(filenameString.c_str(), selected, (ImTextureID)icon->GetID(), {m_icon_size, m_icon_size});
+			file_icon(filenameString.c_str(), selected, (ImTextureID)icon->GetID(), { m_icon_size, m_icon_size });
 
 			if (!directoryEntry.is_directory() && ImGui::BeginDragDropSource())
 			{
-				auto relativePath = relative(path, g_asset_path);
+				auto relativePath = std::filesystem::relative(path, g_asset_path);
 				const wchar_t* itemPath = relativePath.c_str();
 				ImGui::SetDragDropPayload("Assets_Panel", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t));
 				ImGui::EndDragDropSource();
 			}
 
 			ImGui::PopStyleColor();
-
+			
 			if (ImGui::IsItemFocused() && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 			{
-				m_cur_selected_dir = directoryEntry;
+					m_cur_selected_dir = directoryEntry;
+
 			}
-			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+			if (ImGui::IsItemHovered()&& ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 			{
-				if (directoryEntry.is_directory())
-				{
-					m_cur_asset_path /= path.filename();
-					m_cur_selected_dir = std::filesystem::directory_entry();
+				if (directoryEntry.is_directory()){
+						m_cur_asset_path /= path.filename();
+						m_cur_selected_dir = std::filesystem::directory_entry();
 				}
 			}
 			ImGui::NextColumn();
@@ -88,69 +88,62 @@ namespace Tomato
 
 		// TODO: status bar
 		ImGui::End();
+
 	}
 
-	bool AssetPanel::file_icon(const char* label, bool isSelected, void* icon, glm::vec2 size,
-	                           glm::vec4 layout /*= { 1, 1, 0, 0 }*/, bool hasPreview /*= false*/,
-	                           int previewWidth /*= 0*/, int previewHeight /*= 0*/)
+	bool AssetPanel::file_icon(const char* label, bool isSelected, void* icon, glm::vec2 size, glm::vec4 layout /*= { 1, 1, 0, 0 }*/, bool hasPreview /*= false*/, int previewWidth /*= 0*/, int previewHeight /*= 0*/)
 	{
-		ImGuiStyle& style = ImGui::GetStyle();
-		ImGuiContext& g = *GImGui;
-		ImGuiWindow* window = g.CurrentWindow;
+			ImGuiStyle& style = ImGui::GetStyle();
+			ImGuiContext& g = *GImGui;
+			ImGuiWindow* window = g.CurrentWindow;
 
-		float windowSpace = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
-		ImVec2 pos = window->DC.CursorPos;
-		bool ret = false;
+			float windowSpace = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+			ImVec2 pos = window->DC.CursorPos;
+			bool ret = false;
 
-		if (ImGui::InvisibleButton(label, {size.x, size.y}))
-			ret = true;
+			if (ImGui::InvisibleButton(label, { size.x, size.y }))
+				ret = true;
 
-		bool hovered = ImGui::IsItemHovered();
-		bool active = ImGui::IsItemActive();
-		bool doubleClick = ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
-		if (doubleClick && hovered)
-			ret = true;
-
-
-		float iconSize = size.y - g.FontSize * 2;
-		float iconPosX = pos.x + (size.x - iconSize) / 2.0f;
-		ImVec2 textSize = ImGui::CalcTextSize(label, nullptr, true, size.x);
+			bool hovered = ImGui::IsItemHovered();
+			bool active = ImGui::IsItemActive();
+			bool doubleClick = ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
+			if (doubleClick && hovered)
+				ret = true;
 
 
-		if (hovered || active || isSelected)
-			window->DrawList->AddRectFilled(g.LastItemData.Rect.Min, g.LastItemData.Rect.Max,
-			                                ImGui::ColorConvertFloat4ToU32(
-				                                ImGui::GetStyle().Colors[
-													active ? ImGuiCol_HeaderActive : (isSelected ? ImGuiCol_Header : ImGuiCol_HeaderHovered)]));
+			float iconSize = size.y - g.FontSize * 2;
+			float iconPosX = pos.x + (size.x - iconSize) / 2.0f;
+			ImVec2 textSize = ImGui::CalcTextSize(label, 0, true, size.x);
 
-		if (hasPreview)
-		{
-			auto availSize = ImVec2(size.x, iconSize);
 
-			float scale = std::min<float>(availSize.x / previewWidth, availSize.y / previewHeight);
-			availSize.x = previewWidth * scale;
-			availSize.y = previewHeight * scale;
+			if (hovered || active || isSelected)
+				window->DrawList->AddRectFilled(g.LastItemData.Rect.Min, g.LastItemData.Rect.Max, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[active ? ImGuiCol_HeaderActive : (isSelected ? ImGuiCol_Header : ImGuiCol_HeaderHovered)]));
 
-			float previewPosX = pos.x + (size.x - availSize.x) / 2.0f;
-			float previewPosY = pos.y + (iconSize - availSize.y) / 2.0f;
+			if (hasPreview) {
+				ImVec2 availSize = ImVec2(size.x, iconSize);
 
-			window->DrawList->AddImage(icon, ImVec2(previewPosX, previewPosY),
-			                           ImVec2(previewPosX + availSize.x, previewPosY + availSize.y),
-			                           {layout.x, layout.y}, {layout.z, layout.w});
-		}
-		else
-			window->DrawList->AddImage(icon, ImVec2(iconPosX, pos.y), ImVec2(iconPosX + iconSize, pos.y + iconSize),
-			                           {layout.x, layout.y}, {layout.z, layout.w});
+				float scale = std::min<float>(availSize.x / previewWidth, availSize.y / previewHeight);
+				availSize.x = previewWidth * scale;
+				availSize.y = previewHeight * scale;
 
-		window->DrawList->AddText(g.Font, g.FontSize, ImVec2(pos.x + (size.x - textSize.x) / 2.0f, pos.y + iconSize),
-		                          ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_Text]), label,
-		                          nullptr, size.x);
+				float previewPosX = pos.x + (size.x - availSize.x) / 2.0f;
+				float previewPosY = pos.y + (iconSize - availSize.y) / 2.0f;
 
-		float lastButtomPos = ImGui::GetItemRectMax().x;
-		float thisButtonPos = lastButtomPos + style.ItemSpacing.x + size.x;
-		// Expected position if next button was on same line
-		if (thisButtonPos < windowSpace)
-			ImGui::SameLine();
-		return ret;
+				window->DrawList->AddImage(icon, ImVec2(previewPosX, previewPosY), ImVec2(previewPosX + availSize.x, previewPosY + availSize.y), { layout.x, layout.y }, { layout.z, layout.w });
+			}
+			else
+				window->DrawList->AddImage(icon, ImVec2(iconPosX, pos.y), ImVec2(iconPosX + iconSize, pos.y + iconSize), { layout.x, layout.y }, { layout.z, layout.w });
+
+			window->DrawList->AddText(g.Font, g.FontSize, ImVec2(pos.x + (size.x - textSize.x) / 2.0f, pos.y + iconSize), ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_Text]), label, 0, size.x);
+
+			float lastButtomPos = ImGui::GetItemRectMax().x;
+			float thisButtonPos = lastButtomPos + style.ItemSpacing.x + size.x; // Expected position if next button was on same line
+			if (thisButtonPos < windowSpace)
+				ImGui::SameLine();
+			return ret;
 	}
+
 }
+
+
+

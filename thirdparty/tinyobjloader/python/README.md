@@ -5,7 +5,8 @@
 
 ## Requirements
 
-* python 3.6+
+* python 3.x(3.6+ recommended)
+  * python 2.7 may work, but not officially supported.
 
 ## Install
 
@@ -66,17 +67,18 @@ https://github.com/syoyo/tinyobjloader/blob/master/python/sample.py
 
 ## How to build
 
-Using `cibuildwheel` is a recommended way to build a python module.
+Using `cibuildwheel` is an recommended way to build a python module.
 See $tinyobjloader/azure-pipelines.yml for details.
 
 ### Developer build
 
+Edit `setup.py` and uncomment `Developer option` lines
+
 Assume pip is installed.
 
 ```
-$ git clone https://github.com/tinyobjloader/tinyobjloader
-$ cd tinyobjloader
-$ python -m pip install .
+$ pip install pybind11
+$ python setup.py build
 ```
 
 ## License
@@ -85,3 +87,4 @@ MIT(tinyobjloader) and ISC(mapbox earcut) license.
 
 ## TODO
  * [ ] Writer saver
+

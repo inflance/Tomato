@@ -4,5 +4,3 @@ build/
 /python/*.egg-info
 /python/.eggs
 /python/tiny_obj_loader.h
-/tests/tester
-/tests/tester.dSYM
