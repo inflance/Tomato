@@ -4,10 +4,9 @@
 #include <vulkan/vulkan_core.h>
 #include <spirv_cross/spirv_cross.hpp>
 
-#include "Tomato/Core/LogSystem.h"
+#include "Tomato/Core/Log.h"
 #include "Tomato/Function/Loder.h"
 #include "Tomato/Core/FileSystem.h"
-#include "VulkanDevice.h"
 #include "Tomato/Core/Timer.h"
 
 namespace Tomato
@@ -20,7 +19,7 @@ namespace Tomato
 		return code;
 	}
 
-	constexpr std::string_view  GetShaderSPIRVDirectory()
+	constexpr std::string_view GetShaderSPIRVDirectory()
 	{
 		return "PreCompile/Shader/Spv";
 	}
@@ -38,6 +37,21 @@ namespace Tomato
 		default: break;
 		}
 		return ShaderType::None;
+	}
+
+	inline std::string ShaderTypeToFileExtension(ShaderType type)
+	{
+		switch (type)
+		{
+		case ShaderType::Vertex: return ".vert";
+		case ShaderType::Fragment: return ".frag";
+		case ShaderType::Geometry: return ".geom";
+		case ShaderType::Compute: return ".comp";
+		case ShaderType::TesselationControl: return ".tesc";
+		case ShaderType::TesselationEvaluation: return ".tese";
+		default: break;
+		}
+		return {};
 	}
 
 	inline std::string ShaderTypeToString(ShaderType type)
@@ -88,37 +102,43 @@ namespace Tomato
 	}
 
 
-	VulkanShader::VulkanShader(const std::initializer_list<std::filesystem::path>& file_paths)
+
+	VulkanShader::VulkanShader(const ShaderCreateInfo& createInfo)
+		: m_create_info(createInfo)
 	{
-		m_shader_resources.resize(file_paths.size());
-		for(auto& path : file_paths)
+		for (auto& res : m_create_info.Resource)
 		{
-			auto type = static_cast<uint32_t>(FileExtensionToShaderType(path.extension().string()));
-			if(type == static_cast<uint32_t>(ShaderType::Vertex))
-				m_name = FileSystem::GetFileName(path);
-			if(!m_shader_resources[type].Path.empty())
+			if (res.Flag == ShaderCreateFlag::ByCode)
 			{
-				LogSystem::LogError("This {0} type already exists", ShaderTypeToString(m_shader_resources[type].Type));
-			}else
-			{
-				m_shader_resources[type].Type = static_cast<ShaderType>(type);
-				m_shader_resources[type].Path = path;
-				m_shader_resources[type].Code = Loader::Loader<std::string>(path);
+				if (!HasShader(res.Type))
+					m_data_map[res.Type] = res;
 			}
-			
+			else if (res.Flag == ShaderCreateFlag::ByPath)
+			{
+				auto type = static_cast<uint32_t>(FileExtensionToShaderType(res.Path.extension().string()));
+				if(res.Type != ShaderType::None)
+				{
+					type = static_cast<uint32_t>(res.Type);
+				}
+				if (type == static_cast<uint32_t>(ShaderType::Vertex)) //default use vertex shader paath name;
+					m_create_info.Name = FileSystem::GetFileName(res.Path);
+				if (m_data_map.contains(res.Type))
+				{
+					LOG_ERROR("The type of {0} shader already exists",
+					          ShaderTypeToString(m_create_info.Resource[type].Type));
+				}
+				else
+				{
+					m_create_info.Resource[type].Code = Loader::Loader<std::string>(res.Path);
+				}
+				m_data_map[res.Type] = res;
+			}
+			else if (res.Flag == ShaderCreateFlag::ByData)
+			{
+				return;
+			}
 		}
 		CompileGLSLToSPIRV();
-	}
-
-
-	VulkanShader::VulkanShader(const std::filesystem::path& vertex_path, const std::filesystem::path& fragment_path)
-		:VulkanShader({ vertex_path , fragment_path })
-	{
-	}
-
-	VulkanShader::VulkanShader(const std::string& file_paths)
-	{
-
 	}
 
 	void VulkanShader::Bind() const
@@ -175,69 +195,29 @@ namespace Tomato
 		{
 		}
 		//For each path, compile it into a SPIR - V binary
-		for (auto& resource : m_shader_resources)
+		for (auto& resource : m_data_map)
 		{
-			if (!resource.Code.empty())
+			if (!resource.second.Code.empty())
 			{
-				Timer timer(ShaderTypeToString(resource.Type));
-				std::filesystem::path path = resource.Path;
-				std::filesystem::path spv_path = spv_dir / (path.filename().string() + std::string(".spv"));
+				Timer timer;
+				std::filesystem::path path = resource.second.Path;
+				std::filesystem::path spv_path = spv_dir / (m_create_info.Name +
+					ShaderTypeToFileExtension(resource.second.Type) + std::string(".spv"));
 
 				shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(
-					resource.Code, ShaderTypeToShaderC(resource.Type).value(), resource.Path.generic_string().c_str(),
+					resource.second.Code, ShaderTypeToShaderC(resource.second.Type).value(),
+					resource.second.Path.generic_string().c_str(),
 					options);
 				if (result.GetCompilationStatus() != shaderc_compilation_status_success)
 				{
 					assert(false, "");
 				}
-				resource.Data = std::vector<uint32_t>{result.cbegin(), result.cend()};
+				resource.second.Data = std::vector<uint32_t>{result.cbegin(), result.cend()};
 
-				Loader::UnLoader(spv_path, resource.Data, sizeof(uint32_t));
-			}
-			
-		}
-	}
-
-	void VulkanShader::CreatePipelineShaderModules(std::shared_ptr<VulkanDevice> device)
-	{
-		m_device = device;
-		std::vector<VkShaderModuleCreateInfo> create_infos(m_shader_resources.size());
-		m_modules.resize(m_shader_resources.size());
-		for (auto& resource : m_shader_resources)
-		{
-			const auto type = static_cast<uint32_t>(resource.Type);
-			create_infos[type].sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-			create_infos[type].codeSize = resource.Data.size() * sizeof(uint32_t);
-			create_infos[type].pCode = resource.Data.data();
-
-			if (vkCreateShaderModule(device->GetVulkanDevice(), &create_infos[type], nullptr, &m_modules[type]) != VK_SUCCESS) {
-				throw std::runtime_error("failed to create shader module!");
+				Loader::UnLoader(spv_path, resource.second.Data, sizeof(uint32_t));
+				LOG_WARN("{} shader {} compile for {} ms", ShaderTypeToString(resource.second.Type), m_create_info.Name,
+				         timer.CountTime());
 			}
 		}
 	}
-
-	void VulkanShader::DestroyPipelineShaderModules()
-	{
-		/*for (auto& module : m_modules)
-		{
-			vkDestroyShaderModule(m_device->GetVulkanDevice(), module, nullptr);
-		}*/
-	}
-
-	void VulkanShader::CreatePipelineShaderStage()
-	{
-		m_infos.resize(m_shader_resources.size());
-		for(auto& resource : m_shader_resources)
-		{
-			auto type = static_cast<uint32_t>(resource.Type);
-			m_infos[type].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-			auto stage = ShaderTypeToVulkanStageFlagBits(static_cast<ShaderType>(type));
-			if(stage.has_value())
-				m_infos[type].stage = stage.value();
-
-			m_infos[type].module = m_modules[type];
-			m_infos[type].pName = "main";
-		}
-	}
-
 }

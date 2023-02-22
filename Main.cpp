@@ -1,16 +1,19 @@
-#pragma once
+#include "TestLayer.h"
 #include "Tomato/Core/Core.h"
 #include "Editor/Editor.h"
 #include "Tomato/Renderer/Vulkan/Test.h"
 
 int main(int argc, char** argv)
 {
-	Tomato::LogSystem::Init();
-	Tomato::TomatoEngine::Get().StartUp();
-
-	Tomato::TomatoEngine::Get().PushLayer(new Tomato::Editor());
-	Tomato::TomatoEngine::Get().Run();
-	Tomato::TomatoEngine::Get().ShutDown();
-
+	/*std::thread thread([]
+		{*/
+	Tomato::Log::Init();
+	Tomato::Engine::Get().StartUp();
+	//Tomato::Test();
+	Tomato::Engine::Get().PushLayer(new Tomato::TestLayer());
+	Tomato::Engine::Get().Run();
+	Tomato::Engine::Get().ShutDown();
+	//	});
+	//thread.join();
 	return 0;
 }

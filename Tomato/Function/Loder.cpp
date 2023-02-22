@@ -4,10 +4,6 @@
 
 #include "Tomato/Core/Macro.h"
 
-namespace Tomato
+namespace Tomato::Loader
 {
-	namespace Loader
-	{
-		
-	}
 }

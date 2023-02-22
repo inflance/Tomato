@@ -6,7 +6,7 @@
 
 namespace Tomato
 {
-	std::shared_ptr<Pipeline> Pipeline::Create(const PipelineProps& pipeline_props)
+	std::shared_ptr<Pipeline> Pipeline::Create(const PipelineInfo& pipeline_props)
 	{
 		switch (Renderer::GetCurrentAPI())
 		{

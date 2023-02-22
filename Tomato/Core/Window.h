@@ -2,7 +2,6 @@
 
 #include "Macro.h"
 #include "Tomato/Events/Event.h"
-#include "Tomato/Renderer/SwapChain.h"
 
 namespace Tomato
 {
@@ -10,21 +9,21 @@ namespace Tomato
 
 	struct DeviceProps
 	{
-		uint32_t api_version;
-		std::string vendor_name;
-		std::string device_name;
+		uint32_t api_version_;
+		std::string vendor_name_;
+		std::string device_name_;
 	};
 
 	struct WindowProps
 	{
-		std::string Title;
-		int Width;
-		int Height;
-		bool IsVSync;
-		bool IsFullScreen;
+		std::string title_;
+		int width_;
+		int height_;
+		bool is_v_sync_;
+		bool is_full_screen_;
 
 		WindowProps(std::string title = "Window", int width = 1600, int height = 800)
-			: Title(std::move(title)), Width(width), Height(height), IsVSync(false), IsFullScreen(false)
+			: title_(std::move(title)), width_(width), height_(height), is_v_sync_(false), is_full_screen_(false)
 		{
 		}
 	};

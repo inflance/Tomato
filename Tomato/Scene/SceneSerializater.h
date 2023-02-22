@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include "Scene.h"
+#include "Tomato/ECS/EntityRegistry.h"
 
 namespace Tomato
 {
@@ -17,8 +18,8 @@ namespace Tomato
 		bool DeSerialization(const std::string& filepath);
 
 		void SerializeEntity(Json& json, Entity entity);
-
 	private:
-		std::shared_ptr<Scene> m_Scene;
+		std::shared_ptr<Scene> m_scene;
+		friend class EntityRegistry;
 	};
 }

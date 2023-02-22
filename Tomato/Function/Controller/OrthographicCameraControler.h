@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Tomato/Renderer/OrthographicCamera.h"
+//#include "Tomato/Renderer/OrthographicCamera.h"
 #include "Tomato/Events/ApplicationEvent.h"
 #include "Tomato/Events/MouseEvent.h"
 
@@ -28,8 +28,8 @@ namespace Tomato
 		void OnEvent(Event& e);
 
 		const OrthographicCameraBounds& GetBounds() const { return m_bounds; }
-		OrthographicCamera& GetCamera() { return m_camera; }
-		const OrthographicCamera& GetCamera() const { return m_camera; }
+		//OrthographicCamera& GetCamera() { return m_camera; }
+		//const OrthographicCamera& GetCamera() const { return m_camera; }
 
 		void Resize(float width, float height);
 
@@ -43,9 +43,9 @@ namespace Tomato
 		float m_zoom = 1.0f;
 
 		OrthographicCameraBounds m_bounds;
-		OrthographicCamera m_camera;
+		//OrthographicCamera m_camera;
 
-		glm::vec3 m_camera_pos = {0.0f, 0.0f, 0.0f};
+		//glm::vec3 m_camera_pos = { 0.0f, 0.0f, 0.0f };
 		float m_cameraMoveSpeed = 1.0f;
 
 		float m_camera_rot = 0.0f;

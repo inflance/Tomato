@@ -8,19 +8,16 @@
 // renderer
 #include "Renderer/Renderer.h"
 #include "Renderer/Renderer2D.h"
-#include "Renderer/RendererCommand.h"
 
-#include "Renderer/Buffer.h"
+#include "Renderer/BufferLayout.h"
 #include "Renderer/FrameBuffer.h"
-#include "Renderer/VertexArray.h"
 #include "Renderer/Texture.h"
 #include "Renderer/SubTexture2D.h"
 #include "Renderer/ShaderFactory.h"
-#include "Renderer/OrthographicCamera.h"
 
-#include "Scene/Entity.h"
+#include "ECS/Entity.h"
+#include "ECS/Components.h"
 #include "Scene/Scene.h"
-#include "Scene/Components.h"
 #include "Scene/SceneSerializater.h"
 
 #include "Function/Camera/EditorCamera.h"

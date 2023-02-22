@@ -7,6 +7,6 @@ namespace Tomato
 {
 	static void Test()
 	{
-		
+	//Ref<Texture2D> tex = Texture2D::Create("", TextureProperties());
 	}
 }

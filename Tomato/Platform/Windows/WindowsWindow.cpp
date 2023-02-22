@@ -8,9 +8,6 @@
 #include "Tomato/Events/KeyEvent.h"
 #include "Tomato/Events/MouseEvent.h"
 #include "Tomato/Renderer/RendererAPI.h"
-#include "Tomato/Renderer/Vulkan/VulkanSwapChain.h"
-#include "Tomato/Renderer/Vulkan/VulkanContext.h"
-#include "Tomato/Renderer/Vulkan/VulkanDevice.h"
 #include "Tomato/Renderer/Vulkan/VulkanContext.h"
 
 namespace Tomato
@@ -43,7 +40,7 @@ namespace Tomato
 		if (RendererAPI::GetCurrentAPI() == RendererAPI::API::OpenGL)
 			glfwSwapInterval(enabled);
 
-		m_window_data.IsVSync = enabled;
+		m_window_data.is_v_sync_ = enabled;
 	}
 
 	void* WindowsWindow::GetNativeWindow() const
@@ -58,12 +55,11 @@ namespace Tomato
 
 	void WindowsWindow::Init(const WindowProps& props)
 	{
-		m_window_data.Title = props.Title;
-		m_window_data.Width = props.Width;
-		m_window_data.Height = props.Height;
-		m_window_data.IsVSync = props.IsVSync;
-		m_window_data.IsFullScreen = props.IsFullScreen;
-
+		m_window_data.title_ = props.title_;
+		m_window_data.width_ = props.width_;
+		m_window_data.height_ = props.height_;
+		m_window_data.is_v_sync_ = props.is_v_sync_;
+		m_window_data.is_full_screen_ = props.is_full_screen_;
 
 		if (s_glfw_window_count == 0)
 		{
@@ -84,7 +80,7 @@ namespace Tomato
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		}
 
-		if (m_window_data.IsFullScreen)
+		if (m_window_data.is_full_screen_)
 		{
 			GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
 			const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
@@ -95,27 +91,27 @@ namespace Tomato
 			glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 			glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 
-			m_window = glfwCreateWindow(mode->width, mode->height, m_window_data.Title.c_str(), primaryMonitor,
+			m_window = glfwCreateWindow(mode->width, mode->height, m_window_data.title_.c_str(), primaryMonitor,
 			                            nullptr);
 		}
 		else
 		{
-			m_window = glfwCreateWindow(m_window_data.Width, m_window_data.Height, m_window_data.Title.c_str(), nullptr,
+			m_window = glfwCreateWindow(m_window_data.width_, m_window_data.height_, m_window_data.title_.c_str(), nullptr,
 			                            nullptr);
 		}
 
 		glfwSetWindowUserPointer(m_window, &m_window_data);
-		SetVSync(m_window_data.IsVSync);
+		SetVSync(m_window_data.is_v_sync_);
 
 		//Set GLFW callbacks
 		glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height)
 		{
 			WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 
-			data.Width = width;
-			data.Height = height;
+			data.width_ = width;
+			data.height_ = height;
 			WindowResizeEvent event(width, height);
-			data.EventCallback(event);
+			data.event_callback_(event);
 		});
 
 		glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window)
@@ -123,7 +119,7 @@ namespace Tomato
 			WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 			WindowCloseEvent event;
 
-			data.EventCallback(event);
+			data.event_callback_(event);
 		});
 
 		glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -135,19 +131,19 @@ namespace Tomato
 			case GLFW_PRESS:
 				{
 					KeyPressedEvent event(key, 0);
-					data.EventCallback(event);
+					data.event_callback_(event);
 					break;
 				}
 			case GLFW_RELEASE:
 				{
 					KeyReleasedEvent event(key);
-					data.EventCallback(event);
+					data.event_callback_(event);
 					break;
 				}
 			case GLFW_REPEAT:
 				{
 					KeyPressedEvent event(key, 1);
-					data.EventCallback(event);
+					data.event_callback_(event);
 					break;
 				}
 			}
@@ -157,7 +153,7 @@ namespace Tomato
 		{
 			const WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 			KeyTypedEvent event(keycode);
-			data.EventCallback(event);
+			data.event_callback_(event);
 		});
 
 		glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods)
@@ -169,13 +165,13 @@ namespace Tomato
 			case GLFW_PRESS:
 				{
 					MouseButtonPressedEvent event(button);
-					data.EventCallback(event);
+					data.event_callback_(event);
 					break;
 				}
 			case GLFW_RELEASE:
 				{
 					MouseButtonReleasedEvent event(button);
-					data.EventCallback(event);
+					data.event_callback_(event);
 					break;
 				}
 			}
@@ -186,7 +182,7 @@ namespace Tomato
 			const WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 
 			MouseScrolledEvent event((xOffset), (yOffset));
-			data.EventCallback(event);
+			data.event_callback_(event);
 		});
 
 		glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xPos, double yPos)
@@ -194,7 +190,7 @@ namespace Tomato
 			const WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 
 			MouseMovedEvent event((xPos), (yPos));
-			data.EventCallback(event);
+			data.event_callback_(event);
 		});
 	}
 

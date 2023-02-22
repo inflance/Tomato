@@ -29,26 +29,32 @@ target_include_directories(
 	PUBLIC ${JSON_DIR}/single_include
 	PUBLIC ${IMGUIZMO_DIR}
 	PUBLIC ${ASSIMP_INCLUDE_DIR}
-	PUBLIC C:/VulkanSDK/1.3.231.1/include
+	PUBLIC ${VMA_DIR}
+	PUBLIC ${Vulkan_DIR}/include
+	PUBLIC ${TINY_OBJ_LOAD_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME} 
 	PUBLIC glfw
 	PUBLIC spdlog
 	PUBLIC glad
-	PUBLIC imgui
+	PUBLIC ${IMGUI_DIR}
 	PUBLIC glm
 	PUBLIC stb
 	PUBLIC EnTT
 	PUBLIC nlohmann_json
 	PUBLIC ImGuizmo
+	PUBLIC VulkanMemoryAllocator
+	PUBLIC utils
+	PUBLIC RAII_utils
+	PUBLIC ${TINY_OBJ_LOAD_DIR}
 	PUBLIC ${ASSIMP_BIN_DEBUG_DIR}/assimp-vc142-mtd.lib
 	PUBLIC ${ASSIMP_BIN_RELEASE_DIR}/assimp-vc142-mt.lib
-	 C:/VulkanSDK/1.3.231.1/Lib/vulkan-1.lib
-	 C:/VulkanSDK/1.3.231.1/Lib/glslang.lib
-	 C:/VulkanSDK/1.3.231.1/Lib/shaderc_util.lib
-	 C:/VulkanSDK/1.3.231.1/Lib/shaderc_shared.lib
-	 C:/VulkanSDK/1.3.231.1/Lib/shaderc.lib
+	${Vulkan_DIR}/Lib/vulkan-1.lib
+	${Vulkan_DIR}/Lib/glslang.lib
+	${Vulkan_DIR}/Lib/shaderc_util.lib
+	${Vulkan_DIR}/Lib/shaderc_shared.lib
+	${Vulkan_DIR}/Lib/shaderc.lib
 	opengl32
 )
 

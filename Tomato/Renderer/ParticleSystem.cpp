@@ -36,25 +36,25 @@ namespace Tomato
 		}
 	}
 
-	void ParticleSystem::OnRender(OrthographicCamera& camera)
-	{
-		Renderer2D::BeginScene(camera);
-		for (auto& particle : m_particle_pool)
-		{
-			if (!particle.Active)
-				continue;
+	//void ParticleSystem::OnRender(OrthographicCamera& camera)
+	//{
+	//	//		Renderer2D::BeginScene(camera);
+	//	for (auto& particle : m_particle_pool)
+	//	{
+	//		if (!particle.Active)
+	//			continue;
 
-			// Fade away particles
-			float life = particle.LifeRemaining / particle.LifeTime;
-			glm::vec4 color = lerp(particle.ColorEnd, particle.ColorBegin, life);
-			//color.a = color.a * life;
+	//		// Fade away particles
+	//		float life = particle.LifeRemaining / particle.LifeTime;
+	//		glm::vec4 color = lerp(particle.ColorEnd, particle.ColorBegin, life);
+	//		//color.a = color.a * life;
 
-			float size = glm::lerp(particle.SizeEnd, particle.SizeBegin, life);
-			glm::vec3 position = {particle.Position.x, particle.Position.y, 0.5f};
-			//Tomato::Renderer2D::DrawQuad(position, glm::radians(particle.Rotation), { size, size }, color);
-		}
-		Renderer2D::EndScene();
-	}
+	//		float size = glm::lerp(particle.SizeEnd, particle.SizeBegin, life);
+	//		glm::vec3 position = { particle.Position.x, particle.Position.y, 0.5f };
+	//		//Tomato::Renderer2D::DrawQuad(position, glm::radians(particle.Rotation), { size, size }, color);
+	//	}
+	//	Renderer2D::EndScene();
+	//}
 
 	void ParticleSystem::EmitParticle(const ParticleProps& particleProps)
 	{

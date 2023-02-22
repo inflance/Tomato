@@ -1,4 +1,5 @@
 #pragma once
+#include "Tomato/Core/Structs.h"
 
 namespace Tomato
 {
@@ -40,34 +41,46 @@ namespace Tomato
 	{
 		None,
 		Linear,
-		Nearest
+		Nearest,
+		Cubic
 	};
 
 	enum class TextureFormat : uint32_t
 	{
 		None = 0,
 		R8,
+		R8UI,
 		R16,
+		R16UI,
 		R16F,
 		R32F,
 		R32I,
 		R32UI,
 		RG8,
 		RG16F,
+		RG32F,
 		RGB8,
 		RGBA8,
-		RGB16,
-		RGBA16,
+		RGB16F,
+		RGBA16F,
 		RGB32,
 		RGBA32,
+		RGBA32F,
 		RGB,
 		RGBA,
-		R11G11B10,
-		DEPTH,
+		B10R11G11UF,
+		DEPTH32F,
 		STENCIL,
-		DEPTH_STENCIL,
-		SCREEN,
-		LENGTH
+		DEPTH32FSTENCIL8UI,
+		DEPTH24STENCIL8
+	};
+
+	enum class TextureUsage
+	{
+		None = 0,
+		Texture,
+		Attachment,
+		Storage
 	};
 
 	enum class TextureType : uint32_t
@@ -77,14 +90,21 @@ namespace Tomato
 		TextureCube
 	};
 
-	struct TextureProperties
+	struct TextureInfo
 	{
-		std::string DebugName;
-		TextureWrap SamplerWrap = TextureWrap::Repeat;
-		TextureFilter SamplerFilter = TextureFilter::Linear;
-		bool GenerateMips = true;
-		bool SRGB = false;
-		bool Storage = false;
+		std::string debug_name_;
+		TextureFormat format_ = TextureFormat::RGBA;
+		TextureUsage usage_ = TextureUsage::Texture;
+		TextureWrap sampler_wrap_ = TextureWrap::Repeat;
+		TextureFilter sampler_filter_ = TextureFilter::Linear;
+
+		Extend3 extend_{};
+		uint32_t mip_levels_{};
+		uint32_t layers_{};
+
+		bool gen_mips_ = true;
+		bool srgb_ = false;
+		bool stage_ = false;
 	};
 
 	class Texture
@@ -92,10 +112,11 @@ namespace Tomato
 	public:
 		virtual ~Texture() = default;
 
-		virtual const std::string& GetPath() const = 0;
-		virtual uint32_t GetWidth() const = 0;
-		virtual uint32_t GetHeight() const = 0;
-		virtual uint32_t GetID() const = 0;
+		[[nodiscard]] virtual const std::string& GetPath() const = 0;
+		virtual void SetPath(const std::string&  path) = 0;
+		[[nodiscard]] virtual uint32_t GetWidth() const = 0;
+		[[nodiscard]] virtual uint32_t GetHeight() const = 0;
+		[[nodiscard]] virtual uint32_t GetID() const = 0;
 
 		virtual void SetData(void* data, uint32_t size) = 0;
 
@@ -103,21 +124,20 @@ namespace Tomato
 		virtual void Bind() const = 0;
 
 		virtual bool operator==(const Texture& other) const = 0;
-		virtual TextureType GetType() const = 0;
+		[[nodiscard]] virtual TextureType GetType() const = 0;
 	};
 
 	class Texture2D : public Texture
 	{
 	public:
 		static std::shared_ptr<Texture2D> Create(const std::string& path,
-		                                         TextureProperties properties = TextureProperties());
-		static std::shared_ptr<Texture2D> Create(TextureFormat formmat, uint32_t width, uint32_t height);
+		                                         TextureInfo info = TextureInfo());
+		static std::shared_ptr<Texture2D> Create(void* data, TextureInfo info);
 	};
 
 	class TextureCube : public Texture
 	{
 	public:
-		static std::shared_ptr<TextureCube> Create(const std::string& path, TextureProperties properties);
-		static std::shared_ptr<TextureCube> Create(TextureFormat formmat, uint32_t width, uint32_t height);
+		static std::shared_ptr<TextureCube> Create(const std::string& path, TextureInfo info);
 	};
 }

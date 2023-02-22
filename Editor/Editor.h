@@ -52,6 +52,7 @@ namespace Tomato
 		std::shared_ptr<SubTexture2D> m_subtexture;
 		std::shared_ptr<Framebuffer> m_frameBuffer;
 		std::shared_ptr<Pipeline> m_pipeline;
+		std::shared_ptr<CommandBuffer> m_command_buffer_;
 		Ref<Shader> m_MeshShader;
 		Ref<Shader> m_ShapeShader;
 		Ref<Shader> m_LightShader;

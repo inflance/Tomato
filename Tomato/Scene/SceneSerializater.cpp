@@ -2,8 +2,9 @@
 
 #include <fstream>
 
-#include "Entity.h"
-#include "Components.h"
+#include "Tomato/ECS/Entity.h"
+#include "Tomato/ECS/Components.h"
+#include "Tomato/ECS/EntityRegistry.h"
 
 namespace nlohmann
 {
@@ -51,7 +52,7 @@ namespace nlohmann
 namespace Tomato
 {
 	SceneSerializater::SceneSerializater(const std::shared_ptr<Scene>& scene)
-		: m_Scene(scene)
+		: m_scene(scene)
 	{
 	}
 
@@ -61,11 +62,11 @@ namespace Tomato
 		json["Scene"]["SceneName"] = "Untitled";
 
 		Json j;
-		m_Scene->m_Registry.each(
+		m_scene->m_entity_registry->Get().each(
 			[&](auto entt)
 			{
 				Json temp;
-				Entity entity = {entt, m_Scene.get()};
+				Entity entity = {entt, m_scene->m_entity_registry.get()};
 
 				if (!entity)
 					return false;
@@ -92,65 +93,65 @@ namespace Tomato
 		}
 		catch (Json::exception e)
 		{
-			LOG_ERROR("{0}:{1}", e.id, e.what());
+			//LOG_ERROR("{0}:{1}", e.id, e.what());
 			return false;
 		}
 		auto sceneName = json["Scene"]["SceneName"];
-		LOG_TRACE("Scene {0}", sceneName);
+		//LOG_TRACE("Scene {0}", sceneName);
 
 		auto Entitys = json["Entities"];
 		if (Entitys.empty() == false)
 		{
 			for (auto go : Entitys)
 			{
-				auto entityid = go["Entity"]["EntityID"].get<uint64_t>();
+				//auto entityid = go["Entity"]["EntityID"].get<uint64_t>();
 				auto g = go["Entity"];
 				std::string name;
 				auto nameComponent = g["NameComponent"]["Name"];
 				if (nameComponent.empty() == false)
 					name = nameComponent.get<std::string>();
 
-				Entity deserializedEntity = m_Scene->CreateEntity(name);
+				Entity deserializedEntity = m_scene->CreateEntity(name);
 
-				deserializedEntity.SetEntityID(entityid);
+				//deserializedEntity.SetEntityID(entityid);
 
 				auto tranformComponent = g["TransformComponent"];
 				if (tranformComponent.empty() == false)
 				{
 					auto& tc = deserializedEntity.GetComponent<TransformComponent>();
-					tc.Position = tranformComponent["Position"].get<glm::vec3>();
-					tc.Rotation = tranformComponent["Rotation"].get<glm::vec3>();
-					tc.Scale = tranformComponent["Scale"].get<glm::vec3>();
+					tc.position_ = tranformComponent["Position"].get<glm::vec3>();
+					tc.rotation_ = tranformComponent["Rotation"].get<glm::vec3>();
+					tc.scale_ = tranformComponent["Scale"].get<glm::vec3>();
 				}
 
-				auto cameraComponent = g["CameraComponent"];
-				if (cameraComponent.empty() == false)
-				{
-					auto& cc = deserializedEntity.AddComponent<CameraComponent>();
+				/*	auto cameraComponent = g["CameraComponent"];
+					if (cameraComponent.empty() == false)
+					{
+						auto& cc = deserializedEntity.AddComponent<CameraComponent>();
 
-					auto& cameraProps = cameraComponent["Camera"];
-					cc.Camera.SetSceneCameraType(
-						static_cast<SceneCameraType>(cameraProps["ProjectionType"].get<int>()));
+						auto& cameraProps = cameraComponent["Camera"];
+						cc.Camera.SetSceneCameraType(
+							static_cast<SceneCameraType>(cameraProps["ProjectionType"].get<int>()));
 
-					cc.Camera.SetPerspFOV(cameraProps["PerspectiveFOV"].get<float>());
-					cc.Camera.SetPerspNear(cameraProps["PerspectiveNear"].get<float>());
-					cc.Camera.SetPerspFar(cameraProps["PerspectiveFar"].get<float>());
+						cc.Camera.SetPerspFOV(cameraProps["PerspectiveFOV"].get<float>());
+						cc.Camera.SetPerspNear(cameraProps["PerspectiveNear"].get<float>());
+						cc.Camera.SetPerspFar(cameraProps["PerspectiveFar"].get<float>());
 
-					cc.Camera.SetOrthoZoomLevel(cameraProps["OrthographicZoomLevel"].get<float>());
-					cc.Camera.SetOrthoNear(cameraProps["OrthographicNear"].get<float>());
-					cc.Camera.SetOrthoFar(cameraProps["OrthographicFar"].get<float>());
+						cc.Camera.SetOrthoZoomLevel(cameraProps["OrthographicZoomLevel"].get<float>());
+						cc.Camera.SetOrthoNear(cameraProps["OrthographicNear"].get<float>());
+						cc.Camera.SetOrthoFar(cameraProps["OrthographicFar"].get<float>());
 
-					cc.IsMain = cameraComponent["IsMain"].get<bool>();
-					cc.IsResize = cameraComponent["IsResize"].get<bool>();
-				}
+						cc.IsMain = cameraComponent["IsMain"].get<bool>();
+						cc.IsResize = cameraComponent["IsResize"].get<bool>();
+					}*/
 
 				auto spriteComponent = g["SpriteComponent"];
 				if (spriteComponent.empty() == false)
 				{
 					auto& src = deserializedEntity.AddComponent<SpriteComponent>();
-					src.Color = spriteComponent["Color"].get<glm::vec4>();
-					src.Texture = Texture2D::Create(spriteComponent["TexturePath"].get<std::string>());
-					src.TilingFactor = spriteComponent["TilingFactor"].get<int>();
+					src.color_ = spriteComponent["Color"].get<glm::vec4>();
+					src.texture_ = Texture2D::Create(spriteComponent["TexturePath"].get<std::string>());
+					src.tiling_factor_ = spriteComponent["TilingFactor"].get<int>();
 				}
 			}
 		}
@@ -162,44 +163,44 @@ namespace Tomato
 	{
 		Json js;
 		{
-			js["Entity"]["EntityID"] = static_cast<uint64_t>(entity.GetEntityID());
+			js["Entity"]["EntityID"] = static_cast<uint32_t>(entity);
 		}
-		if (entity.HasComponent<NameComponent>())
+		if (entity.HasComponent<TagComponent>())
 		{
-			auto& name = entity.GetComponent<NameComponent>().Name;
+			auto& name = entity.GetComponent<TagComponent>().tag_;
 			js["Entity"]["NameComponent"]["Name"] = name;
 		}
 		if (entity.HasComponent<TransformComponent>())
 		{
-			auto& position = entity.GetComponent<TransformComponent>().Position;
-			auto& rotation = entity.GetComponent<TransformComponent>().Rotation;
-			auto& scale = entity.GetComponent<TransformComponent>().Scale;
+			auto& position = entity.GetComponent<TransformComponent>().position_;
+			auto& rotation = entity.GetComponent<TransformComponent>().rotation_;
+			auto& scale = entity.GetComponent<TransformComponent>().scale_;
 			js["Entity"]["TransformComponent"]["Position"] = {position.x, position.y, position.z};
 			js["Entity"]["TransformComponent"]["Rotation"] = {rotation.x, rotation.y, rotation.z};
 			js["Entity"]["TransformComponent"]["Scale"] = {scale.x, scale.y, scale.z};
 		}
-		if (entity.HasComponent<CameraComponent>())
-		{
-			auto& cc = entity.GetComponent<CameraComponent>();
-			auto camera = cc.Camera;
-			//camera
-			js["Entity"]["CameraComponent"]["Camera"]["ProjectionType"] = camera.GetSceneCameraType();
-			js["Entity"]["CameraComponent"]["Camera"]["PerspectiveFOV"] = camera.GetPerspFOV();
-			js["Entity"]["CameraComponent"]["Camera"]["PerspectiveFar"] = camera.GetPerspFar();
-			js["Entity"]["CameraComponent"]["Camera"]["PerspectiveNear"] = camera.GetPerspNear();
-			js["Entity"]["CameraComponent"]["Camera"]["OrthographicZoomLevel"] = camera.GetOrthoZoomLevel();
-			js["Entity"]["CameraComponent"]["Camera"]["OrthographicFar"] = camera.GetOrthoFar();
-			js["Entity"]["CameraComponent"]["Camera"]["OrthographicNear"] = camera.GetOrthoNear();
+		//if (entity.HasComponent<CameraComponent>())
+		//{
+		//	auto& cc = entity.GetComponent<CameraComponent>();
+		//	auto camera = cc.Camera;
+		//	//camera
+		//	js["Entity"]["CameraComponent"]["Camera"]["ProjectionType"] = camera.GetSceneCameraType();
+		//	js["Entity"]["CameraComponent"]["Camera"]["PerspectiveFOV"] = camera.GetPerspFOV();
+		//	js["Entity"]["CameraComponent"]["Camera"]["PerspectiveFar"] = camera.GetPerspFar();
+		//	js["Entity"]["CameraComponent"]["Camera"]["PerspectiveNear"] = camera.GetPerspNear();
+		//	js["Entity"]["CameraComponent"]["Camera"]["OrthographicZoomLevel"] = camera.GetOrthoZoomLevel();
+		//	js["Entity"]["CameraComponent"]["Camera"]["OrthographicFar"] = camera.GetOrthoFar();
+		//	js["Entity"]["CameraComponent"]["Camera"]["OrthographicNear"] = camera.GetOrthoNear();
 
-			js["Entity"]["CameraComponent"]["IsMain"] = cc.IsMain;
-			js["Entity"]["CameraComponent"]["IsResize"] = cc.IsResize;
-		}
+		//	js["Entity"]["CameraComponent"]["IsMain"] = cc.IsMain;
+		//	js["Entity"]["CameraComponent"]["IsResize"] = cc.IsResize;
+		//}
 		if (entity.HasComponent<SpriteComponent>())
 		{
 			auto& spriteComponent = entity.GetComponent<SpriteComponent>();
-			auto& color = spriteComponent.Color;
-			auto& texture = spriteComponent.Texture;
-			auto& tilingFactor = spriteComponent.TilingFactor;
+			auto& color = spriteComponent.color_;
+			auto& texture = spriteComponent.texture_;
+			auto& tilingFactor = spriteComponent.tiling_factor_;
 			js["Entity"]["SpriteComponent"]["Color"] = {color.r, color.g, color.b, color.a};
 			if (texture)
 				js["Entity"]["SpriteComponent"]["TexturePath"] = texture->GetPath();

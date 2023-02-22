@@ -1,39 +1,30 @@
 #pragma once
 
-#include <glm/vec4.hpp>
+#include <glm/glm.hpp>
 
 #include "Tomato/Core/Macro.h"
 
 namespace Tomato
 {
-	class Framebuffer;
-	class Texture;
-	class CommandBuffer;
+	struct ClearValue
+	{
+		glm::vec4 ClearColor{};
+		glm::vec2 ClearDepth{};
+	};
 
 	struct RenderPassProps
 	{
-		std::vector<std::shared_ptr<Texture>> Attachments;
-		std::shared_ptr<Texture>              DepthTarget;
-		bool                                  IsClear = true;
+		ClearValue ClearValue{};
 	};
-
-
-	struct RenderPassSpecification
-	{
-		Ref<Framebuffer> TargetFramebuffer;
-		std::string DebugName;
-		glm::vec4 MarkerColor;
-	};
-
 
 	class RenderPass
 	{
 	public:
-		virtual ~RenderPass() = default;
+		virtual ~RenderPass()
+		{
+		}
 
-		virtual RenderPassSpecification& GetSpecification() = 0;
-		virtual const RenderPassSpecification& GetSpecification() const = 0;
-
-		static Ref<RenderPass> Create(const RenderPassSpecification& spec);
+		virtual void SetProps(const RenderPassProps& props) = 0;
+		static Ref<RenderPass> Create(const RenderPassProps& props);
 	};
 }

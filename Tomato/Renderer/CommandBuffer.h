@@ -13,6 +13,7 @@ namespace Tomato
 		Compute,
 		Raytracing
 	};
+
 	struct PipelineStatistics
 	{
 		uint64_t InputAssemblyVertices = 0;
@@ -29,7 +30,9 @@ namespace Tomato
 	class CommandBuffer
 	{
 	public:
-		virtual ~CommandBuffer() {}
+		virtual ~CommandBuffer()
+		{
+		}
 
 		virtual void Begin() = 0;
 		virtual void End() = 0;

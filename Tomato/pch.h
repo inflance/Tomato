@@ -9,11 +9,15 @@
 #include <unordered_set>
 #include <functional>
 #include <filesystem>
+#include <queue>
+#include <map>
+#include <unordered_map>
+
 #include <array>
 #include <memory>
 
 #ifdef TMT_PLATFORM_WINDOWS
-	#include <Windows.h>
-	#undef max;
-	#undef min;
+#include <Windows.h>
+#undef max;
+#undef min;
 #endif // TMT_PLATFORM_WINDOWS

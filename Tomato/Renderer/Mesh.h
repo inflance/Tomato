@@ -24,7 +24,7 @@ namespace Tomato
 
 	using Index = uint32_t;
 
-	struct Vertex
+	struct Vertex1
 	{
 		glm::vec3 Position;
 		glm::vec3 Normal;
@@ -53,8 +53,8 @@ namespace Tomato
 	{
 	public:
 		SubMesh() = default;
-		SubMesh(std::vector<Vertex> vertices, std::vector<uint32_t> indices);
-		SubMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,
+		SubMesh(std::vector<Vertex1> vertices, std::vector<uint32_t> indices);
+		SubMesh(const std::vector<Vertex1>& vertices, const std::vector<uint32_t>& indices,
 		        const std::vector<MatirialTextureData>& m_texture);
 
 		template <typename Func>
@@ -64,7 +64,7 @@ namespace Tomato
 		}
 
 	private:
-		std::vector<Vertex> m_vertices;
+		std::vector<Vertex1> m_vertices;
 		std::vector<uint32_t> m_Indices;
 		std::vector<MatirialTextureData> m_texture;
 
@@ -81,7 +81,6 @@ namespace Tomato
 
 		void Load(int entityID = -1, const std::string& path = "PreCompile/Assets/Mesh/bbl/bbl.pmx");
 		const std::vector<SubMesh>& GetMesh() { return m_submeshs; };
-		[[nodiscard]] AssetID GetID() const { return m_id; };
 		std::string& GetPath() { return m_path; };
 
 	private:

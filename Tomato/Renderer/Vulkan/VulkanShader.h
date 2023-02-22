@@ -4,6 +4,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "Tomato/Renderer/Shader.h"
+#include "Vulkan.h"
 
 namespace Tomato
 {
@@ -12,22 +13,14 @@ namespace Tomato
 	class VulkanShader : public Shader
 	{
 	public:
-		VulkanShader(const std::filesystem::path& vertex_path, const std::filesystem::path& fragment_path);
-		VulkanShader(const std::initializer_list<std::filesystem::path>& file_paths);
-		VulkanShader(const std::string& file_paths);
+		VulkanShader(const ShaderCreateInfo& createInfo);
 
-		~VulkanShader() override{}
-
-		struct ShaderMaterialDescriptorSet
-		{
-			VkDescriptorPool Pool = nullptr;
-			std::vector<VkDescriptorSet> DescriptorSets;
-		};
+		~VulkanShader() override = default;
 
 		void Bind() const override;
 		void UnBind() const override;
 
-		[[nodiscard]] const std::string& GetName() const override { return m_name; }
+		[[nodiscard]] const std::string& GetName() const override { return m_create_info.Name; }
 
 		void SetInt(const std::string& name, int value) override;
 		void SetIntArray(const std::string& name, int* values, uint32_t count) override;
@@ -40,29 +33,22 @@ namespace Tomato
 		void SetFloat3(const std::string& name, const glm::vec3& value) override;
 		void SetFloat4(const std::string& name, const glm::vec4& value) override;
 
-		void CreatePipelineShaderModules(std::shared_ptr<VulkanDevice> device);
-		void DestroyPipelineShaderModules();
-		void CreatePipelineShaderStage();
-		VkDescriptorSet GetDescriptorSet() { return m_DescriptorSet; }
-		VkDescriptorSetLayout GetDescriptorSetLayout(uint32_t set) { return m_DescriptorSetLayouts.at(set); }
-		std::vector<VkDescriptorSetLayout> GetAllDescriptorSetLayouts() { return m_DescriptorSetLayouts; };
-		std::vector<VkPushConstantRange> GetPushConstantRanges() { return m_ranges; };
+		[[nodiscard]] bool HasShaderModule(ShaderType type) const { return m_data_map.contains(type); }
+		[[nodiscard]] bool HasShader(ShaderType type) const { return m_data_map.contains(type); }
 
-		std::vector<ShaderResource>& GetResources() { return m_shader_resources; }
-		std::vector<VkPipelineShaderStageCreateInfo>& GetStageInfos() { return m_infos; }
-		std::vector<VkShaderModule>& GetModules() { return m_modules; }
+		vk::raii::ShaderModule GetShaderModule(const vk::raii::Device& device, ShaderType type)
+		{
+			if (HasShaderModule(type))
+				return {device, vk::ShaderModuleCreateInfo(vk::ShaderModuleCreateFlags(), m_data_map[type].Data)};
+			return nullptr;
+		}
 
 	private:
 		void CompileGLSLToSPIRV();
 
 	private:
-		std::vector<VkDescriptorSetLayout> m_DescriptorSetLayouts;
-		VkDescriptorSet m_DescriptorSet;
-		std::string m_name;
-		std::vector<ShaderResource> m_shader_resources;
-		std::vector<VkPipelineShaderStageCreateInfo> m_infos;
-		std::vector<VkShaderModule > m_modules;
-		std::shared_ptr<VulkanDevice> m_device;
-		std::vector<VkPushConstantRange> m_ranges;
+		ShaderCreateInfo m_create_info;
+		std::unordered_map<ShaderType, ShaderResource> m_data_map;
+		std::unordered_map<ShaderType, vk::raii::ShaderModule> m_modules;
 	};
 }

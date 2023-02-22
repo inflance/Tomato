@@ -4,10 +4,8 @@
 #include <string>
 
 #include "Texture.h"
-#include "Tomato/Core/UUID.h"
 #include <glm/glm.hpp>
 #include <unordered_map>
-
 
 namespace Tomato
 {
@@ -29,7 +27,6 @@ namespace Tomato
 
 	struct MatirialTextureData
 	{
-		AssetID ID;
 		PBRTextureType Type;
 		std::string Path;
 		std::shared_ptr<Texture2D> Texture;

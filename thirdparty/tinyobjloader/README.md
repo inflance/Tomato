@@ -19,14 +19,14 @@ If you are looking for C89 version, please see https://github.com/syoyo/tinyobjl
 Version notice
 --------------
 
-We recommend to use `master`(`main`) branch. Its v2.0 release candidate. Most features are now nearly robust and stable(Remaining task for release v2.0 is polishing C++ and Python API).
+We recommend to use `master`(`main`) branch. Its v2.0 release candidate. Most features are now nearly robust and stable(Remaining task for release v2.0 is polishing C++ and Python API, and fix built-in triangulation code).
 
 We have released new version v1.0.0 on 20 Aug, 2016.
 Old version is available as `v0.9.x` branch https://github.com/syoyo/tinyobjloader/tree/v0.9.x
 
 ## What's new
 
-* 29 Jul, 2021 : Added Mapbox's earcut for robust triangulation. Also fixes triangulation bug.
+* 29 Jul, 2021 : Added Mapbox's earcut for robust triangulation. Also fixes triangulation bug(still there is some issue in built-in triangulation algorithm: https://github.com/tinyobjloader/tinyobjloader/issues/319).
 * 19 Feb, 2020 : The repository has been moved to https://github.com/tinyobjloader/tinyobjloader !
 * 18 May, 2019 : Python binding!(See `python` folder. Also see https://pypi.org/project/tinyobjloader/)
 * 14 Apr, 2019 : Bump version v2.0.0 rc0. New C++ API and python bindings!(1.x API still exists for backward compatibility)
@@ -72,6 +72,8 @@ TinyObjLoader is successfully used in ...
 * liblava - A modern C++ and easy-to-use framework for the Vulkan API. [MIT]: https://github.com/liblava/liblava
 * rtxON - Simple Vulkan raytracing tutorials  https://github.com/iOrange/rtxON
 * metal-ray-tracer - Writing ray-tracer using Metal Performance Shaders https://github.com/sergeyreznik/metal-ray-tracer https://sergeyreznik.github.io/metal-ray-tracer/index.html
+* Supernova Engine - 2D and 3D projects with Lua or C++ in data oriented design: https://github.com/supernovaengine/supernova
+* AGE (Arc Game Engine) - An open-source engine for building 2D & 3D real-time rendering and interactive contents: https://github.com/MohitSethi99/ArcGameEngine
 * Your project here! (Letting us know via github issue is welcome!)
 
 ### Old version(v0.9.x)
@@ -106,10 +108,7 @@ TinyObjLoader is successfully used in ...
   * Vertex color(as an extension: https://blender.stackexchange.com/questions/31997/how-can-i-get-vertex-painted-obj-files-to-import-into-blender)
 * Texcoord
 * Normal
-* Material
-  * Unknown material attributes are returned as key-value(value is string) map.
 * Crease tag('t'). This is OpenSubdiv specific(not in wavefront .obj specification)
-* PBR material extension for .MTL. Its proposed here: http://exocortex.com/blog/extending_wavefront_mtl_to_support_pbr
 * Callback API for custom loading.
 * Double precision support(for HPC application).
 * Smoothing group
@@ -126,12 +125,16 @@ TinyObjLoader is successfully used in ...
 * [ ] surface.
 * [ ] Free form curve/surfaces
 
+### Material
+
+* PBR material extension for .MTL. Its proposed here: http://exocortex.com/blog/extending_wavefront_mtl_to_support_pbr
+* Texture options
+* Unknown material attributes are returned as key-value(value is string) map.
 
 ## TODO
 
 * [ ] Fix obj_sticker example.
 * [ ] More unit test codes.
-* [x] Texture options
 
 ## License
 
@@ -150,7 +153,7 @@ One option is to simply copy the header file into your project and to make sure 
 
 ### Building tinyobjloader - Using vcpkg(not recommended though)
 
-Alghouth it is not a recommended way, you can download and install tinyobjloader using the [vcpkg](https://github.com/Microsoft/vcpkg) dependency manager:
+Although it is not a recommended way, you can download and install tinyobjloader using the [vcpkg](https://github.com/Microsoft/vcpkg) dependency manager:
 
     git clone https://github.com/Microsoft/vcpkg.git
     cd vcpkg
@@ -420,7 +423,7 @@ cibuildwheels + twine upload for each git tagging event is handled in Azure Pipe
 #### How to bump version(For developer)
 
 * Bump version in CMakeLists.txt
-* Update version in `python/setup.py`
+* Update version in `setup.py`
 * Commit and push `master`. Confirm C.I. build is OK.
 * Create tag starting with `v`(e.g. `v2.1.0`)
 * `git push --tags`

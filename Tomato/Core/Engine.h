@@ -2,26 +2,24 @@
 
 #include <chrono>
 
+#include "IDGener.h"
+#include "Singleton.h"
 #include "Tomato/Core/Layer.h"
 #include "Tomato/Core/Window.h"
 #include "Tomato/Events/Event.h"
 #include "Tomato/Core/LayerStack.h"
 #include "Tomato/ImGui/ImGuiLayer.h"
 #include "Tomato/Events/ApplicationEvent.h"
+#include "Tomato/World/World.h"
 
 namespace Tomato
 {
-	class TomatoEngine
+
+	class Engine : public Singleton<Engine>
 	{
 	public:
 		void StartUp();
 		void ShutDown();
-
-		static TomatoEngine& Get()
-		{
-			static TomatoEngine instance;
-			return instance;
-		}
 
 		void Run();
 		void OnEvent(Event& e);
@@ -33,14 +31,18 @@ namespace Tomato
 		void PopOverLayer(Layer* over_layer);
 
 		static auto GetContext() { return Get().m_context; }
+		static auto GetWorld() { return Get().m_world; }
+		static auto GenID() { return Get().m_generator.GenID(); }
+
 		[[nodiscard]] uint32_t GetFPS() const { return m_fps; }
+
 		[[nodiscard]] Window& GetWindow() const { return *m_window; }
+
 		[[nodiscard]] ImGuiLayer* GetImGuiLayer() const { return m_imgui_layer; }
-		void SetVSync(bool is_vsync) const { m_window->SetVSync(is_vsync); };
+
+		void SetVSync(bool is_v_sync) const { m_window->SetVSync(is_v_sync); }
 
 	private:
-		TomatoEngine() = default;
-
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 
@@ -60,11 +62,13 @@ namespace Tomato
 
 		bool m_running = true;
 
-		Ref<Window> m_window;
-		Ref<GraphicsContext> m_context;
+		Ref<Window> m_window = nullptr;
+		Ref<GraphicsContext> m_context = nullptr;
 		LayerStack m_layer_stack;
-		ImGuiLayer* m_imgui_layer;
-		DeviceProps m_device_props;
+		ImGuiLayer* m_imgui_layer = nullptr;
+		DeviceProps m_device_props{};
 		std::string m_device_str;
+		World m_world;
+		IDGenerator m_generator;
 	};
 }

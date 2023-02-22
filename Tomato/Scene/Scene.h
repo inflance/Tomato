@@ -6,6 +6,7 @@
 #include "Tomato/Function/Camera/EditorCamera.h"
 #include "Tomato/Renderer/Shader.h"
 #include "Tomato/Core/Core.h"
+#include "Tomato/ECS/EntityRegistry.h"
 
 namespace Tomato
 {
@@ -17,7 +18,7 @@ namespace Tomato
 		Scene() = default;
 
 		Scene(const std::string& sceneName)
-			: m_sceneName(sceneName)
+			: m_scene_name(sceneName)
 		{
 		}
 
@@ -26,11 +27,12 @@ namespace Tomato
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateSprite(const std::string& name = std::string());
 		Entity CreateCamera(const std::string& name = std::string());
+#if 0
 		Entity CreateStaticMesh(const std::string& name = std::string());
 		Entity CreateBaseShape(const std::string& name = std::string());
 		Entity CreateLight(const std::string& name = std::string());
-
-		void TickEditor(float deltaTime, const EditorCamera& camera);
+#endif
+		//void TickEditor(float deltaTime, const EditorCamera& camera);
 
 		void Tick(float deltaTime);
 
@@ -39,15 +41,11 @@ namespace Tomato
 		void DestroyEntity(Entity);
 
 		void Clear();
-
-		Entity GetMainCameraEntity();
-
 	private:
-		std::string m_sceneName = "Default";
-		entt::registry m_Registry;
-
-		float m_viewPortWidth = 0.0f;
-		float m_viewPortHeight = 0.0f;
+		std::string m_scene_name = "Default";
+		Ref<EntityRegistry> m_entity_registry{};
+		float m_view_port_width = 0.0f;
+		float m_view_port_height = 0.0f;
 
 		friend class Entity;
 		friend class ScenePanel;

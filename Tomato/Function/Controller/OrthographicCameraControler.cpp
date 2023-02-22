@@ -7,14 +7,14 @@
 namespace Tomato
 {
 	OrthgraphicCameraControler::OrthgraphicCameraControler(float aspect, bool rotation)
-		: m_rotation(rotation), m_aspect(aspect), m_bounds(-m_aspect * m_zoom, m_aspect * m_zoom, -m_zoom, m_zoom),
-		  m_camera(m_bounds.Left, m_bounds.Right, m_bounds.Bottom, m_bounds.Top)
+		: m_rotation(rotation), m_aspect(aspect), m_bounds(-m_aspect * m_zoom, m_aspect * m_zoom, -m_zoom, m_zoom)
+	//		  m_camera(m_bounds.Left, m_bounds.Right, m_bounds.Bottom, m_bounds.Top)
 	{
 	}
 
 	void OrthgraphicCameraControler::Tick(float deltaTime)
 	{
-		if (Input::IsKeyPressed(Key::W))
+		/*if (Input::IsKeyPressed(Key::W))
 		{
 			m_camera_pos.y += m_cameraMoveSpeed * deltaTime;
 		}
@@ -29,7 +29,7 @@ namespace Tomato
 		else if (Input::IsKeyPressed(Key::D))
 		{
 			m_camera_pos.x += m_cameraMoveSpeed * deltaTime;
-		}
+		}*/
 
 		if (m_rotation)
 		{
@@ -41,9 +41,9 @@ namespace Tomato
 			{
 				m_camera_rot -= m_cameraRotationSpeed * deltaTime;
 			}
-			m_camera.SetRotation(m_camera_rot);
+			//m_camera.SetRotation(m_camera_rot);
 		}
-		m_camera.SetPosition(m_camera_pos);
+		//	m_camera.SetPosition(m_camera_pos);
 		m_cameraMoveSpeed = m_zoom * 2.0f;
 	}
 
@@ -60,7 +60,7 @@ namespace Tomato
 		m_zoom -= e.GetYOffset() * 0.1f;
 		m_zoom = std::max(m_zoom, 0.2f);
 		m_bounds = {-m_aspect * m_zoom, m_aspect * m_zoom, -m_zoom, m_zoom};
-		m_camera.SetProjection(m_bounds.Left, m_bounds.Right, m_bounds.Bottom, m_bounds.Top);
+		//m_camera.SetProjection(m_bounds.Left, m_bounds.Right, m_bounds.Bottom, m_bounds.Top);
 		return false;
 	}
 
@@ -74,6 +74,6 @@ namespace Tomato
 	{
 		m_aspect = width / height;
 		m_bounds = {-m_aspect * m_zoom, m_aspect * m_zoom, -m_zoom, m_zoom};
-		m_camera.SetProjection(m_bounds.Left, m_bounds.Right, m_bounds.Bottom, m_bounds.Top);
+		//m_camera.SetProjection(m_bounds.Left, m_bounds.Right, m_bounds.Bottom, m_bounds.Top);
 	}
 }

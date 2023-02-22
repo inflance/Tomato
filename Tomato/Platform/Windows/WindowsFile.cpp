@@ -17,7 +17,7 @@ namespace Tomato::File
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
 		ofn.hwndOwner = glfwGetWin32Window(
-			static_cast<GLFWwindow*>(TomatoEngine::Get().GetWindow().GetNativeWindow()));
+			static_cast<GLFWwindow*>(Engine::Get().GetWindow().GetNativeWindow()));
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof(szFile);
 		if (GetCurrentDirectoryA(256, currentDir))
@@ -42,7 +42,7 @@ namespace Tomato::File
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
 		ofn.hwndOwner = glfwGetWin32Window(
-			static_cast<GLFWwindow*>(TomatoEngine::Get().GetWindow().GetNativeWindow()));
+			static_cast<GLFWwindow*>(Engine::Get().GetWindow().GetNativeWindow()));
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof(szFile);
 		if (GetCurrentDirectoryA(256, currentDir))
@@ -60,9 +60,7 @@ namespace Tomato::File
 	void Directory::GetFileNames(std::string path, std::vector<std::string>& files,
 	                             std::vector<std::string>& directories)
 	{
-		//文件句柄
 		intptr_t hFile = 0;
-		//文件信息
 		struct _finddata_t fileinfo;
 		std::string p;
 		if ((hFile = _findfirst(p.assign(path).append("\\*").c_str(), &fileinfo)) != -1)
@@ -74,7 +72,6 @@ namespace Tomato::File
 				{
 					directories.push_back(p.assign(path).append("/").append(fileinfo.name));
 				}
-				//如果是文件
 				else
 				{
 					files.push_back(p.assign(path).append("/").append(fileinfo.name));

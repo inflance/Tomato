@@ -11,9 +11,9 @@ namespace Tomato
 		m_texcoord[3] = {min.x, max.y};
 	}
 
-	std::shared_ptr<SubTexture2D> SubTexture2D::CreateSubtexture(const std::shared_ptr<Texture2D>& texture,
-	                                                             const glm::vec2& coords, const glm::vec2& spriteSize,
-	                                                             const glm::vec2& magSize)
+	std::shared_ptr<SubTexture2D> SubTexture2D::Create(const std::shared_ptr<Texture2D>& texture,
+	                                                   const glm::vec2& coords, const glm::vec2& spriteSize,
+	                                                   const glm::vec2& magSize)
 	{
 		glm::vec2 min = {
 			(coords.x * spriteSize.x) / texture->GetWidth(), (coords.y * spriteSize.y) / texture->GetHeight()

@@ -1,20 +1,20 @@
 #pragma once
 
-#include <vulkan/vulkan_core.h>
-
 #include "../RenderPass.h"
+#include "Vulkan.h"
 
 namespace Tomato
 {
 	class VulkanRenderPass : public RenderPass
 	{
 	public:
-		VulkanRenderPass(const RenderPassSpecification& spec);
-		virtual ~VulkanRenderPass();
+		VulkanRenderPass(const RenderPassProps& props);
+		~VulkanRenderPass() override = default;
 
-		virtual RenderPassSpecification& GetSpecification() override { return m_Specification; }
-		virtual const RenderPassSpecification& GetSpecification() const override { return m_Specification; }
-	private:
-		RenderPassSpecification m_Specification;
+
+		void SetProps(const RenderPassProps& props) override;
+
+		RenderPassProps props;
+		vk::raii::RenderPass renderPass = nullptr;
 	};
 }

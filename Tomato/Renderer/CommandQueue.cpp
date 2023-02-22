@@ -2,10 +2,9 @@
 
 namespace Tomato
 {
-	
 	CommandQueue::CommandQueue()
 	{
-		m_command_queue.resize(512 * 1024);
+		//m_command_queue.resize(512 * 1024);
 	}
 
 	CommandQueue::~CommandQueue()
@@ -20,11 +19,10 @@ namespace Tomato
 
 	void CommandQueue::Execute()
 	{
-		for(auto& func : m_command_queue)
+		for (auto& func : m_command_queue)
 		{
 			func();
 		}
 		m_command_queue.clear();
 	}
-
 }

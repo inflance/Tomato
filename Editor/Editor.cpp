@@ -14,6 +14,7 @@
 #include "Tomato/Scene/ScriptableEntity.h"
 #include "Tomato/Renderer/Mesh.h"
 #include "Tomato/Renderer/Pipeline.h"
+#include "Tomato/Renderer/RenderPass.h"
 #include "Tomato/Renderer/ShaderFactory.h"
 
 namespace Tomato
@@ -27,78 +28,8 @@ namespace Tomato
 	{
 		m_texture = Texture2D::Create("PreCompile/Assets/Image/DefaultTexture.png");
 		m_texture1 = Texture2D::Create("PreCompile/Assets/Image/tilemap_packed.png");
-		m_subtexture = SubTexture2D::CreateSubtexture(m_texture1, {0.0f, 0.0f}, {73.0f, 73.0f}, {1.0f, 0.71f});
+		m_subtexture = SubTexture2D::Create(m_texture1, { 0.0f, 0.0f }, { 73.0f, 73.0f }, { 1.0f, 0.71f });
 
-		FramebufferProps fb_props;
-		fb_props.Attachments = {
-			FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth
-		};
-		fb_props.Height = 800;
-		fb_props.Width = 1600;
-
-		m_frameBuffer = Framebuffer::Create(fb_props);
-
-		m_Scene = std::make_shared<Scene>();
-
-		m_editorCamera = EditorCamera(30.0f, 1600.0f / 800.0f, 0.1f, 1000.0f);
-		m_editorCamera.SetPosition({0.0f, 0.0f, 10.5f});
-
-		std::shared_ptr<Shader> shader = Shader::Create(
-			"C:/Users/liyun/source/repos/Tomato/PreCompile/Assets/Shader/shader.vert",
-			"C:/Users/liyun/source/repos/Tomato/PreCompile/Assets/Shader/shader.frag");
-		PipelineProps props;
-		props.Shader = shader;
-		//		m_pipeline = Pipeline::Create(props);
-
-		//mesh.Load("C:/Users/liyun/source/repos/Tomato/PreCompile/Assets/Mesh/bbl/bbl.pmx");
-
-
-		class CameraControllor : public ScriptableEntity
-		{
-			void Tick(float deltaTime) override
-			{
-				auto& position = GetComponent<TransformComponent>().Position;
-
-				float speed = 5.0f;
-
-				if (Input::IsKeyPressed(Key::A))
-					position.x -= speed * deltaTime;
-				if (Input::IsKeyPressed(Key::D))
-					position.x += speed * deltaTime;
-				if (Input::IsKeyPressed(Key::W))
-					position.y += speed * deltaTime;
-				if (Input::IsKeyPressed(Key::S))
-					position.y -= speed * deltaTime;
-			}
-		};
-
-		/* CameraA.AddComponent<NativeScriptComponent>().Bind<CameraControllor>();
-		 CameraB.AddComponent<NativeScriptComponent>().Bind<CameraControllor>();*/
-
-		//SceneSerializater m_SceneSerializater(m_Scene);
-		//if (m_SceneSerializater.DeSerialization("D:/redcube.json"))
-		//{
-		//    //m_SceneSerializater.Serialization("D:/2.json");
-		//}
-
-		/*  std::vector<std::string> skybox = {
-		      "PreCompile/Assets/Image/skybox/back.jpg",
-		      "PreCompile/Assets/Image/skybox/bottom.jpg",
-		      "PreCompile/Assets/Image/skybox/front.jpg",
-		      "PreCompile/Assets/Image/skybox/left.jpg",
-		      "PreCompile/Assets/Image/skybox/right.jpg",
-		      "PreCompile/Assets/Image/skybox/top.jpg",
-		  };
-		  m_texture2 = TextureCube::Create(skybox);*/
-		/*m_MeshShader = Shader::Create("PreCompile/Assets/Shader/StaticMesh.glsl");
-		m_ShapeShader = Shader::Create("PreCompile/Assets/Shader/BaseCube.glsl");
-		m_LightShader = Shader::Create("PreCompile/Assets/Shader/BaseLight.glsl");
-
-		m_ScenePanel.SetContex(m_Scene);
-
-		ShaderFactory::Get().Add(m_MeshShader);
-		ShaderFactory::Get().Add(m_ShapeShader);
-		ShaderFactory::Get().Add(m_LightShader);*/
 	}
 
 	void Editor::OnDestroy()
@@ -108,19 +39,18 @@ namespace Tomato
 	void Editor::Tick(float deltaTime)
 	{
 		/*if (m_viewPortFocused)
-		    m_cameraControler.Tick(ts);*/
+			m_cameraControler.Tick(ts);*/
 
-		//Renderer2D::ResetStats();
-		//m_Scene->Tick(ts);
+			//Renderer2D::ResetStats();
+			//m_Scene->Tick(ts);
 		m_frameBuffer->Bind();
 
 		//RendererCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-		RendererCommand::Clear();
 		//m_frameBuffer->ClearAttachment(1, -1);
 		//m_editorCamera.Tick(deltaTime);
 		//m_Scene->TickEditor(deltaTime, m_editorCamera);
 		//m_Scene->Tick(ts);
-		//Renderer::Submit(m_pipeline);
+		//Renderer::RenderQuad(m_command_buffer_, m_pipeline);
 		//获取屏幕鼠标位置
 		/*auto [mx, my] = ImGui::GetMousePos();
 		mx -= m_viewportBounds[0].x;
@@ -144,22 +74,21 @@ namespace Tomato
 	{
 		bool open = true;
 
-
 		static bool showViewPort = true;
 
 		static bool opt_fullscreen = true;
 		static bool opt_padding = false;
-		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+		//static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
 		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
 		// because it would be confusing to have two docking targets within each others.
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+//		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 		if (opt_fullscreen)
 		{
 			const ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImGui::SetNextWindowPos(viewport->WorkPos);
 			ImGui::SetNextWindowSize(viewport->WorkSize);
-			ImGui::SetNextWindowViewport(viewport->ID);
+			//ImGui::SetNextWindowViewport(viewport->ID);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 9.0f);
@@ -170,19 +99,19 @@ namespace Tomato
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 6.0f));
 			ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 7.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.00f, 0.5f));
-			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-				ImGuiWindowFlags_NoMove;
-			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+			//window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoMove;
+			//window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 		}
 		else
 		{
-			dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+			//dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
 		}
 
 		// When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
 		// and handled the pass-thru hole, so we ask Begin() to not render a background.
-		if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-			window_flags |= ImGuiWindowFlags_NoBackground;
+		//if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+		//window_flags |= ImGuiWindowFlags_NoBackground;
 
 		// Important: note that we proceed even if Begin() returns false (aka window is collapsed).
 		// This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
@@ -191,19 +120,17 @@ namespace Tomato
 		// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
 		if (!opt_padding)
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::Begin("DockSpace Demo", &open, window_flags);
+		//ImGui::Begin("DockSpace Demo", &open, window_flags);
 		if (!opt_padding)
 			ImGui::PopStyleVar();
 
-
 		// Submit the DockSpace
 		ImGuiIO& io = ImGui::GetIO();
-		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+		//if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 		{
 			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+			//ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 		}
-
 
 		if (ImGui::BeginMenuBar())
 		{
@@ -230,18 +157,18 @@ namespace Tomato
 				}
 
 #if 0
-                ImGui::Separator();
+				ImGui::Separator();
 
-                if (ImGui::MenuItem("Flag: NoSplit", "", (dockspace_flags & ImGuiDockNodeFlags_NoSplit) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoSplit; }
-                if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoResize; }
-                if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode; }
-                if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar; }
-                if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
+				if (ImGui::MenuItem("Flag: NoSplit", "", (dockspace_flags & ImGuiDockNodeFlags_NoSplit) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoSplit; }
+				if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoResize; }
+				if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode; }
+				if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar; }
+				if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
 #endif
 				ImGui::Separator();
 
 				if (ImGui::MenuItem("Close", nullptr, false, open != NULL))
-					TomatoEngine::Get().Close();
+					Engine::Get().Close();
 				ImGui::EndMenu();
 			}
 			ImGui::EndMenuBar();
@@ -259,11 +186,11 @@ namespace Tomato
 
 				if (!m_viewPortFocused && !m_viewPortHovered)
 				{
-					TomatoEngine::Get().GetImGuiLayer()->SetBlock(true);
+					Engine::Get().GetImGuiLayer()->SetBlock(true);
 				}
 				else
 				{
-					TomatoEngine::Get().GetImGuiLayer()->SetBlock(false);
+					Engine::Get().GetImGuiLayer()->SetBlock(false);
 				}
 			}
 
@@ -274,17 +201,16 @@ namespace Tomato
 
 			//获取当前窗口相对于屏幕左上角的位置
 			auto viewportOffset = ImGui::GetWindowPos();
-			m_viewportBounds[0] = {viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y};
-			m_viewportBounds[1] = {viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y};
+			m_viewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+			m_viewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
 			//set window resize
 			{
 				ImVec2 viewPortSize = ImGui::GetContentRegionAvail();
 
 				if (m_viewPortSize != *(glm::vec2*)&viewPortSize && viewPortSize.x > 0.0f && viewPortSize.y > 0.0f)
 				{
-					m_viewPortSize = {viewPortSize.x, viewPortSize.y};
+					m_viewPortSize = { viewPortSize.x, viewPortSize.y };
 					//LOG_WARN("{0}{1}", m_viewPortSize.x, m_viewPortSize.y);
-
 
 					m_frameBuffer->Resize(m_viewPortSize.x, m_viewPortSize.y);
 					m_Scene->SetViewPortResize(m_viewPortSize.x, m_viewPortSize.y);
@@ -292,12 +218,10 @@ namespace Tomato
 				}
 			}
 
-
 			uint32_t id = m_frameBuffer->GetRendererID();
 
-			ImGui::Image((void*)(id), ImVec2{m_viewPortSize.x, m_viewPortSize.y}, ImVec2{0, 1},
-			             ImVec2{1, 0});
-
+			ImGui::Image((void*)(id), ImVec2{ m_viewPortSize.x, m_viewPortSize.y }, ImVec2{ 0, 1 },
+				ImVec2{ 1, 0 });
 
 			{
 				Entity SelectedEntity = m_ScenePanel.GetSelectedEntity();
@@ -318,15 +242,15 @@ namespace Tomato
 					auto cameraProjection = cc.GetProjection();
 					auto cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());*/
 
-					auto cameraProjection = m_editorCamera.GetProjection();
+					//auto cameraProjection = m_editorCamera.GetProjection();
 					auto cameraView = m_editorCamera.GetViewMatrix();
 
 					auto& tc = SelectedEntity.GetComponent<TransformComponent>();
 					auto transform = tc.GetTransform();
 
-					Manipulate(value_ptr(cameraView), value_ptr(cameraProjection),
-					           static_cast<ImGuizmo::OPERATION>(m_zgmoMode), ImGuizmo::LOCAL,
-					           value_ptr(transform));
+					/*Manipulate(value_ptr(cameraView), value_ptr(cameraProjection),
+					static_cast<ImGuizmo::OPERATION>(m_zgmoMode), ImGuizmo::LOCAL,
+						value_ptr(transform)); */
 
 					if (ImGuizmo::IsUsing())
 					{
@@ -334,11 +258,11 @@ namespace Tomato
 
 						Math::DecomposeTransform(transform, position, rotation, scale);
 
-						glm::vec3 deltaRotation = rotation - tc.Rotation;
+						glm::vec3 deltaRotation = rotation - tc.rotation_;
 
-						tc.Position = position;
-						tc.Rotation += deltaRotation;
-						tc.Scale = scale;
+						tc.position_ = position;
+						tc.rotation_ += deltaRotation;
+						tc.scale_ = scale;
 					}
 				}
 			}
@@ -388,7 +312,7 @@ namespace Tomato
 			}
 			else
 			{
-				LogSystem::Log(LogType::Error, "Failed To Open Scene");
+				//LOG_ERROR("Failed To Open Scene");
 			}
 		}
 	}
@@ -401,11 +325,11 @@ namespace Tomato
 			SceneSerializater m_SceneSerializater(m_Scene);
 			if (m_SceneSerializater.Serialization(filePath))
 			{
-				LogSystem::Log(LogType::Info, "Success To Save Scene");
+				//LOG_INFO("Success To Save Scene");
 			}
 			else
 			{
-				LogSystem::Log(LogType::Error, "Failed To Save Scene");
+				//LOG_ERROR("Failed To Save Scene");
 			}
 		}
 	}
@@ -494,7 +418,7 @@ namespace Tomato
 			ImGui::Text("TotalIndex: %d", stats.GetTotalIndexCount());
 			ImGui::Text("TotalVertex: %d", stats.GetTotalVertexCount());
 
-			ImGui::Text("fps: %u", TomatoEngine::Get().GetFPS());
+			ImGui::Text("fps: %u", Engine::Get().GetFPS());
 		}
 		ImGui::End();
 	}

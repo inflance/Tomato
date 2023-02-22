@@ -1,11 +1,12 @@
 #pragma once
 
-#include "Shader.h"
 #include "Tomato/Core/Macro.h"
-#include "Buffer.h"
+#include "BufferLayout.h"
+#include "UniformBufferSet.h"
 
 namespace Tomato
 {
+	class Shader;
 	class RenderPass;
 	class CommandBuffer;
 
@@ -33,22 +34,14 @@ namespace Tomato
 		Always,
 	};
 
-	struct PipelineProps
+	struct PipelineInfo
 	{
-		std::shared_ptr<Shader> Shader;
-		//defalt primitive type 
-		PrimitiveType Type = PrimitiveType::Triangles;
-		BufferLayout Layout;
-		BufferLayout InstanceLayout;
-		Ref<RenderPass> RenderPass;
-		DepthCompareOperator DepthOperator = DepthCompareOperator::GreaterOrEqual;
-		bool BackfaceCulling = true;
-		bool DepthTest = true;
-		bool DepthWrite = true;
-		bool Wireframe = false;
-		float LineWidth = 1.0f;
-
-		std::string DebugName;
+		Ref<Shader> shader_ = nullptr;
+		Ref<RenderPass> render_pass_ = nullptr;
+		PrimitiveType primitive_type_ = PrimitiveType::Triangles;
+		VertexBufferLayout vertex_layout_;
+		Ref<UniformBufferSet> uniform_buffer_set_;
+		DepthCompareOperator depth_operator_ = DepthCompareOperator::GreaterOrEqual;
 	};
 
 	class Pipeline
@@ -58,7 +51,8 @@ namespace Tomato
 		virtual void Init() = 0;
 
 		virtual void Bind() = 0;
+		virtual const PipelineInfo& GetProps() = 0;
 
-		static std::shared_ptr<Pipeline> Create(const PipelineProps& pipeline_props);
+		static std::shared_ptr<Pipeline> Create(const PipelineInfo& pipeline_props);
 	};
 }

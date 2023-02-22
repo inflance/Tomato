@@ -3,7 +3,6 @@
 #include <unordered_map>
 
 #include "Mesh.h"
-#include "Tomato/Core/UUID.h"
 
 namespace Tomato
 {

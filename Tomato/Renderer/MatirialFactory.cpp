@@ -11,7 +11,6 @@ namespace Tomato
 	MatirialTextureData& MatirialFactory::Load(const std::string& path, MatirialTextureData& data)
 	{
 		data.Texture = Texture2D::Create(path);
-		data.ID = data.Texture->GetID();
 		Add(path, data);
 		return m_matirial_factory[path];
 	}

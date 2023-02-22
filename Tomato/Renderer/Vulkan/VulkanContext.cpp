@@ -1,15 +1,17 @@
 #include "VulkanContext.h"
 
-#define GLFW_INCLUDE_VULKAN
-#include <glfw/glfw3.h>
-#include <vulkan/vulkan.h>
-#include <vulkan/vulkan_win32.h>
-
 #include "Tomato/Core/Macro.h"
 #include "VulkanUtils.h"
 #include "VulkanDebug.h"
-#include "VulkanCommandBuffer.h"
+#include <ThirdParty/Vulkan-Hpp/RAII_Samples/utils/utils.hpp>
+#ifdef TMT_PLATFORM_WINDOWS
+#define VK_USE_PLATFORM_WIN32_KHR
+#endif
+
+#include "VulkanShader.h"
+#include "VulkanConfig.h"
 #include "VulkanSwapChain.h"
+#include "Tomato/Renderer/RendererConfig.h"
 
 constexpr const char* VK_LAYER_LUNARG_STANDARD_VALIDATION_NAME = "VK_LAYER_LUNARG_standard_validation";
 constexpr const char* VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME = "VK_LAYER_LUNARG_assistant_layer";
@@ -17,98 +19,66 @@ constexpr const char* VK_LAYER_LUNARG_VALIDATION_NAME = "VK_LAYER_KHRONOS_valida
 
 namespace Tomato
 {
+	inline std::vector<std::string> GetInstanceExtensions()
+	{
+		std::vector<std::string> extensions;
+		extensions.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
+#if defined( VK_USE_PLATFORM_ANDROID_KHR )
+		extensions.emplace_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
+#elif defined( VK_USE_PLATFORM_IOS_MVK )
+		extensions.emplace_back(VK_MVK_IOS_SURFACE_EXTENSION_NAME);
+#elif defined( VK_USE_PLATFORM_MACOS_MVK )
+		extensions.emplace_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
+#elif defined( VK_USE_PLATFORM_MIR_KHR )
+		extensions.emplace_back(VK_KHR_MIR_SURFACE_EXTENSION_NAME);
+#elif defined( VK_USE_PLATFORM_VI_NN )
+		extensions.emplace_back(VK_NN_VI_SURFACE_EXTENSION_NAME);
+#elif defined( VK_USE_PLATFORM_WAYLAND_KHR )
+		extensions.emplace_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
+#elif defined( VK_USE_PLATFORM_WIN32_KHR )
+		extensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#elif defined( VK_USE_PLATFORM_XCB_KHR )
+		extensions.emplace_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+#elif defined( VK_USE_PLATFORM_XLIB_KHR )
+		extensions.emplace_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
+#elif defined( VK_USE_PLATFORM_XLIB_XRANDR_EXT )
+		extensions.emplace_back(VK_EXT_ACQUIRE_XLIB_DISPLAY_EXTENSION_NAME);
+#endif
+		return extensions;
+	}
+
+	static void PrintStr(std::vector<const char*>& strings, std::string_view name = "")
+	{
+		for (auto& str : strings)
+		{
+			LOG_INFO("{0} {1}", name, str);
+		}
+	}
 
 	inline auto GetRequiredLayers()
 	{
-		std::vector<const char*> layers;
-		if constexpr (Config::s_standard_validation_layer)
+		std::vector<std::string> layers;
+		if constexpr (VKConfig::StandardValidationLayer)
 			layers.emplace_back(VK_LAYER_LUNARG_STANDARD_VALIDATION_NAME);
 
-		if constexpr (Config::s_assistance_layer)
+		if constexpr (VKConfig::AssistanceLayer)
 			layers.emplace_back(VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME);
 
-		if constexpr (Config::s_enable_validation_layers)
+		if constexpr (VKConfig::EnableValidationLayers)
 		{
 			layers.emplace_back(VK_LAYER_LUNARG_VALIDATION_NAME);
 		}
 		return layers;
 	}
 
-	inline auto getRequiredExtensions()
+	std::vector<const char*> GetDeviceExtensions()
 	{
-		std::vector<const char*> extensions;
-
-		if constexpr (Config::s_standard_validation_layer)
-		{
-			extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-		}
-
-		extensions.emplace_back("VK_KHR_surface");
-#if defined(TRACY_ENABLE) && defined(PLATFORM_WINDOWS)
-		//extensions.emplace_back("VK_EXT_calibrated_timestamps");
-#endif
-
-#if defined(_WIN32)
-		extensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
-		extensions.emplace_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
-#elif defined(_DIRECT2DISPLAY)
-		extensions.emplace_back(VK_KHR_DISPLAY_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
-		extensions.emplace_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_XCB_KHR)
-		extensions.emplace_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_IOS_MVK)
-		extensions.emplace_back("VK_EXT_metal_surface");
-#elif defined(VK_USE_PLATFORM_MACOS_MVK)
-		extensions.emplace_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_METAL_EXT)
-		extensions.emplace_back("VK_EXT_metal_surface");
-#endif
-		return extensions;
+		return {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 	}
-
-	inline bool CheckExtensionSupport(std::vector<VkExtensionProperties>& properties, std::vector<const char*>& extensions)
-	{
-		uint32_t extensionCount;
-		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-
-		properties.resize(extensionCount);
-		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, properties.data());
-
-		bool extensionSupported = true;
-
-		for (int i = 0; i < extensions.size(); i++)
-		{
-			const char* extensionName = extensions[i];
-			bool        layerFound = false;
-
-			for (const auto& layerProperties : properties)
-			{
-				if (strcmp(extensionName, layerProperties.extensionName) == 0)
-				{
-					layerFound = true;
-					break;
-				}
-			}
-
-			if (!layerFound)
-			{
-				extensions.erase(extensions.begin() + i);
-				extensionSupported = false;
-				LOG_WARN("Extension not supported {0}", extensionName);
-			}
-		}
-		return extensionSupported;
-	}
-
-	const std::string s_application_name = "Tomato Editor";
-	const std::string s_engine_name = "Tomato Engine";
-	constexpr uint32_t s_api_version = VK_API_VERSION_1_2;
 
 
 	VulkanContext::VulkanContext(Window* window)
-		: m_window_handle(window)
+		: m_window_handle(window), m_width(window->GetWidth()), m_height(window->GetHeight())
 	{
 	}
 
@@ -117,173 +87,266 @@ namespace Tomato
 		Destroy();
 	}
 
+	void VulkanContext::Begin()
+	{
+		commandBuffers[cur_frame].reset({});
+
+		vk::Result result;
+
+		std::tie(result, imageIndex) = swapChain->swapChain.acquireNextImage(
+			vk::su::FenceTimeout, *imageAcquiredSemaphore[cur_frame]);
+		if (result == vk::Result::eSuccess)
+			LOG_ASSERT(result == vk::Result::eSuccess, vk::to_string(result));
+		ASSERT(imageIndex < swapChain->images.size());
+	}
+
 	void VulkanContext::Init()
 	{
-		LOG_INFO("Vulkan: VulkanContent Init");
-		CreateInstance();
-		SetUpDebug();
+		LOG_TRACE("Vulkan content init");
 
-		m_physical_device = VulkanPhysicalDevice::Select();
-		VkPhysicalDeviceFeatures enabledFeatures{};
-		enabledFeatures.samplerAnisotropy = true;
-		enabledFeatures.wideLines = true;
-		enabledFeatures.fillModeNonSolid = true;
-		enabledFeatures.independentBlend = true;
-		enabledFeatures.pipelineStatisticsQuery = true;
+		instanceExt = GetInstanceExtensions();
+		requiredLay = GetRequiredLayers();
+		// create an Instance
+		{
+			LOG_TRACE("Vulkan instance init");
+			vk::ApplicationInfo applicationInfo;
+			applicationInfo.setPApplicationName(VKConfig::ApplicationName.c_str())
+			               .setEngineVersion({})
+			               .setApiVersion(VKConfig::ApiVersion)
+			               .setApplicationVersion({})
+			               .setPEngineName(VKConfig::EngineName.c_str());
+			enabledLayers = Utils::GetEnableLayers(
+				requiredLay, context.enumerateInstanceLayerProperties());
+			enabledExtensions = Utils::gatherExtensions(
+				instanceExt, context.enumerateInstanceExtensionProperties());
+			PrintStr(enabledLayers, "Enabled layers:");
+			PrintStr(enabledExtensions, "Enabled Extensions: ");
 
-		m_device = std::make_shared<VulkanDevice>(m_physical_device, enabledFeatures);
+			vk::InstanceCreateInfo create_info;
+			create_info.setFlags({})
+			           .setPEnabledLayerNames(enabledLayers)
+			           .setEnabledLayerCount(enabledLayers.size())
+			           .setPEnabledExtensionNames(enabledExtensions)
+			           .setEnabledExtensionCount(enabledExtensions.size())
+			           .setPApplicationInfo(&applicationInfo);
+			instance = vk::raii::Instance(context, create_info);
+		}
 
-		CreatePipelineCache();
-		m_swap_chain = std::make_shared<VulkanSwapChain>(m_window_handle->GetWidth(), m_window_handle->GetHeight());
-		m_swap_chain->Init(m_instance, m_device);
-		m_swap_chain->InitSurface(static_cast<GLFWwindow*>(m_window_handle->GetNativeWindow()));
+
+#if !defined( NDEBUG )
+		//set up debug utils messenger
+		{
+			LOG_TRACE("Vulkan debug utils messenger init");
+			vk::DebugUtilsMessengerCreateInfoEXT create_info;
+			create_info.setFlags({})
+			           .setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+				           vk::DebugUtilsMessageSeverityFlagBitsEXT::eError)
+			           .setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+				           vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
+				           vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation)
+			           .setPfnUserCallback(&Debug::VulkanDebugUtilsMessengerCallback);
+			debugUtilsMessenger = vk::raii::DebugUtilsMessengerEXT(instance, create_info);
+		}
+
+#endif
+		// enumerate the physical devices
+		{
+			LOG_TRACE("Vulkan enumerate the physical devices");
+			const auto physical_devices = vk::raii::PhysicalDevices(instance);
+
+			LOG_TRACE("Vulkan select the physical device");
+			physicalDevice = physical_devices.front();
+			auto device_ex_props = physicalDevice.enumerateDeviceExtensionProperties();
+
+			for (auto& prop : device_ex_props)
+			{
+				LOG_INFO("Device extension {}", prop.extensionName);
+			}
+		}
+
+		// find queue family properties
+		queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
+
+		{
+			auto physicalDeviceProps = physicalDevice.getProperties();
+
+			LOG_INFO("Vulkan api version {}", VK_VERSION_MAJOR(physicalDeviceProps.apiVersion),
+			         VK_VERSION_MINOR(physicalDeviceProps.apiVersion),
+			         VK_VERSION_PATCH(physicalDeviceProps.apiVersion));
+			LOG_INFO("Device name {}", physicalDeviceProps.deviceName);
+			LOG_INFO("Device device ID {}", physicalDeviceProps.deviceID);
+			LOG_INFO("Device device type {}", vk::to_string(physicalDeviceProps.deviceType));
+			LOG_INFO("Device driver version {}", physicalDeviceProps.driverVersion);
+		}
+
+
+		CreateSwapChain();
+	}
+
+	void VulkanContext::CreateSwapChain()
+	{
+		LOG_TRACE("Vulkan context create swap chain");
+		swapChain = As<VulkanSwapChain>(SwapChain::Create(m_window_handle, m_width, m_height));
+		//surfaceData = Utils::SurfaceData(instance, m_window_handle, vk::Extent2D(m_width, m_height));
+
+		queueFamily = FindQueueFamily();
+
+		ASSERT(queueFamily.IsComplete());
+
+		{
+			float queuePriority = 0.0f;
+			vk::DeviceQueueCreateInfo deviceQueueCreateInfo(vk::DeviceQueueCreateFlags(), queueFamily.Graphics.value(),
+			                                                1,
+			                                                &queuePriority);
+			std::vector<const char*> ext_names(GetDeviceExtensions());
+			vk::DeviceCreateInfo deviceCreateInfo;
+			deviceCreateInfo.setFlags(vk::DeviceCreateFlags())
+			                .setQueueCreateInfos(deviceQueueCreateInfo)
+			                .setPEnabledLayerNames(enabledLayers)
+			                .setPEnabledExtensionNames(ext_names);
+
+			device = vk::raii::Device(physicalDevice, deviceCreateInfo);
+		}
+
+		{
+			// create a CommandPool to allocate a CommandBuffer
+			const vk::CommandPoolCreateInfo commandPoolCreateInfo({vk::CommandPoolCreateFlagBits::eResetCommandBuffer},
+			                                                      queueFamily.Graphics.value());
+			commandPool = vk::raii::CommandPool(device, commandPoolCreateInfo);
+
+			// allocate a CommandBuffer from the CommandPool
+			const vk::CommandBufferAllocateInfo
+				commandBufferAllocateInfo(*commandPool, vk::CommandBufferLevel::ePrimary,
+				                          RendererConfig::MaxFrameInFlight);
+			commandBuffers = vk::raii::CommandBuffers(device, commandBufferAllocateInfo);
+		}
+
+		{
+			graphicsQueue = vk::raii::Queue(device, queueFamily.Graphics.value(), 0);
+			presentQueue = vk::raii::Queue(device, queueFamily.Present.value(), 0);
+		}
+
+		swapChain->InitSwapChain(m_width, m_height);
+		m_depth_buffer_data = Utils::DepthBufferData(physicalDevice, device, vk::Format::eD16Unorm, swapChain->extent);
+
+		const vk::Format colorFormat = vk::su::pickSurfaceFormat(
+				physicalDevice.getSurfaceFormatsKHR(*swapChain->surface)).
+			format;
+		renderPass = vk::raii::su::makeRenderPass(device, colorFormat, m_depth_buffer_data.format);
+
+		frameBuffers =
+			vk::raii::su::makeFramebuffers(device, renderPass, swapChain->imageViews, &m_depth_buffer_data.imageView,
+			                               swapChain->extent);
+
+		pipelineCache = vk::raii::PipelineCache(device, vk::PipelineCacheCreateInfo());
+
+		drawFences.reserve(swapChain->imageCount);
+		for (uint32_t i = 0; i < swapChain->imageCount; i++)
+			drawFences.emplace_back(device, vk::FenceCreateInfo());
+		imageAcquiredSemaphore.reserve(swapChain->imageCount);
+		for (uint32_t i = 0; i < swapChain->imageCount; i++)
+			imageAcquiredSemaphore.emplace_back(device, vk::SemaphoreCreateInfo());
 	}
 
 	void VulkanContext::Destroy()
 	{
-		LOG_INFO("Vulkan: VulkanContent Destroy!");
-		//vkDestroyPipelineCache(m_device->GetVulkanDevice(), m_pipeline_cache, nullptr);
-		auto swap_chain = As<VulkanSwapChain>(m_swap_chain);
-		swap_chain->Destroy();
-
-		if (Config::s_enable_validation_layers)
-		{
-			
-		}
-		m_device->Destroy();
-		vkDestroyInstance(m_instance, nullptr);
+		LOG_INFO("Vulkan context destroy!");
 	}
 
-	void VulkanContext::CreateInstance()
+	void VulkanContext::Present()
 	{
-		LOG_INFO("VulkanContext::Create Instance");
+		device.resetFences(*drawFences[cur_frame]);
 
-		LOG_ASSERT(glfwVulkanSupported(), "GLFW must support Vulkan!");
+		vk::PipelineStageFlags waitDestinationStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+		vk::SubmitInfo submitInfo(*imageAcquiredSemaphore[cur_frame], waitDestinationStageMask,
+		                          *commandBuffers[cur_frame]);
+		graphicsQueue.submit(submitInfo, *drawFences[cur_frame]);
 
-		VkApplicationInfo appInfo = {};
-		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		appInfo.pApplicationName = "Hazel";
-		appInfo.pEngineName = "Hazel";
-		appInfo.apiVersion = VK_API_VERSION_1_2;
+		while (vk::Result::eTimeout == device.waitForFences({*drawFences[cur_frame]}, VK_TRUE, vk::su::FenceTimeout));
 
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		// Extensions and Validation
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define VK_KHR_WIN32_SURFACE_EXTENSION_NAME "VK_KHR_win32_surface"
-		std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_WIN32_SURFACE_EXTENSION_NAME };
-		instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME); // Very little performance hit, can be used in Release.
-		if (Config::s_enable_validation_layers)
+		const vk::PresentInfoKHR presentInfoKHR(nullptr, *swapChain->swapChain, imageIndex);
+		const vk::Result result = presentQueue.presentKHR(presentInfoKHR);
+		switch (result)
 		{
-			instanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-			instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+		case vk::Result::eSuccess: break;
+		//
+		case vk::Result::eSuboptimalKHR: std::cout << "vk::Queue::presentKHR returned vk::Result::eSuboptimalKHR !\n";
+			break;
+		default: assert(false); // an unexpected result is returned !
 		}
 
-		VkValidationFeatureEnableEXT enables[] = { VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT };
-		VkValidationFeaturesEXT features = {};
-		features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
-		features.enabledValidationFeatureCount = 1;
-		features.pEnabledValidationFeatures = enables;
+		cur_frame = (cur_frame + 1) % RendererConfig::MaxFrameInFlight;
+		device.waitIdle();
+	}
 
-		VkInstanceCreateInfo instanceCreateInfo = {};
-		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		instanceCreateInfo.pNext = nullptr; // &features;
-		instanceCreateInfo.pApplicationInfo = &appInfo;
-		instanceCreateInfo.enabledExtensionCount = (uint32_t)instanceExtensions.size();
-		instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
+	void VulkanContext::SwapChainResize(uint32_t width, uint32_t height)
+	{
+		swapChain->InitSwapChain(width, height);
+		m_depth_buffer_data = Utils::DepthBufferData(physicalDevice, device, vk::Format::eD16Unorm, swapChain->extent);
+		const vk::Format colorFormat = vk::su::pickSurfaceFormat(
+				physicalDevice.getSurfaceFormatsKHR(*swapChain->surface)).
+			format;
 
-		// TODO: Extract all validation into separate class
-		if (Config::s_enable_validation_layers)
+		renderPass = vk::raii::su::makeRenderPass(device, colorFormat, m_depth_buffer_data.format);
+		frameBuffers =
+			vk::raii::su::makeFramebuffers(device, renderPass, swapChain->imageViews, &m_depth_buffer_data.imageView,
+			                               swapChain->extent);
+	}
+
+	void VulkanContext::OnResize(uint32_t width, uint32_t height)
+	{
+		device.waitIdle();
+		m_width = width;
+		m_height = height;
+
+		SwapChainResize(m_width, m_height);
+
+		device.waitIdle();
+	}
+
+	QueueFamily VulkanContext::FindQueueFamily()
+	{
+		auto& surface = swapChain->surface;
+		ASSERT(queueFamilyProperties.size() < std::numeric_limits<uint32_t>::max());
+
+		const auto graphicsQueueFamilyProperty =
+			std::find_if(queueFamilyProperties.begin(),
+			             queueFamilyProperties.end(),
+			             [](const vk::QueueFamilyProperties& qfp)
+			             {
+				             return qfp.queueFlags & vk::QueueFlagBits::eGraphics;
+			             });
+		ASSERT(graphicsQueueFamilyProperty != queueFamilyProperties.end());
+		uint32_t graphicsQueueFamilyIndex = static_cast<uint32_t>(std::distance(
+			queueFamilyProperties.begin(), graphicsQueueFamilyProperty));
+
+		if (physicalDevice.getSurfaceSupportKHR(graphicsQueueFamilyIndex, *surface))
 		{
-			const char* validationLayerName = "VK_LAYER_KHRONOS_validation";
-			// Check if this layer is available at instance level
-			uint32_t instanceLayerCount;
-			vkEnumerateInstanceLayerProperties(&instanceLayerCount, nullptr);
-			std::vector<VkLayerProperties> instanceLayerProperties(instanceLayerCount);
-			vkEnumerateInstanceLayerProperties(&instanceLayerCount, instanceLayerProperties.data());
-			bool validationLayerPresent = false;
-			LOG_TRACE("Vulkan Instance Layers:");
-			for (const VkLayerProperties& layer : instanceLayerProperties)
+			return QueueFamily({graphicsQueueFamilyIndex}, {graphicsQueueFamilyIndex});
+			// the first graphicsQueueFamilyIndex does also support presents
+		}
+
+		// the graphicsQueueFamilyIndex doesn't support present -> look for an other family index that supports both
+		// graphics and present
+		for (size_t i = 0; i < queueFamilyProperties.size(); i++)
+		{
+			if ((queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics) &&
+				physicalDevice.getSurfaceSupportKHR(static_cast<uint32_t>(i), *surface))
 			{
-				LOG_TRACE("  {0}", layer.layerName);
-				if (strcmp(layer.layerName, validationLayerName) == 0)
-				{
-					validationLayerPresent = true;
-					break;
-				}
-			}
-			if (validationLayerPresent)
-			{
-				instanceCreateInfo.ppEnabledLayerNames = &validationLayerName;
-				instanceCreateInfo.enabledLayerCount = 1;
-			}
-			else
-			{
-				LogSystem::LogError("Validation layer VK_LAYER_KHRONOS_validation not present, validation is disabled");
+				return QueueFamily(static_cast<uint32_t>(i), static_cast<uint32_t>(i));
 			}
 		}
 
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		// Instance and Surface Creation
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		VK_CHECK_RESULT(vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance), "");
-	}
-
-	bool VulkanContext::CheckValidationLayerSupport(std::vector<VkLayerProperties>& layers, std::vector<const char*>& validation_layers)
-	{
-		uint32_t layerCount;
-		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-		layers.resize(layerCount);
-		vkEnumerateInstanceLayerProperties(&layerCount, layers.data());
-
-		for (const char* layerName : validationLayers)
+		// there's nothing like a single family index that supports both graphics and present -> look for an other
+		// family index that supports present
+		for (size_t i = 0; i < queueFamilyProperties.size(); i++)
 		{
-			bool layerFound = false;
-			for (const auto& layerProperties : layers)
+			if (physicalDevice.getSurfaceSupportKHR(static_cast<uint32_t>(i), *surface))
 			{
-				if (strcmp(layerName, layerProperties.layerName) == 0)
-				{
-					layerFound = true;
-					break;
-				}
-			}
-			if (!layerFound)
-			{
-				return false;
+				return QueueFamily(graphicsQueueFamilyIndex, static_cast<uint32_t>(i));
 			}
 		}
-		return true;
+
+		throw std::runtime_error("Could not find queues for both graphics or present -> terminating");
 	}
-
-	void VulkanContext::WaitIdle()
-	{
-		vkDeviceWaitIdle(m_device->GetVulkanDevice());
-	}
-
-	void VulkanContext::SetUpDebug()
-	{
-		Utils::VulkanLoadDebugUtilsExtensions(m_instance);
-		if(Config::s_enable_validation_layers)
-		{
-			auto vkCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_instance, "vkCreateDebugUtilsMessengerEXT");
-			LOG_ASSERT(vkCreateDebugUtilsMessengerEXT != NULL, "");
-			VkDebugUtilsMessengerCreateInfoEXT debugUtilsCreateInfo{};
-			debugUtilsCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-			debugUtilsCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-			debugUtilsCreateInfo.pfnUserCallback = Debug::VulkanDebugUtilsMessengerCallback;
-			debugUtilsCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT /*  | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT
-				| VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT*/;
-
-			VK_CHECK_RESULT(vkCreateDebugUtilsMessengerEXT(m_instance, &debugUtilsCreateInfo, nullptr, &m_debug_utils_messenger),"");
-		}
-	}
-
-	void VulkanContext::CreatePipelineCache()
-	{
-		// Pipeline Cache
-		VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
-		pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-		VK_CHECK_RESULT(vkCreatePipelineCache(m_device->GetVulkanDevice(), &pipelineCacheCreateInfo, nullptr, &m_pipeline_cache), "");
-	}
-
 }

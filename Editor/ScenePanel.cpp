@@ -6,7 +6,7 @@
 #include <imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Tomato/Scene/Components.h"
+#include "Tomato/ECS/Components.h"
 #include "Tomato/Renderer/Texture.h"
 #include "AssetPanel.h"
 
@@ -26,7 +26,7 @@ namespace Tomato
 
 		//Scene Name
 		{
-			auto& name = m_context->m_sceneName;
+			auto& name = m_context->m_scene_name;
 			char buffer[256];
 			memset(buffer, 0, sizeof(buffer));
 			strcpy_s(buffer, sizeof(buffer), name.c_str());
@@ -37,18 +37,18 @@ namespace Tomato
 			}
 		}
 
-		m_context->m_Registry.each(
+		m_context->m_entity_registry->Get().each(
 			[=](auto entity)
 			{
-				Entity Entity = {entity, m_context.get()};
+				Entity enti = Entity(entity, m_context->m_entity_registry.get());
 
-				DrawScenePanel(Entity);
+				DrawScenePanel(enti);
 			}
 		);
 
 		//
 		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 8.0f);
-		if (ImGui::BeginPopupContextWindow(nullptr, 1, true))
+		//		if (ImGui::BeginPopupContextWindow(nullptr, 1, true))
 		{
 			if (ImGui::MenuItem("Create Empty Entity"))
 			{
@@ -62,6 +62,7 @@ namespace Tomato
 			{
 				m_context->CreateCamera("Camera");
 			}
+#if 0
 			if (ImGui::MenuItem("Create StaticMesh"))
 			{
 				m_context->CreateStaticMesh();
@@ -74,6 +75,7 @@ namespace Tomato
 			{
 				m_context->CreateLight();
 			}
+#endif
 			if (m_selectedEntity)
 			{
 				if (ImGui::MenuItem("Delete Entity"))
@@ -156,7 +158,7 @@ namespace Tomato
 		ImGuiTreeNodeFlags flags = ((entity == m_selectedEntity) ? ImGuiTreeNodeFlags_Selected : 0) |
 			ImGuiTreeNodeFlags_OpenOnArrow;
 
-		auto& name = m_context->m_Registry.get<NameComponent>(entity).Name;
+		auto& name = m_context->m_entity_registry->Get().get<TagComponent>(entity).tag_;
 		bool selected = entity == m_selectedEntity;
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 5.0f);
 		ImGui::Selectable(name.c_str(), &selected, flags, {ImGui::GetContentRegionAvail().x, 28.0f});
@@ -170,11 +172,10 @@ namespace Tomato
 
 	void ScenePanel::DrewDetailPanel(Entity entity)
 	{
-		if (entity.HasComponent<NameComponent>())
+		if (entity.HasComponent<TagComponent>())
 		{
-			auto& name = m_context->m_Registry.get<NameComponent>(entity).Name;
-			char buffer[256];
-			memset(buffer, 0, sizeof(buffer));
+			std::string& name = m_context->m_entity_registry->Get().get<TagComponent>(entity).tag_;
+			char buffer[256]{};
 			strcpy_s(buffer, sizeof(buffer), name.c_str());
 
 			if (ImGui::InputText("##Name", buffer, sizeof(buffer)))
@@ -221,7 +222,7 @@ namespace Tomato
 				}
 			}
 
-
+#if 0
 			if (!m_selectedEntity.HasComponent<StaticMeshComponent>())
 			{
 				if (ImGui::MenuItem("StaticMesh"))
@@ -247,6 +248,7 @@ namespace Tomato
 				}
 			}
 
+#endif
 
 			ImGui::EndPopup();
 		}
@@ -255,63 +257,63 @@ namespace Tomato
 		("Transform", entity,
 		 [&](auto& component)
 		 {
-			 auto& position = component.Position;
-			 auto& scale = component.Scale;
+			 auto& position = component.position_;
+			 auto& scale = component.scale_;
 			 DrawVector3("Position", position, 0.1f, dPosition);
 
-			 glm::vec3 rotation = glm::degrees(component.Rotation);
+			 glm::vec3 rotation = glm::degrees(component.rotation_);
 			 DrawVector3("Rotation", rotation, 1.0f, dRotation);
-			 component.Rotation = radians(rotation);
+			 component.rotation_ = radians(rotation);
 
 			 DrawVector3("Scale", scale, 0.1f, dScale);
 		 });
-
+#if 0
 		DrawComponents<StaticMeshComponent>
-		("StaticMesh", entity,
-		 [&](auto& component)
-		 {
-			 auto& staticMesh = component.StaticMesh;
-			 auto& path = staticMesh.GetPath();
-			 char buffer[256];
-			 memset(buffer, 0, sizeof(buffer));
-			 strcpy_s(buffer, sizeof(buffer), path.c_str());
+			("StaticMesh", entity,
+				[&](auto& component)
+				{
+					auto& staticMesh = component.StaticMesh;
+		auto& path = staticMesh.GetPath();
+		char buffer[256];
+		memset(buffer, 0, sizeof(buffer));
+		strcpy_s(buffer, sizeof(buffer), path.c_str());
 
-			 if (ImGui::InputText("##Path", buffer, sizeof(buffer)))
-			 {
-				 path = std::string(buffer);
-			 }
-		 });
+		if (ImGui::InputText("##Path", buffer, sizeof(buffer)))
+		{
+			path = std::string(buffer);
+		}
+				});
 
 		DrawComponents<MatirialComponent>
-		("MatirialComponent", entity,
-		 [&](auto& component)
-		 {
-			 auto& matirial = component.matiral;
-			 auto& ambient = matirial.GetAmbient();
-			 float ambient_strage = ambient.x;
-			 ImGui::DragFloat("ambient", &ambient_strage, 0.01f, 0.0f, 1.0f);
-			 matirial.SetAmbient(glm::vec3(ambient_strage));
+			("MatirialComponent", entity,
+				[&](auto& component)
+				{
+					auto& matirial = component.matiral;
+		auto& ambient = matirial.GetAmbient();
+		float ambient_strage = ambient.x;
+		ImGui::DragFloat("ambient", &ambient_strage, 0.01f, 0.0f, 1.0f);
+		matirial.SetAmbient(glm::vec3(ambient_strage));
 
-			 auto& diffuse = matirial.GetDiffuse();
-			 float diffuse_strage = diffuse.x;
-			 ImGui::DragFloat("diffuse", &diffuse_strage, 0.01f, 0.0f, 1.0f);
-			 matirial.SetDiffuse(glm::vec3(diffuse_strage));
+		auto& diffuse = matirial.GetDiffuse();
+		float diffuse_strage = diffuse.x;
+		ImGui::DragFloat("diffuse", &diffuse_strage, 0.01f, 0.0f, 1.0f);
+		matirial.SetDiffuse(glm::vec3(diffuse_strage));
 
-			 auto& specular = matirial.GetSpecular();
-			 float specular_strage = specular.x;
-			 ImGui::DragFloat("specular", &specular_strage, 0.01f, 0.0f, 1.0f);
-			 matirial.SetSpecular(glm::vec3(specular_strage));
+		auto& specular = matirial.GetSpecular();
+		float specular_strage = specular.x;
+		ImGui::DragFloat("specular", &specular_strage, 0.01f, 0.0f, 1.0f);
+		matirial.SetSpecular(glm::vec3(specular_strage));
 
-			 float Shininess = matirial.GetShininess();
-			 ImGui::DragFloat("Shininess", &Shininess, 1.0f, 0.0f, 500.0f);
-			 matirial.SetShininess(Shininess);
-		 });
-
+		float Shininess = matirial.GetShininess();
+		ImGui::DragFloat("Shininess", &Shininess, 1.0f, 0.0f, 500.0f);
+		matirial.SetShininess(Shininess);
+				});
+#endif
 		DrawComponents<SpriteComponent>
 		("Sprite", entity,
 		 [&](auto& component)
 		 {
-			 auto& color = component.Color;
+			 auto& color = component.color_;
 			 ImGui::Columns(2);
 			 ImGui::SetColumnWidth(0, 120.0f);
 			 ImGui::Text("Color");
@@ -326,8 +328,8 @@ namespace Tomato
 
 			 ImGui::NextColumn();
 			 ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
-			 if (component.Texture)
-				 ImGui::ImageButton((void*)(component.Texture->GetID()),
+			 if (component.texture_)
+				 ImGui::ImageButton((void*)(component.texture_->GetID()),
 				                    {80, 80}, {0, 1}, {1, 0});
 			 else
 			 {
@@ -347,7 +349,7 @@ namespace Tomato
 						 g_asset_path) / path;
 					 Ref<Texture2D> texture = Texture2D::Create(texturePath.string());
 					 //if (texture->IsLoaded())
-					 component.Texture = texture;
+					 component.texture_ = texture;
 				 }
 				 ImGui::EndDragDropTarget();
 			 }
@@ -355,70 +357,70 @@ namespace Tomato
 			 ImGui::Text("Tiling Factor");
 			 ImGui::NextColumn();
 			 ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
-			 ImGui::DragFloat("##Tiling Factor", &component.TilingFactor, 0.1f);
+			 ImGui::DragFloat("##Tiling Factor", &component.tiling_factor_, 0.1f);
 			 ImGui::PopItemWidth();
 		 });
 
-		DrawComponents<CameraComponent>
-		("Camera", entity,
-		 [](auto& component)
-		 {
-			 auto& cameraComponent = component;
+		/*DrawComponents<CameraComponent>
+			("Camera", entity,
+				[](auto& component)
+				{
+					auto& cameraComponent = component;
 
-			 auto& camera = cameraComponent.Camera;
+		auto& camera = cameraComponent.Camera;
 
-			 const char* cameraTypeString[] = {"Orthographic", "Perspective"};
+		const char* cameraTypeString[] = { "Orthographic", "Perspective" };
 
-			 const char* currCameraType = cameraTypeString[static_cast<int>(camera.
-				 GetSceneCameraType())];
+		const char* currCameraType = cameraTypeString[static_cast<int>(camera.
+			GetSceneCameraType())];
 
-			 ImGui::Checkbox("IsMainCamera", &cameraComponent.IsMain);
+		ImGui::Checkbox("IsMainCamera", &cameraComponent.IsMain);
 
-			 if (ImGui::BeginCombo("Projection", currCameraType))
-			 {
-				 for (int i = 0; i < 2; i++)
-				 {
-					 bool selected = currCameraType == cameraTypeString[i];
-					 if (ImGui::Selectable(cameraTypeString[i], selected))
-					 {
-						 currCameraType = cameraTypeString[i];
-						 camera.SetSceneCameraType(static_cast<SceneCameraType>(i));
-					 }
-					 if (selected)
-						 ImGui::SetItemDefaultFocus();
-				 }
-				 ImGui::EndCombo();
-			 }
+		if (ImGui::BeginCombo("Projection", currCameraType))
+		{
+			for (int i = 0; i < 2; i++)
+			{
+				bool selected = currCameraType == cameraTypeString[i];
+				if (ImGui::Selectable(cameraTypeString[i], selected))
+				{
+					currCameraType = cameraTypeString[i];
+					//camera.SetSceneCameraType(static_cast<SceneCameraType>(i));
+				}
+				if (selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
 
-			 if (camera.GetSceneCameraType() == SceneCameraType::Orthographic)
-			 {
-				 float zoomLevel = camera.GetOrthoZoomLevel();
-				 if (ImGui::DragFloat("ZoomLevel", &zoomLevel, 0.1f))
-					 camera.SetOrthoZoomLevel(zoomLevel);
+		/*if (camera.GetSceneCameraType() == SceneCameraType::Orthographic)
+		{
+			float zoomLevel = camera.GetOrthoZoomLevel();
+			if (ImGui::DragFloat("ZoomLevel", &zoomLevel, 0.1f))
+				camera.SetOrthoZoomLevel(zoomLevel);
 
-				 float orthoNear = camera.GetOrthoNear();
-				 if (ImGui::DragFloat("Near", &orthoNear, 0.1f))
-					 camera.SetOrthoNear(orthoNear);
+			float orthoNear = camera.GetOrthoNear();
+			if (ImGui::DragFloat("Near", &orthoNear, 0.1f))
+				camera.SetOrthoNear(orthoNear);
 
-				 float orthoFar = camera.GetOrthoFar();
-				 if (ImGui::DragFloat("Far", &orthoFar, 0.1f))
-					 camera.SetOrthoFar(orthoFar);
-			 }
-			 if (camera.GetSceneCameraType() == SceneCameraType::Perspective)
-			 {
-				 float FOV = glm::degrees(camera.GetPerspFOV());
-				 if (ImGui::DragFloat("FOV", &FOV, 0.1f))
-					 camera.SetPerspFOV(glm::radians(FOV));
+			float orthoFar = camera.GetOrthoFar();
+			if (ImGui::DragFloat("Far", &orthoFar, 0.1f))
+				camera.SetOrthoFar(orthoFar);
+		}
+		if (camera.GetSceneCameraType() == SceneCameraType::Perspective)
+		{
+			float FOV = glm::degrees(camera.GetPerspFOV());
+			if (ImGui::DragFloat("FOV", &FOV, 0.1f))
+				camera.SetPerspFOV(glm::radians(FOV));
 
-				 float perspNear = camera.GetPerspNear();
-				 if (ImGui::DragFloat("Near", &perspNear, 0.1f))
-					 camera.SetPerspNear(perspNear);
+			float perspNear = camera.GetPerspNear();
+			if (ImGui::DragFloat("Near", &perspNear, 0.1f))
+				camera.SetPerspNear(perspNear);
 
-				 float perspFar = camera.GetPerspFar();
-				 if (ImGui::DragFloat("Far", &perspFar, 0.1f))
-					 camera.SetPerspFar(perspFar);
-			 }
-		 });
+			float perspFar = camera.GetPerspFar();
+			if (ImGui::DragFloat("Far", &perspFar, 0.1f))
+				camera.SetPerspFar(perspFar);
+		}*/
+		/*}); */
 
 		LightComponent lc;
 
@@ -427,6 +429,7 @@ namespace Tomato
 		("Light", entity,
 		 [](auto& component)
 		 {
+#if 0
 			 auto& light_component = component;
 
 			 auto& light = light_component.Light;
@@ -453,7 +456,9 @@ namespace Tomato
 				 }
 				 ImGui::EndCombo();
 			 }
+#endif
 
+#if 0
 			 if (light.GetLightType() == LightType::DirectionLight)
 			 {
 				 auto& color = light.GetColor();
@@ -480,7 +485,9 @@ namespace Tomato
 			 else if (light.GetLightType() == LightType::SpotLight)
 			 {
 			 }
+#endif
 		 });
+
 	}
 
 	void ScenePanel::SetContex(const std::shared_ptr<Scene>& context)
@@ -488,7 +495,6 @@ namespace Tomato
 		m_moreBtn = Texture2D::Create("PreCompile/Assets/ImGuiImage/more.png");
 		m_default_texture = Texture2D::Create("PreCompile/Assets/Image/DefaultTexture.png");
 		m_context = context;
-		m_selectedEntity.Clear();
 		m_selectedEntity = {};
 	}
 

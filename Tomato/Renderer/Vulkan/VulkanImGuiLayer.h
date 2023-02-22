@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Tomato/ImGui/ImGuiLayer.h"
+#include "vulkan/vulkan_raii.hpp"
 
 namespace Tomato
 {
@@ -8,7 +9,6 @@ namespace Tomato
 	{
 	public:
 		VulkanImGuiLayer()
-			: ImGuiLayer()
 		{
 		}
 
@@ -18,13 +18,14 @@ namespace Tomato
 		void OnDestroy() override;
 		void OnEvent(Event& event) override;
 		void OnImGuiRenderer() override;
-
 		void Begin() override;
 		void End() override;
 
-		void SetDarkModeColor()override;
+		void SetDarkModeColor() override;
 
 		void SetBlock(bool block) override { m_block = block; }
 
+	private:
+		vk::raii::DescriptorPool descPool = nullptr;
 	};
 }

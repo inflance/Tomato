@@ -4,26 +4,18 @@
 
 #include "Tomato/Renderer/Renderer.h"
 #include "Tomato/Core/Window.h"
-#include <vulkan/vulkan.h>
+#include "Vulkan.h"
 
-#include "VulkanCommandBuffer.h"
-#include "VulkanDevice.h"
-#include "VulkanFence.h"
 #include "VulkanUtils.h"
+#include "VulkanStruct.h"
 #include "Tomato/Renderer/GraphicsContext.h"
 
 namespace Tomato
 {
 	class VulkanSwapChain;
+	class VulkanVertexBuffer;
 	class VulkanCommandBuffer;
-
-	namespace Config
-	{
-		static constexpr bool s_standard_validation_layer = false;
-		static constexpr bool s_assistance_layer = false;
-		static constexpr bool s_enable_validation_layers = true;
-	}
-
+	class VulkanPipeline;
 
 	class VulkanContext : public GraphicsContext
 	{
@@ -31,44 +23,57 @@ namespace Tomato
 		VulkanContext(Window* window);
 		~VulkanContext() override;
 
-		void CreatePipelineCache();
+		static auto& Get() { return *As<VulkanContext>(Engine::GetContext()); }
+		void Begin() override;
 		void Init() override;
-		void WaitIdle() override;
-		void Destroy();
+		void CreateSwapChain();
+		void SwapChainResize(uint32_t width, uint32_t height);
+		void Destroy() override;
+		void Present() override;
+		QueueFamily FindQueueFamily();
+		void OnResize(uint32_t width, uint32_t height) override;
+		const auto& GetCurrentCommandBuffer() const { return commandBuffers[cur_frame]; }
 
-		[[nodiscard]] std::shared_ptr<VulkanDevice> GetDevice() const { return m_device; }
-		static VkInstance GetInstance() { return GetContext()->m_instance; }
+		const auto& GetCurrentFrameBuffer() const
+		{
+			return frameBuffers[imageIndex];
+		}
 
-		static std::shared_ptr<VulkanContext> GetContext(){return As<VulkanContext>(TomatoEngine::GetContext());}
-		static Ref<VulkanDevice> GetCurrentDevice() { return GetContext()->GetDevice(); }
-		static std::shared_ptr<VulkanSwapChain> GetCurrentSwapChain() { return GetContext()->GetSwapChain(); }
+		Window* m_window_handle = nullptr;
+		uint32_t m_width, m_height;
 
-		std::shared_ptr<VulkanSwapChain> GetSwapChain() { return m_swap_chain; }
-		static CommandQueue& GetQueue(uint32_t count) { assert(count < 3); return m_queue[count]; }
+		vk::raii::Context context;
+		vk::raii::Instance instance = nullptr;
+		vk::raii::DebugUtilsMessengerEXT debugUtilsMessenger = nullptr;
+		vk::raii::PhysicalDevice physicalDevice = nullptr;
+		vk::raii::Device device = nullptr;
+		vk::raii::CommandPool commandPool = nullptr;
+		vk::raii::CommandBuffers commandBuffers = nullptr;
+		vk::raii::Queue graphicsQueue = nullptr;
+		vk::raii::Queue presentQueue = nullptr;
 
-		bool CheckValidationLayerSupport(std::vector<VkLayerProperties>& layers, std::vector<const char*>& validation_layers);
-		
-	private:
-		void CreateInstance();
-		void SetUpDebug();
+		std::vector<std::string> instanceExt;
+		std::vector<std::string> requiredLay;
+		std::vector<const char*> enabledExtensions;
+		std::vector<const char*> enabledLayers;
+		std::vector<vk::QueueFamilyProperties> queueFamilyProperties;
 
-	private:
-		static constexpr uint32_t maxsize = 3;
-		VkInstance m_instance;
-		
-		Window* m_window_handle;
-		std::shared_ptr<VulkanPhysicalDevice> m_physical_device;
-		std::shared_ptr<VulkanDevice> m_device = nullptr;
-		std::shared_ptr<VulkanSwapChain> m_swap_chain = nullptr;
+		//Todo remove the class
+		QueueFamily queueFamily;
 
-		std::vector<const char*>		m_layer_names;
-		std::vector<const char*>          m_extension_names;
-		std::vector<VkLayerProperties>     m_layer_propertieses;
-		std::vector<VkExtensionProperties> m_extension_propertieses;
-		VkDebugUtilsMessengerEXT m_debug_utils_messenger;
+		Ref<VulkanSwapChain> swapChain = nullptr;
 
-		inline static CommandQueue m_queue[maxsize];
-		std::shared_ptr<VulkanFence> m_fence;
-		VkPipelineCache m_pipeline_cache = nullptr;
+		Utils::DepthBufferData m_depth_buffer_data = nullptr;
+		Ref<VulkanVertexBuffer> vertex_buffer;
+		uint32_t imageIndex{};
+		uint32_t cur_frame{};
+
+		vk::raii::PipelineCache pipelineCache = nullptr;
+
+		vk::raii::RenderPass renderPass = nullptr;
+
+		std::vector<vk::raii::Fence> drawFences;
+		std::vector<vk::raii::Semaphore> imageAcquiredSemaphore;
+		std::vector<vk::raii::Framebuffer> frameBuffers;
 	};
 }

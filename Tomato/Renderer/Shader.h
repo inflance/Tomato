@@ -16,18 +16,31 @@ namespace Tomato
 		TesselationEvaluation
 	};
 
+	enum class ShaderCreateFlag
+	{
+		ByPath,
+		ByCode,
+		ByData
+	};
+
 	struct ShaderResource
 	{
-		ShaderType Type;
+		ShaderType Type = ShaderType::None;
+		ShaderCreateFlag Flag = ShaderCreateFlag::ByCode;
 		std::filesystem::path Path;
 		std::string Code;
 		std::vector<uint32_t> Data;
 	};
 
+	struct ShaderCreateInfo
+	{
+		std::string Name;
+		std::vector<ShaderResource> Resource;
+	};
+
 	class Shader
 	{
 	public:
-		//Shader();
 		virtual ~Shader() = default;
 
 		virtual void Bind() const = 0;
@@ -46,7 +59,6 @@ namespace Tomato
 
 		virtual const std::string& GetName() const = 0;
 
-		static std::shared_ptr<Shader> Create(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath);
-		static std::shared_ptr<Shader> Create(const std::string& filePath);
+		static std::shared_ptr<Shader> Create(const ShaderCreateInfo& createInfo);
 	};
 }

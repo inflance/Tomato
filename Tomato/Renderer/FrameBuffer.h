@@ -3,6 +3,7 @@
 
 namespace Tomato
 {
+	class Framebuffer;
 	class Texture2D;
 
 	enum class FramebufferBlendMode
@@ -19,7 +20,7 @@ namespace Tomato
 	{
 		None = 0,
 
-		// Color
+		// color_
 		RGBA8,
 		RED_INTEGER,
 
@@ -55,23 +56,27 @@ namespace Tomato
 		}
 
 		std::vector<FramebufferTextureProps> Attachments;
-		
 	};
 
 	struct FramebufferProps
 	{
+		std::string debug_name_{};
 		uint32_t Width, Height;
 		uint32_t Samples = 1;
 		FramebufferAttachmentProps Attachments;
 		bool SwapChainTarget = false;
 		FramebufferBlendMode BlendMode = FramebufferBlendMode::None;
 		bool Blend = false;
+		Ref<Framebuffer> ExistingFramebuffer{};
 	};
 
 	class Framebuffer
 	{
 	public:
-		virtual ~Framebuffer() {}
+		virtual ~Framebuffer()
+		{
+		}
+
 		virtual void Bind() const = 0;
 		virtual void Unbind() const = 0;
 
