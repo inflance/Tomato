@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Tomato/Renderer/Texture.h"
+#include "Tomato/Renderer/Texture.hpp"
 
 #include <filesystem>
 #include <glm/glm.hpp>

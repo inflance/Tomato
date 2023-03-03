@@ -1,8 +1,8 @@
-#include "VulkanImGuiLayer.h"
+#include "VulkanImGuiLayer.hpp"
 
 #include <imgui.h>
 #include "ImGuizmo.h"
-#include "VulkanContext.h"
+#include "VulkanContext.hpp"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "Tomato/Core/Engine.h"
@@ -10,9 +10,9 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 
-#include "VulkanSwapChain.h"
-#include "VulkanCommandExecutor.h"
-#include "Tomato/Renderer/RendererConfig.h"
+#include "VulkanSwapChain.hpp"
+#include "VulkanCommandExecutor.hpp"
+#include "Tomato/Renderer/RendererConfig.hpp"
 
 
 namespace Tomato
@@ -31,7 +31,7 @@ namespace Tomato
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
-		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
 		//io.ConfigViewportsNoDecoration = false;
 		//io.ConfigViewportsNoAutoMerge = true;
 		//io.ConfigViewportsNoTaskBarIcon = true;
@@ -50,8 +50,6 @@ namespace Tomato
 		}
 		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.15f, 0.15f, 0.15f, style.Colors[ImGuiCol_WindowBg].w);
 
-		/*Renderer::Submit([instance]()
-			{*/
 
 		const auto& vulkanContext = VulkanContext::Get();
 
@@ -91,7 +89,7 @@ namespace Tomato
 		init_info.Device = *vulkanContext.device;
 		init_info.QueueFamily = vulkanContext.queueFamily.Graphics.value();
 		init_info.Queue = *vulkanContext.graphicsQueue;
-		init_info.PipelineCache = {};
+		init_info.PipelineCache = *vulkanContext.pipelineCache;
 		init_info.DescriptorPool = *descPool;
 		init_info.Allocator = nullptr;
 		init_info.MinImageCount = 2;
@@ -117,7 +115,6 @@ namespace Tomato
 		//io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
 		//ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
 		//IM_ASSERT(font != NULL);
-
 		//Upload Fonts
 		{
 			CommandExecutor::Get().ImmediateExecute(vulkanContext.graphicsQueue,
@@ -132,12 +129,6 @@ namespace Tomato
 			s_command_buffers = CommandExecutor::CreateCommandBuffers(FrameInFlight);
 		}
 
-		/*	uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
-			s_ImGuiCommandBuffers.resize(framesInFlight);
-			for (uint32_t i = 0; i < framesInFlight; i++)
-				s_ImGuiCommandBuffers[i] = VulkanContext::GetCurrentDevice()->CreateSecondaryCommandBuffer(
-					"ImGuiSecondaryCoommandBuffer");
-		});*/
 	}
 
 
@@ -157,7 +148,7 @@ namespace Tomato
 
 	void VulkanImGuiLayer::OnImGuiRenderer()
 	{
-		ImGui::ShowDemoWindow();
+		
 	}
 
 	void VulkanImGuiLayer::Begin()
@@ -165,7 +156,7 @@ namespace Tomato
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		//ImGuizmo::BeginFrame();
+		ImGuizmo::BeginFrame();
 	}
 
 	void VulkanImGuiLayer::End()

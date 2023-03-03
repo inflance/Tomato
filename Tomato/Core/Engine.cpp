@@ -4,9 +4,9 @@
 
 #include "Timer.h"
 #include "Tomato/Events/ApplicationEvent.h"
-#include "Tomato/Platform/Windows/WindowsWindow.h"
-#include "Tomato/Renderer/Renderer.h"
-#include "Tomato/World/World.h"
+#include "Tomato/Platform/Windows/WindowsWindow.hpp"
+#include "Tomato/Renderer/Renderer.hpp"
+#include "Tomato/ECS/World/World.hpp"
 
 namespace Tomato
 {
@@ -64,7 +64,6 @@ namespace Tomato
 
 		while (m_running)
 		{
-			m_window->Tick();
 			const float delta_time = CalculateDeltaTime();
 			CalculateFPS(delta_time);
 
@@ -72,25 +71,32 @@ namespace Tomato
 			{
 				m_context->Begin();
 
-				auto app = this;
-
-				m_world.LogicTick(delta_time);
-
 				for (Layer* layer : m_layer_stack)
 				{
 					layer->Tick(delta_time);
 				}
-				Renderer::Submit([app]
-				{
-					app->m_imgui_layer->Begin();
-					for (Layer* layer : app->m_layer_stack)
-					{
-						layer->OnImGuiRenderer();
-					}
-					app->m_imgui_layer->End();
-				});
+				m_world.LogicTick(delta_time);
 
-				Renderer::WaitAndRender();
+				m_world.RenderTick(delta_time);
+
+				//UI Tick
+				{
+					Renderer::BeginRenderPass();
+					auto app = this;
+					Renderer::Submit([app]
+					{
+						app->m_imgui_layer->Begin();
+						for (Layer* layer : app->m_layer_stack)
+						{
+							layer->OnImGuiRenderer();
+						}
+						app->m_imgui_layer->End();
+					});
+					Renderer::EndRenderPass();
+
+					Renderer::WaitAndRender();
+				}
+
 				m_context->Present();
 			}
 
@@ -99,6 +105,7 @@ namespace Tomato
 				m_window->SetWindowTitle(std::format("{1}{0} fps", m_fps, m_device_str));
 				timer.Reset();
 			}
+			m_window->Tick();
 		}
 	}
 

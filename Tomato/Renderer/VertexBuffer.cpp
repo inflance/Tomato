@@ -1,8 +1,8 @@
-#include "VertexBuffer.h"
+#include "VertexBuffer.hpp"
 
-#include "Renderer.h"
+#include "Renderer.hpp"
 #include "Tomato/Core/Macro.h"
-#include "Vulkan/VulkanVertexBuffer.h"
+#include "Vulkan/VulkanVertexBuffer.hpp"
 
 namespace Tomato
 {

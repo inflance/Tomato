@@ -1,7 +1,7 @@
-﻿#include "SwapChain.h"
+﻿#include "SwapChain.hpp"
 
-#include "Renderer.h"
-#include "Vulkan/VulkanSwapChain.h"
+#include "Renderer.hpp"
+#include "Vulkan/VulkanSwapChain.hpp"
 
 namespace Tomato
 {

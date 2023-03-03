@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Tomato/Renderer/Shader.h"
-#include "Tomato/Renderer/Vulkan/VulkanPipeline.h"
+#include "Tomato/Renderer/Shader.hpp"
+#include "Tomato/Renderer/Vulkan/VulkanPipeline.hpp"
 
 namespace Tomato
 {

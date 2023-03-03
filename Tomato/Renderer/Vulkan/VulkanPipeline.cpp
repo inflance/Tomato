@@ -1,11 +1,11 @@
-#include "VulkanPipeline.h"
+#include "VulkanPipeline.hpp"
 
-#include "VulkanContext.h"
-#include "VulkanRenderPass.h"
-#include "VulkanShader.h"
-#include "VulkanTexture.h"
-#include "VulkanUniformBuffer.h"
-#include "VulkanVertexBuffer.h"
+#include "VulkanContext.hpp"
+#include "VulkanRenderPass.hpp"
+#include "VulkanShader.hpp"
+#include "VulkanTexture.hpp"
+#include "VulkanUniformBuffer.hpp"
+#include "VulkanVertexBuffer.hpp"
 
 namespace Tomato
 {
@@ -79,7 +79,20 @@ namespace Tomato
 			fragmentShaderModule = shader->GetShaderModule(device, ShaderType::Fragment);
 
 
-		descriptorPool = Utils::makeDescriptorPool(device, poolSizes);
+		assert(!poolSizes.empty());
+		uint32_t maxSets = std::accumulate(
+			poolSizes.begin(), poolSizes.end(), 0, [](uint32_t sum, const vk::DescriptorPoolSize& dps)
+			{
+				return sum + dps.descriptorCount;
+			});
+		assert(0 < maxSets);
+
+		vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+			maxSets, poolSizes);
+
+		descriptorPool = vk::raii::DescriptorPool(device, descriptorPoolCreateInfo);
+
+
 		descriptorSet = vk::raii::DescriptorSets(device, {*descriptorPool, *descriptorSetLayout});
 		//descriptorSet.resize(2);
 		std::vector<std::tuple<vk::DescriptorType, const vk::raii::Buffer&, vk::DeviceSize, const vk::raii::BufferView

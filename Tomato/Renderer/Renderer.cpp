@@ -1,9 +1,9 @@
-#include "Renderer.h"
+#include "Renderer.hpp"
 
-#include "Renderer2D.h"
+#include "Renderer2D.hpp"
 #include "Tomato/Core/Timer.h"
-#include "ShaderFactory.h"
-#include "RendererConfig.h"
+#include "ShaderFactory.hpp"
+#include "RendererConfig.hpp"
 
 namespace Tomato
 {
@@ -15,9 +15,9 @@ namespace Tomato
 	}
 
 	void Renderer::RenderQuad(Ref<CommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline,
-	                          Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer)
+	                          Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, uint32_t index_count)
 	{
-		s_renderer_api_->RenderQuad(renderCommandBuffer, pipeline, vertexBuffer, indexBuffer);
+		s_renderer_api_->RenderQuad(renderCommandBuffer, pipeline, vertexBuffer, indexBuffer, index_count);
 	}
 
 	void Renderer::RenderBaseShape(Mesh& mesh, const glm::mat4& ViewProjection, const glm::mat4& transform)
@@ -127,10 +127,8 @@ namespace Tomato
 	void Renderer::WaitAndRender()
 	{
 		Begin();
-		BeginRenderPass();
 		//LOG_INFO("Renderer::WaitAndRender");
 		s_SubmitQueue.Execute();
-		EndRenderPass();
 		End();
 	}
 
@@ -172,6 +170,11 @@ namespace Tomato
 	void Renderer::BeginRenderPass(Ref<RenderPass> renderPass)
 	{
 		s_renderer_api_->BeginRenderPass(renderPass);
+	}
+
+	void Renderer::BeginRenderPass(Ref<RenderPass> renderPass, Ref<FrameBuffer> frame_buffer)
+	{
+		s_renderer_api_->BeginRenderPass(renderPass, frame_buffer);
 	}
 
 	void Renderer::BeginRenderPass()

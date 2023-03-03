@@ -26,6 +26,7 @@ set(TINY_OBJ_LOAD_DIR ${ENGINE_DIR}/ThirdParty/tinyobjloader)
 set(ASSIMP_BIN_DEBUG_DIR ${ENGINE_DIR}/ThirdParty/assimp/bin/Debug)
 set(ASSIMP_BIN_RELEASE_DIR ${ENGINE_DIR}/ThirdParty/assimp/bin/Release)
 set(ASSIMP_INCLUDE_DIR ${ENGINE_DIR}/ThirdParty/assimp/include)
+set(BOX2D_INCLUDE_DIR ${ENGINE_DIR}/ThirdParty/box2d/include)
 
 add_definitions(-DTMT_PLATFORM_WINDOWS)
 

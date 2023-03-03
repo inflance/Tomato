@@ -3,8 +3,8 @@
 #include <glm/glm.hpp>
 
 #include "Tomato/ECS/Entity.h"
-#include "Tomato/Scene/Scene.h"
-#include "Tomato/Renderer/Texture.h"
+#include "Tomato/Scene/Scene.hpp"
+#include "Tomato/Renderer/Texture.hpp"
 
 namespace Tomato
 {
@@ -18,7 +18,7 @@ namespace Tomato
 
 		void OnImGuiRenderer();
 
-		void SetContex(const std::shared_ptr<Scene>& context);
+		void SetContext(const std::shared_ptr<Scene>& context);
 
 		void DrawScenePanel(Entity entity);
 		void DrewDetailPanel(Entity entity);
@@ -29,12 +29,11 @@ namespace Tomato
 		void DrawVector3(const std::string& label, glm::vec3& values, float speed = 0.1f,
 			const glm::vec3& defaltValue = glm::vec3(0.0f));
 
-		Entity GetSelectedEntity() const { return m_selectedEntity; }
+		[[nodiscard]] Entity GetSelectedEntity() const { return m_selectedEntity; }
 
 		void SetSelectedEntity(Entity entity)
 		{
 			m_selectedEntity = entity;
-			//LOG_INFO("Selected Entity:{0}", static_cast<uint32_t>(entity));
 		}
 
 	private:

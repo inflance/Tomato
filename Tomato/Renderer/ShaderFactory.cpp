@@ -1,6 +1,6 @@
-#include "ShaderFactory.h"
+#include "ShaderFactory.hpp"
 
-#include "Tomato/Core/Core.h"
+#include "Tomato/Core/Core.hpp"
 
 namespace Tomato
 {

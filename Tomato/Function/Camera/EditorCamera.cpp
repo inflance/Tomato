@@ -1,9 +1,9 @@
-#include "EditorCamera.h"
+#include "EditorCamera.hpp"
 
 #include <glm/gtx/quaternion.hpp>
 
-#include "Tomato/Core/Core.h"
-#include "Tomato/Input/Input.h"
+#include "Tomato/Core/Core.hpp"
+#include "Tomato/Input/Input.hpp"
 
 namespace Tomato
 {
@@ -16,38 +16,65 @@ namespace Tomato
 			const glm::vec2 delta = (mouse_pos - m_last_mouse_pos) * 0.003f;
 			m_last_mouse_pos = mouse_pos;
 
-			if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
+			if(camera.GetCameraType() == CameraType::Perspective)
 			{
-				//CameraRotate(delta);
-			}
-			else if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+				if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
+				{
+					//CameraRotate(delta);
+				}
+				else if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+				{
+					//CameraRotatoByTarget(delta);
+				}
+				else if (Input::IsMouseButtonPressed(Mouse::ButtonRight))
+				{
+					//LOG_INFO("ButtonRight clicked");
+					CameraRotate(delta);
+					CameraMove movement{};
+					if (Input::IsKeyPressed(Key::W))
+					{
+						movement |= CameraMove::Forward;
+					}
+					if (Input::IsKeyPressed(Key::S))
+					{
+						movement |= CameraMove::Back;
+					}
+					if (Input::IsKeyPressed(Key::A))
+					{
+						movement |= CameraMove::Left;
+					}
+					if (Input::IsKeyPressed(Key::D))
+					{
+						movement |= CameraMove::Right;
+					}
+					if (Input::IsKeyPressed(Key::E))
+					{
+						movement |= CameraMove::Up;
+					}
+					if (Input::IsKeyPressed(Key::Q))
+					{
+						movement |= CameraMove::Down;
+					}
+					MoveCamera(movement, delta_time);
+				}
+			}else
 			{
-				//CameraRotatoByTarget(delta);
-			}
-			else if (Input::IsMouseButtonPressed(Mouse::ButtonRight))
-			{
-				CameraRotate(delta);
 				CameraMove movement{};
-				LOG_INFO("{}", CameraMove::Forward);
-				LOG_INFO("{}", CameraMove::Back);
-				LOG_INFO("{}", CameraMove::Left);
 				if (Input::IsKeyPressed(Key::W))
 				{
-					movement |= CameraMove::Forward;
-					LOG_INFO("{}", movement);
+					movement |= CameraMove::Up;
 				}
 				if (Input::IsKeyPressed(Key::S))
-					movement |= CameraMove::Back;
-				if (Input::IsKeyPressed(Key::A))
-					movement |= CameraMove::Left;
-				if (Input::IsKeyPressed(Key::D))
-					movement |= CameraMove::Right;
-				if (Input::IsKeyPressed(Key::E))
-					movement |= CameraMove::Up;
-				if (Input::IsKeyPressed(Key::Q))
 				{
 					movement |= CameraMove::Down;
-
+				}
+				if (Input::IsKeyPressed(Key::A))
+				{
+					movement |= CameraMove::Left;
+				}
+				if (Input::IsKeyPressed(Key::D))
+				{
+					movement |= CameraMove::Right;
 				}
 				MoveCamera(movement, delta_time);
 			}
@@ -61,15 +88,16 @@ namespace Tomato
 
 	void EditorCamera::UpdateView()
 	{
-		
+		//LOG_INFO("UpdateView");
 		glm::vec3 front{};
 		front.x = cos(glm::radians(m_yaw)) * cos(glm::radians(m_pitch));
 		front.y = sin(glm::radians(m_pitch));
 		front.z = sin(glm::radians(m_yaw)) * cos(glm::radians(m_pitch));
-		m_target = glm::normalize(front);
+		m_target = normalize(front);
 		// also re-calculate the Right and Up vector
-		m_right = glm::normalize(glm::cross(m_target, m_world_up));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-		m_up = glm::normalize(glm::cross(m_right, m_target));
+		m_right = normalize(cross(m_target, m_world_up));
+		// normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+		m_up = normalize(cross(m_right, m_target));
 		m_view_mat = glm::lookAt(m_position, m_position + m_target, m_up);
 	}
 
@@ -102,8 +130,10 @@ namespace Tomato
 
 	bool EditorCamera::OnMouseScroll(MouseScrolledEvent& e)
 	{
-		const float delta = e.GetYOffset() * 0.1f;
-		CameraZoom(delta);
+		const float delta = e.GetYOffset() * m_scroll_speed;
+		m_camera.SetZoomLevel(m_camera.GetZoomLevel() + delta);
+		LOG_INFO("{}", delta);
+		m_camera.UpdateProjectionMatrix();
 		UpdateView();
 		return false;
 	}
@@ -141,7 +171,6 @@ namespace Tomato
 		const float yaw_sign = GetUp().y < 0 ? -1.0f : 1.0f;
 		m_yaw += yaw_sign * delta.x * m_rot_speed;
 		m_pitch -= delta.y * m_rot_speed;
-
 	}
 
 	void EditorCamera::CameraZoom(float delta)

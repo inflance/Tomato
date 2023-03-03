@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Tomato/Core/Core.h"
+#include "Tomato/Core/Core.hpp"
 #include "Tomato/Events/ApplicationEvent.h"
 #include "Tomato/Events/Event.h"
 #include "Tomato/Events/KeyEvent.h"

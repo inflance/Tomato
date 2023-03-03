@@ -4,7 +4,7 @@
 #include <imgui_internal.h>
 
 #include "Tomato/Core/File.h"
-#include "Tomato/Scene/Scene.h"
+#include "Tomato/Scene/Scene.hpp"
 
 namespace Tomato
 {

@@ -1,6 +1,6 @@
-#include "VulkanUniformBuffer.h"
+#include "VulkanUniformBuffer.hpp"
 
-#include "VulkanContext.h"
+#include "VulkanContext.hpp"
 
 namespace Tomato
 {

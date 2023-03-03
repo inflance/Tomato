@@ -7,12 +7,12 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#include "Tomato/Scene/Light.h"
-#include "Tomato/Scene/ScriptableEntity.h"
-#include "Tomato/Scene/SceneCamera.h"
+#include "Tomato/Scene/Light.hpp"
+#include "Tomato/Scene/ScriptableEntity.hpp"
+#include "Tomato/Scene/SceneCamera.hpp"
 #include "Tomato/Core/Math.h"
-#include "Tomato/Function/Camera/EditorCamera.h"
-#include "Tomato/Renderer/Texture.h"
+#include "Tomato/Function/Camera/EditorCamera.hpp"
+#include "Tomato/Renderer/Texture.hpp"
 
 
 namespace Tomato
@@ -75,7 +75,7 @@ namespace Tomato
 		glm::vec4 color_{1.0f};
 		float tiling_factor_ = 1.0f;
 		//white texture
-		std::shared_ptr<Texture2D> texture_ = Texture2D::Create(std::string());
+		//std::shared_ptr<Texture2D> texture_ = nullptr;
 
 		SpriteComponent() = default;
 
@@ -117,6 +117,53 @@ namespace Tomato
 		{
 		}
 	};
+
+
+	struct RigidBody2DComponent
+	{
+		enum class BodyType
+		{
+			Static = 0, Dynamic, Kinematic
+		};
+
+		BodyType type_ = BodyType::Static;
+		bool fixed_rotation_ = false;
+
+		void* body_ = nullptr;
+
+		RigidBody2DComponent() = default;
+		RigidBody2DComponent(const RigidBody2DComponent&) = default;
+	};
+
+	struct BoxCollider2DComponent
+	{
+		glm::vec2 offset_ = { 0.0f, 0.0f };
+		glm::vec2 size_ = { 0.5f, 0.5f };
+
+		float density_ = 1.0f;
+		float friction_ = 0.5f;
+		float restitution_ = 0.0f;
+		float restitution_threshold_ = 0.5f;
+
+		void* fixture_ = nullptr;
+
+		BoxCollider2DComponent() = default;
+		BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
+	};
+
+	template<typename T>
+	struct ResetComponent
+	{
+		T component_;
+
+		ResetComponent() = default;
+		ResetComponent(const ResetComponent&) = default;
+		ResetComponent(const T& component)
+		{
+			component_ = component;
+		};
+	};
+
 #if 0
 
 	struct MatirialComponent

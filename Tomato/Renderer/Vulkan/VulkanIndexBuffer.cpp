@@ -1,7 +1,7 @@
-#include "VulkanIndexBuffer.h"
+#include "VulkanIndexBuffer.hpp"
 
-#include "VulkanContext.h"
-#include "VulkanUtils.h"
+#include "VulkanContext.hpp"
+#include "VulkanUtils.hpp"
 
 namespace Tomato
 {

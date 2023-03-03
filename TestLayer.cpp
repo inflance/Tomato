@@ -1,16 +1,26 @@
 #include "TestLayer.h"
 
 #include "Tomato/Tomato.h"
-#include "Tomato/Renderer/Pipeline.h"
-#include "Tomato/Renderer/RenderPass.h"
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include "Tomato/Renderer/RenderPass.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Tomato/Renderer/VertexBuffer.h"
 #include "imgui.h"
+#include "ImGuizmo.h"
 #include "glm/gtc/type_ptr.hpp"
-#include "Tomato/Manager/AssetManager.h"
+#include "vulkan/vulkan.hpp"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_vulkan.h"
+#include "Editor/LevelPanel.hpp"
+#include "Tomato/Manager/AssetManager.hpp"
+#include "Tomato/Renderer/FrameBuffer.hpp"
+#include "Tomato/Function/Camera/EditorCamera.hpp"
+#include "Tomato/Function/Camera/Camera.hpp"
+#include "Tomato/Function/Controller/CameraControler.hpp"
+#include "Tomato/Renderer/IndexBuffer.hpp"
+#include "Tomato/Renderer/Model.hpp"
+#include "Tomato/Renderer/Texture.hpp"
+#include "Tomato/ECS/World/Level.hpp"
+#include "Editor/ViewPortPanel.hpp"
 
 namespace Tomato
 {
@@ -21,55 +31,20 @@ namespace Tomato
 		glm::vec2 TexCoord{};
 	};
 
-
-	VertexData vertices[] = {
-		{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-		{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-		{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-		{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-
-		{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-		{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-		{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-		{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
-	};
-
-	VertexData vertices1[] = {
-		{{-0.5f, -0.5f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-		{{0.5f, -0.5f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-		{{0.5f, 0.5f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-		{{-0.5f, 0.5f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-
-		{{-0.5f, -0.5f, -1.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-		{{0.5f, -0.5f, -1.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-		{{0.5f, 0.5f, -1.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-		{{-0.5f, 0.5f, -1.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
-	};
-
-
-	std::vector<uint32_t> indices = {
-		0, 1, 2, 2, 3, 0,
-		4, 5, 6, 6, 7, 4
-	};
-
-	struct UniformBufferObject
+	inline void* GetIDFormTexture(const Ref<Texture2D>& texture)
 	{
-		glm::mat4 model;
-		glm::mat4 view;
-		glm::mat4 proj;
-		float lod = 1.0f;
-	} ubo, ubo1;
-
+		auto info = (vk::DescriptorImageInfo*)texture->GetDescriptorInfo();
+		return ImGui_ImplVulkan_AddTexture(info->sampler, info->imageView,
+		                                   static_cast<VkImageLayout>(info->imageLayout));
+	}
 
 	void TestLayer::OnCreate()
 	{
-		ubo.model = translate(glm::mat4(1.0f), {0.0, 0.0, 1.0}) * rotate(
-				glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
-			rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		////ubo.view = lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		////ubo.proj = glm::perspective(glm::radians(45.0f), 1600 / 800.0f, 0.1f, 10.0f);
+		//ubo.model = translate(glm::mat4(1.0f), {0.0, 0.0, 1.0}) * rotate(
+		//		glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
+		//	rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-
+#if 0
 		m_camera = std::make_shared<Camera>();
 
 		m_controller = CameraController(m_camera);
@@ -77,65 +52,31 @@ namespace Tomato
 		{
 			//LOG_INFO("{} {}", static_cast<int>(camera->GetCameraType()), deltaTime);
 		});
+#endif
 
-		m_editor_camera = std::make_shared<EditorCamera>(glm::radians(45.0f), 1600 / 800.0f, 0.1f, 10.0f);
+		m_level = std::make_shared<Level>("default");
+		auto entity = m_level->CreateDefaultEntity("hello");
+		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<SpriteComponent>();
+
+		m_level_panel = std::make_shared<LevelPanel>(m_level);
+		m_editor_camera = std::make_shared<EditorCamera>(glm::radians(45.0f), 800 / 800.0f, 0.001f, 1000.0f);
 		m_editor_camera->SetCameraType(CameraType::Perspective);
 
-		m_model = std::make_shared<Model>(R"(C:\Users\liyun\source\repos\Tomato\PreCompile\Assets\Mesh\cube.obj)");
+		Renderer2D::Init();
 
-		const Ref<Shader> shader = (Shader::Create({
-			"Triangle",
-			{
-				{
-					ShaderType::Vertex, ShaderCreateFlag::ByPath, {"PreCompile/Assets/Shader/BasicTexture.vert"}, {},
-					{}
-				},
-				{
-					ShaderType::Fragment, ShaderCreateFlag::ByPath, "PreCompile/Assets/Shader/BasicTexture.frag", {},
-					{}
-				},
-			}
-		}));
+		m_view_port_panel = ViewPortPanel::Create(GetIDFormTexture(
+			                                          Renderer2D::GetUniformBuffer()->GetFrameBufferInfo().render_pass->
+			                                          GetProps().attachments_[0]), 500, 500);
+		auto ins = this;
 
-
-		vertex_buffer = (VertexBuffer::Create(sizeof(Vertex) * m_model->GetMeshData().vertices_.size()));
-		vertex_buffer->SetData(m_model->GetMeshData().vertices_.data(),
-		                       sizeof(Vertex) * m_model->GetMeshData().vertices_.size());
-		vertex_buffer->SetLayout({
-			{ShaderDataType::Float3, "inPosition"},
-			{ShaderDataType::Float3, "inNormal"},
-
-			{ShaderDataType::Float3, "inColor"},
-			{ShaderDataType::Float2, "inTexCoord"},
+		m_view_port_panel->SetEventTick([ins](float width, float height)
+		{
+			ins->m_editor_camera->SetViewportSize(width, height);
+			ins->m_level->OnViewPortResize(width, height);
 		});
 
-
-		RenderPassProps renderPassProps;
-		renderPassProps.ClearValue = ClearValue();
-		Ref<RenderPass> renderPass = RenderPass::Create(renderPassProps);
-
-		uniformBuffer = UniformBuffer::Create(sizeof(ubo), 0);
-		uniformBuffer->SetData(&ubo, sizeof(ubo));
-		//	Ref<UniformBuffer> uniform = UniformBuffer::Create(sizeof(ubo), 0);
-		texture = AssetManager::LoadWhiteTexture();
-		/*	uint8_t pixel[] = { 0xff, 0xff, 0xff, 0xff };
-			texture = Texture2D::Create(pixel, 1, 1);*/
-
-		PipelineInfo props;
-		props.vertex_layout_ = vertex_buffer->GetLayout();
-		props.shader_ = shader;
-		props.render_pass_ = renderPass;
-		props.uniform_buffer_set_ = std::make_shared<UniformBufferSet>();
-		props.uniform_buffer_set_->SetUniformBuffer(uniformBuffer);
-		props.uniform_buffer_set_->SetTexture(texture, 1);
-		props.uniform_buffer_set_->SetUniformBufferSetLayout({
-			{DescriptorType::UniformBuffer, 1, ShaderStageFlags::Vertex, 0, 0},
-			{DescriptorType::CombinedImageSample, 1, ShaderStageFlags::Fragment, 1, 0}
-		});
-		pipeline = (Pipeline::Create(props));
-
-		index_buffer = IndexBuffer::Create(m_model->GetMeshData().indices_.data(),
-		                                   m_model->GetMeshData().indices_.size());
+		m_level->OnViewPortResize(Engine::Get().GetWindow().GetWidth(), Engine::Get().GetWindow().GetHeight());
 	}
 
 	void TestLayer::OnDestroy()
@@ -144,35 +85,224 @@ namespace Tomato
 
 	void TestLayer::Tick(float delta_time)
 	{
-		auto instance = this;
-		m_editor_camera->Tick(delta_time);
-		ubo.proj = m_editor_camera->GetProjectionMatrix();
-		Renderer::Submit([instance, delta_time]
-			{
-				//ubo.model = rotate(ubo.model, delta_time * glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-				ubo.view = instance->m_editor_camera->GetViewMatrix();
+		if (m_editor_mode == EditorType::EditorMode)
+		{
+			m_editor_camera->Tick(delta_time);
 
-				instance->uniformBuffer->SetData(&ubo, sizeof(ubo));
-				Renderer::RenderQuad(nullptr, instance->pipeline, instance->vertex_buffer, instance->index_buffer);
-				//uniformBuffer->SetData(&ubo1, sizeof(ubo1));
-				//Renderer::RenderQuad(nullptr, instance->pipeline, instance->vertex_buffer1, instance->index_buffer);
-			}
-		);
+			m_level->TickOnEditor(m_editor_camera, delta_time);
+		}
+		else if (m_editor_mode == EditorType::RuntimeMode)
+		{
+			m_level->LogicTick(delta_time);
+			m_level->Tick(delta_time);
+		}
 	}
 
 	void TestLayer::OnImGuiRenderer()
 	{
-		ImGui::SliderFloat("lod", &ubo.lod, 0, 10);
+		bool open = true;
 
-		auto [mov_speed,rot_speed] = m_editor_camera->GetCameraSpeed();
-		ImGui::SliderFloat("editor camera move speed", &mov_speed, 0, 90);
-		ImGui::SliderFloat("editor camera rot speed", &rot_speed, 0, 90);
-		m_editor_camera->SetCameraSpeed({mov_speed, rot_speed});
-		auto thre = m_editor_camera->Get3();
-		ImGui::SliderFloat3("position", value_ptr(std::get<0>(thre)), 0, 10.0);
-		ImGui::SliderFloat3("front", value_ptr(std::get<1>(thre)), 0, 10.0);
-		ImGui::SliderFloat3("up", value_ptr(std::get<2>(thre)), 0, 10.0);
-		m_editor_camera->Set3(thre);
+		static bool showViewPort = true;
+
+		static bool opt_fullscreen = true;
+		static bool opt_padding = false;
+		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+		// because it would be confusing to have two docking targets within each others.
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+		if (opt_fullscreen)
+		{
+			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->WorkPos);
+			ImGui::SetNextWindowSize(viewport->WorkSize);
+			ImGui::SetNextWindowViewport(viewport->ID);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 9.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 6.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.5f, 5.0f));
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.5f, 12.0f));
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 6.0f));
+			ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 7.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.00f, 0.5f));
+			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+				ImGuiWindowFlags_NoMove;
+			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+		}
+		else
+		{
+			dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+		}
+
+		if (!opt_padding)
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+		// Begin Dock Space
+		ImGui::Begin("DockSpace Demo", &open, window_flags);
+		if (!opt_padding)
+			ImGui::PopStyleVar();
+
+		// Submit the DockSpace
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+		{
+			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+		}
+
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("Options"))
+			{
+				// Disabling fullscreen would allow the window to be moved to the front of other windows,
+				// which we can't undo at the moment without finer window depth/z control.
+				ImGui::MenuItem("Fullscreen", nullptr, &opt_fullscreen);
+				ImGui::MenuItem("Padding", nullptr, &opt_padding);
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("Flag: NoSplit", "", (dockspace_flags & ImGuiDockNodeFlags_NoSplit) != 0))
+				{
+					dockspace_flags ^= ImGuiDockNodeFlags_NoSplit;
+				}
+				if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0))
+				{
+					dockspace_flags ^= ImGuiDockNodeFlags_NoResize;
+				}
+				if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "",
+				                    (dockspace_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0))
+				{
+					dockspace_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode;
+				}
+				if (ImGui::MenuItem("Flag: AutoHideTabBar", "",
+				                    (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0))
+				{
+					dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar;
+				}
+				if (ImGui::MenuItem("Flag: PassthruCentralNode", "",
+				                    (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen))
+				{
+					dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode;
+				}
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("Close", nullptr, false, &open != nullptr))
+					open = false;
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMenuBar();
+		}
+
+		ImGui::ShowDemoWindow(&open);
+
+		{
+			if (!is_resize)
+			{
+				m_view_port_panel->Begin();
+				static bool mode = true;
+				ImGui::Checkbox("Editor", &mode);
+				if (mode)
+				{
+					if (m_editor_mode != EditorType::EditorMode) m_level->OnRuntimeLevelEnd();
+					m_editor_mode = EditorType::EditorMode;
+				}
+				else
+				{
+					if (m_editor_mode != EditorType::RuntimeMode) m_level->OnRuntimeLevelStart();
+					m_editor_mode = EditorType::RuntimeMode;
+				}
+				m_view_port_panel->Tick();
+
+				{
+					Entity selected_entity = m_level_panel->GetSelectedEntity();
+
+					if (selected_entity && m_editor_mode == EditorType::EditorMode)
+					{
+						ImGuizmo::SetOrthographic(
+							m_editor_camera->GetCamera().GetCameraType() == CameraType::Orthographic);
+
+						float width = ImGui::GetWindowWidth();
+						float height = ImGui::GetWindowHeight();
+
+						ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, width, height);
+
+						auto& camera_view = m_editor_camera->GetViewMatrix();
+						auto camera_projection = m_editor_camera->GetProjectionMatrix();
+						camera_projection[1][1] *= -1.0f;
+						auto& tc = selected_entity.GetComponent<TransformComponent>();
+						auto transform = tc.GetTransform();
+						ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
+						Manipulate(value_ptr(camera_view), value_ptr(camera_projection),
+						           ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::WORLD,
+						           value_ptr(transform));
+
+						if (ImGuizmo::IsUsing())
+						{
+							glm::vec3 position, rotation, scale;
+
+							Math::DecomposeTransform(transform, position, rotation, scale);
+
+							glm::vec3 deltaRotation = rotation - tc.rotation_;
+
+							tc.position_ = position;
+							tc.rotation_ += deltaRotation;
+							tc.scale_ = scale;
+						}
+					}
+				}
+				m_view_port_panel->End();
+			}
+
+			m_level_panel->Tick();
+
+			ImGui::Begin("Test");
+			{
+				//ImGui::SliderFloat("lod", &ubo.lod, 0, 10);
+				auto& camera = m_editor_camera->GetCamera();
+				auto type = camera.GetCameraType();
+				{
+					static const char* camera_str[] = {"Orthographic", "Perspective"};
+
+					const char* currCameraType = camera_str[static_cast<int>(camera.
+						GetCameraType())];
+
+					if (ImGui::BeginCombo("Projection", currCameraType))
+					{
+						for (int i = 0; i < 2; i++)
+						{
+							bool selected = currCameraType == camera_str[i];
+							if (ImGui::Selectable(camera_str[i], selected))
+							{
+								currCameraType = camera_str[i];
+								m_editor_camera->UpdateCameraType(static_cast<CameraType>(i));
+							}
+							if (selected)
+								ImGui::SetItemDefaultFocus();
+						}
+						ImGui::EndCombo();
+					}
+				}
+
+				auto [mov_speed, rot_speed] = m_editor_camera->GetCameraSpeed();
+				ImGui::SliderFloat("editor camera move speed", &mov_speed, 0, 90);
+				ImGui::SliderFloat("editor camera rot speed", &rot_speed, 0, 90);
+				m_editor_camera->SetCameraSpeed({mov_speed, rot_speed});
+				auto thre = m_editor_camera->Get3();
+				ImGui::DragFloat3("position", value_ptr(std::get<0>(thre)), 1);
+				ImGui::DragFloat3("front", value_ptr(std::get<1>(thre)), 1);
+				ImGui::DragFloat3("up", value_ptr(std::get<2>(thre)), 1);
+				m_editor_camera->Set3(thre);
+			}
+			ImGui::End();
+		}
+
+		if (opt_fullscreen)
+		{
+			ImGui::PopStyleVar(10);
+		}
+		ImGui::End(); // End Dock Space
 	}
 
 	void TestLayer::OnEvent(Event& event)
@@ -206,7 +336,14 @@ namespace Tomato
 		{
 			return false;
 		}
-		m_editor_camera->SetViewportSize(width, height);
+		is_resize = true;
+
+		Renderer2D::GetUniformBuffer()->OnResize(width, height);
+
+		m_view_port_panel->UpdateImage(GetIDFormTexture(
+			Renderer2D::GetUniformBuffer()->GetFrameBufferInfo().render_pass->
+			                                GetProps().attachments_[0]));
+		is_resize = false;
 		return false;
 	}
 }

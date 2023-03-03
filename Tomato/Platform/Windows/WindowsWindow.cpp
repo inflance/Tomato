@@ -1,14 +1,14 @@
-#include "windowsWindow.h"
+#include "WindowsWindow.hpp"
 
 #include <GLFW/glfw3.h>
 
-#include "Tomato/Core/Core.h"
+#include "Tomato/Core/Core.hpp"
 #include "Tomato/Events/Event.h"
 #include "Tomato/Events/ApplicationEvent.h"
 #include "Tomato/Events/KeyEvent.h"
 #include "Tomato/Events/MouseEvent.h"
-#include "Tomato/Renderer/RendererAPI.h"
-#include "Tomato/Renderer/Vulkan/VulkanContext.h"
+#include "Tomato/Renderer/RendererAPI.hpp"
+#include "Tomato/Renderer/Vulkan/VulkanContext.hpp"
 
 namespace Tomato
 {

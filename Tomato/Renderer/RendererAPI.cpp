@@ -1,6 +1,6 @@
-#include "RendererAPI.h"
+#include "RendererAPI.hpp"
 
-#include "Vulkan/VulkanRendererAPI.h"
+#include "Vulkan/VulkanRendererAPI.hpp"
 
 namespace Tomato
 {

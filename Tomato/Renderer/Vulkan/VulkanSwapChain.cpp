@@ -1,7 +1,7 @@
-#include "VulkanSwapChain.h"
+#include "VulkanSwapChain.hpp"
 #include <glfw/glfw3.h>
 
-#include "VulkanContext.h"
+#include "VulkanContext.hpp"
 
 namespace Tomato
 {

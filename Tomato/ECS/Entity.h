@@ -3,8 +3,8 @@
 #include <entt/entt.hpp>
 
 #include "EntityRegistry.h"
-#include "Tomato/Core/Core.h"
-#include "Tomato/Scene/Scene.h"
+#include "Tomato/Core/Core.hpp"
+#include "Tomato/Scene/Scene.hpp"
 
 namespace Tomato
 {
@@ -21,7 +21,7 @@ namespace Tomato
 		template <typename T, typename... Args>
 		T& AddComponent(Args&&... args)
 		{
-			LOG_ASSERT(!HasComponent<T>(), "Entity already has component!");
+			if (HasComponent<T>()) { LOG_ERROR("Entity already has component!"); return GetComponent<T>(); };
 			T& component = m_registry->m_registry.emplace<T>(m_object_handle, std::forward<Args>(args)...);
 			//m_Scene->OnComponentAdded<T>(*this, component);
 			return component;
@@ -30,12 +30,12 @@ namespace Tomato
 		template <typename T>
 		T& GetComponent()
 		{
-			LOG_ASSERT(HasComponent<T>(), "Object does not have component!");
+			LOG_ASSERT(HasComponent<T>(), "Entity does not have component!");
 			return m_registry->m_registry.get<T>(m_object_handle);
 		}
 
 		template <typename T>
-		bool HasComponent()const
+		[[nodiscard]]bool HasComponent()const
 		{
 			return m_registry->m_registry.all_of<T>(m_object_handle);
 		}
@@ -48,9 +48,10 @@ namespace Tomato
 		}
 
 		operator bool() const { return m_object_handle != entt::null; }
-		operator entt::entity() const { return m_object_handle; }
-		operator uint32_t() const { return static_cast<uint32_t>(m_object_handle); }
 
+		operator entt::entity() const { return m_object_handle; }
+
+		operator uint32_t() const { return static_cast<uint32_t>(m_object_handle); }
 
 		bool operator==(const Entity& other) const
 		{

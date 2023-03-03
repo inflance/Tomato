@@ -1,7 +1,7 @@
-#include "UniformBuffer.h"
+#include "UniformBuffer.hpp"
 
-#include "Renderer.h"
-#include "Tomato/Renderer/Vulkan/VulkanUniformBuffer.h"
+#include "Renderer.hpp"
+#include "Tomato/Renderer/Vulkan/VulkanUniformBuffer.hpp"
 
 namespace Tomato
 {

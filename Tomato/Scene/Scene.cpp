@@ -1,10 +1,10 @@
-#include "Scene.h"
+#include "Scene.hpp"
 
 #include "Tomato/ECS/Entity.h"
 #include "Tomato/ECS/Components.h"
-#include "Tomato/Renderer/Renderer.h"
-#include "Tomato/Renderer/Renderer2D.h"
-#include "Tomato/Renderer/ShaderFactory.h"
+#include "Tomato/Renderer/Renderer.hpp"
+#include "Tomato/Renderer/Renderer2D.hpp"
+#include "Tomato/Renderer/ShaderFactory.hpp"
 
 namespace Tomato
 {
@@ -17,7 +17,7 @@ namespace Tomato
 		return entity;
 	}
 
-	Entity Scene::CreateSprite(const std::string& name /*= std::string()*/)
+	Entity Scene::CreateSprite(const std::string& name /*= std::string()*/) const
 	{
 		Entity entity = m_entity_registry->CreateEntity();
 		entity.AddComponent<TransformComponent>();
@@ -223,7 +223,7 @@ namespace Tomato
 
 	void Scene::DestroyEntity(Entity entity)
 	{
-		m_entity_registry->DestoryEntity(entity);
+		m_entity_registry->DestroyEntity(entity);
 	}
 
 	void Scene::Clear()

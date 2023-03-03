@@ -7,7 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Tomato/ECS/Components.h"
-#include "Tomato/Renderer/Texture.h"
+#include "Tomato/Renderer/Texture.hpp"
 #include "AssetPanel.h"
 
 namespace Tomato
@@ -16,7 +16,7 @@ namespace Tomato
 
 	ScenePanel::ScenePanel(const std::shared_ptr<Scene>& context)
 	{
-		SetContex(context);
+		SetContext(context);
 	}
 
 	void ScenePanel::OnImGuiRenderer()
@@ -48,7 +48,7 @@ namespace Tomato
 
 		//
 		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 8.0f);
-		//		if (ImGui::BeginPopupContextWindow(nullptr, 1, true))
+		//if (ImGui::BeginPopupContextWindow(nullptr, 1, true))
 		{
 			if (ImGui::MenuItem("Create Empty Entity"))
 			{
@@ -328,31 +328,31 @@ namespace Tomato
 
 			 ImGui::NextColumn();
 			 ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
-			 if (component.texture_)
+			/* if (component.texture_)
 				 ImGui::ImageButton((void*)(component.texture_->GetID()),
 				                    {80, 80}, {0, 1}, {1, 0});
 			 else
 			 {
 				 ImGui::ImageButton((void*)m_default_texture->GetID(), {80, 80}, {0, 1},
 				                    {1, 0});
-			 }
+			 }*/
 
 			 ImGui::PopItemWidth();
 
-			 if (ImGui::BeginDragDropTarget())
-			 {
-				 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(
-					 "Assets_Panel"))
-				 {
-					 auto path = static_cast<const wchar_t*>(payload->Data);
-					 std::filesystem::path texturePath = std::filesystem::path(
-						 g_asset_path) / path;
-					 Ref<Texture2D> texture = Texture2D::Create(texturePath.string());
-					 //if (texture->IsLoaded())
-					 component.texture_ = texture;
-				 }
-				 ImGui::EndDragDropTarget();
-			 }
+			 //if (ImGui::BeginDragDropTarget())
+			 //{
+				// if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(
+				//	 "Assets_Panel"))
+				// {
+				//	 auto path = static_cast<const wchar_t*>(payload->Data);
+				//	 std::filesystem::path texturePath = std::filesystem::path(
+				//		 g_asset_path) / path;
+				//	 Ref<Texture2D> texture = Texture2D::Create(texturePath.string());
+				//	 //if (texture->IsLoaded())
+				//	 component.texture_ = texture;
+				// }
+				// ImGui::EndDragDropTarget();
+			 //}
 			 ImGui::NextColumn();
 			 ImGui::Text("Tiling Factor");
 			 ImGui::NextColumn();
@@ -490,7 +490,7 @@ namespace Tomato
 
 	}
 
-	void ScenePanel::SetContex(const std::shared_ptr<Scene>& context)
+	void ScenePanel::SetContext(const std::shared_ptr<Scene>& context)
 	{
 		m_moreBtn = Texture2D::Create("PreCompile/Assets/ImGuiImage/more.png");
 		m_default_texture = Texture2D::Create("PreCompile/Assets/Image/DefaultTexture.png");

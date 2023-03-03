@@ -8,9 +8,9 @@
 #include "Tomato/Core/Window.h"
 #include "Tomato/Events/Event.h"
 #include "Tomato/Core/LayerStack.h"
-#include "Tomato/ImGui/ImGuiLayer.h"
+#include "Tomato/ImGui/ImGuiLayer.hpp"
 #include "Tomato/Events/ApplicationEvent.h"
-#include "Tomato/World/World.h"
+#include "Tomato/ECS/World/World.hpp"
 
 namespace Tomato
 {

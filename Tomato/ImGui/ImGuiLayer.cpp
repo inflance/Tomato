@@ -1,7 +1,7 @@
-#include "ImGuiLayer.h"
+#include "ImGuiLayer.hpp"
 
-#include "Tomato/Renderer/Renderer.h"
-#include "Tomato/Renderer/Vulkan/VulkanImGuiLayer.h"
+#include "Tomato/Renderer/Renderer.hpp"
+#include "Tomato/Renderer/Vulkan/VulkanImGuiLayer.hpp"
 
 namespace Tomato
 {

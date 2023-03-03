@@ -1,4 +1,4 @@
-#include "VulkanStruct.h"
+#include "VulkanStruct.hpp"
 
 namespace Tomato
 {

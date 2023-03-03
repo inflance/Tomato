@@ -1,15 +1,15 @@
-#include "Mesh.h"
+#include "Mesh.hpp"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include <Tomato/Core/Core.h>
+#include <Tomato/Core/Core.hpp>
 
 #include <Tomato/Core/Timer.h>
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "MeshFactory.h"
+#include "VertexBuffer.hpp"
+#include "IndexBuffer.hpp"
+#include "MeshFactory.hpp"
 
 namespace Tomato
 {

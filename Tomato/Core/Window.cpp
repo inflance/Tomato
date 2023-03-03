@@ -1,7 +1,7 @@
 #include "Window.h"
 
-#include "Tomato/Platform/Windows/WindowsWindow.h"
-#include "Tomato/Renderer/GraphicsContext.h"
+#include "Tomato/Platform/Windows/WindowsWindow.hpp"
+#include "Tomato/Renderer/GraphicsContext.hpp"
 
 namespace Tomato
 {

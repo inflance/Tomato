@@ -13,6 +13,7 @@ namespace Tomato
 		}
 
 		[[nodiscard]] unsigned int GetWidth() const { return m_width; }
+
 		[[nodiscard]] unsigned int GetHeight() const { return m_height; }
 
 		[[nodiscard]] std::string ToString() const override
@@ -23,6 +24,7 @@ namespace Tomato
 		}
 
 		EVENT_CLASS_TYPE(WindowResize)
+
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 
 	private:
@@ -35,6 +37,7 @@ namespace Tomato
 		WindowCloseEvent() = default;
 
 		EVENT_CLASS_TYPE(WindowClose)
+
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 	};
 
@@ -44,6 +47,7 @@ namespace Tomato
 		AppTickEvent() = default;
 
 		EVENT_CLASS_TYPE(AppTick)
+
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 	};
 
@@ -53,6 +57,7 @@ namespace Tomato
 		AppUpdateEvent() = default;
 
 		EVENT_CLASS_TYPE(AppUpdate)
+
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 	};
 
@@ -62,6 +67,7 @@ namespace Tomato
 		AppRenderEvent() = default;
 
 		EVENT_CLASS_TYPE(AppRender)
+
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 	};
 }

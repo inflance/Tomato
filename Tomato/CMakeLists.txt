@@ -32,6 +32,7 @@ target_include_directories(
 	PUBLIC ${VMA_DIR}
 	PUBLIC ${Vulkan_DIR}/include
 	PUBLIC ${TINY_OBJ_LOAD_DIR}
+	PUBLIC ${BOX2D_INCLUDE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME} 
@@ -47,6 +48,7 @@ target_link_libraries(${PROJECT_NAME}
 	PUBLIC VulkanMemoryAllocator
 	PUBLIC utils
 	PUBLIC RAII_utils
+	PUBLIC box2d
 	PUBLIC ${TINY_OBJ_LOAD_DIR}
 	PUBLIC ${ASSIMP_BIN_DEBUG_DIR}/assimp-vc142-mtd.lib
 	PUBLIC ${ASSIMP_BIN_RELEASE_DIR}/assimp-vc142-mt.lib

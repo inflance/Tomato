@@ -1,7 +1,7 @@
-﻿#include "CommandBuffer.h"
+﻿#include "CommandBuffer.hpp"
 
-#include "Renderer.h"
-#include "RendererAPI.h"
+#include "Renderer.hpp"
+#include "RendererAPI.hpp"
 
 namespace Tomato
 {

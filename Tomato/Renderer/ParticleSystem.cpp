@@ -1,8 +1,8 @@
-#include "ParticleSystem.h"
+#include "ParticleSystem.hpp"
 
-#include "Tomato/Core/Core.h"
+#include "Tomato/Core/Core.hpp"
 #include "Tomato/Core/Random.h"
-#include "Tomato/Renderer/Renderer2D.h"
+#include "Tomato/Renderer/Renderer2D.hpp"
 
 #include <glm/gtc/constants.hpp>
 #define GLM_ENABLE_EXPERIMENTAL

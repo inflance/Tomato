@@ -1,11 +1,11 @@
-#include "Shader.h"
+#include "Shader.hpp"
 #pragma once
 
-#include "Shader.h"
+#include "Shader.hpp"
 
-#include "Renderer.h"
-#include "Tomato/Core/Core.h"
-#include "Tomato/Renderer/Vulkan/VulkanShader.h"
+#include "Renderer.hpp"
+#include "Tomato/Core/Core.hpp"
+#include "Tomato/Renderer/Vulkan/VulkanShader.hpp"
 
 namespace Tomato
 {

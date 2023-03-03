@@ -1,14 +1,14 @@
-#include "VulkanTexture.h"
+#include "VulkanTexture.hpp"
 #include "stb_image.h"
-#include "VulkanCommandExecutor.h"
-#include "VulkanContext.h"
+#include "VulkanCommandExecutor.hpp"
+#include "VulkanContext.hpp"
 #include "Tomato/Core/Macro.h"
 
 namespace Tomato
 {
 	namespace Utils
 	{
-		static auto ToVulkanFilter(TextureFilter filter)
+		inline auto ToVulkanFilter(TextureFilter filter)
 		{
 			switch (filter)
 			{
@@ -20,8 +20,47 @@ namespace Tomato
 				return vk::Filter::eCubicEXT;
 			}
 			LOG_ERROR("Unknown filter!");
-			ASSERT(false);
+			return vk::Filter::eLinear;
 		}
+
+		inline auto ToVulkanFormat(TextureFormat format)
+		{
+			switch (format)
+			{
+			case TextureFormat::RGBA:
+				return vk::Format::eR8G8B8A8Unorm;
+			case TextureFormat::DEPTH24STENCIL8:
+				return vk::Format::eD16Unorm;
+			}
+			LOG_ERROR("Unknown Format!");
+			return vk::Format::eR8G8B8A8Unorm;
+		}
+
+		inline auto ToVulkanTexture(TextureUsage type)
+		{
+			switch (type)
+			{
+			case TextureUsage::Color:
+				return vk::ImageUsageFlagBits::eColorAttachment;
+			case TextureUsage::Depth:
+				return vk::ImageUsageFlagBits::eDepthStencilAttachment;
+			}
+			LOG_ERROR("Unknown Format!");
+			return vk::ImageUsageFlagBits::eColorAttachment;
+		}
+
+		inline auto GetMaxUsableSampleCount( const vk::PhysicalDeviceProperties& properties)
+		{
+			auto counts = std::min(properties.limits.framebufferColorSampleCounts, properties.limits.framebufferDepthSampleCounts);
+			if (counts & vk::SampleCountFlagBits::e64) { return vk::SampleCountFlagBits::e64; }
+			if (counts & vk::SampleCountFlagBits::e32) { return vk::SampleCountFlagBits::e32; }
+			if (counts & vk::SampleCountFlagBits::e16) { return vk::SampleCountFlagBits::e16; }
+			if (counts & vk::SampleCountFlagBits::e8) { return vk::SampleCountFlagBits::e8; }
+			if (counts & vk::SampleCountFlagBits::e4) { return vk::SampleCountFlagBits::e4; }
+			if (counts & vk::SampleCountFlagBits::e2) { return vk::SampleCountFlagBits::e2; }
+			return vk::SampleCountFlagBits::e1;
+		}
+
 	}
 
 	VulkanTexture2D::VulkanTexture2D(const std::string& path)
@@ -37,27 +76,178 @@ namespace Tomato
 		}
 		m_info.extend_.width_ = w;
 		m_info.extend_.height_ = h;
+		m_info.format_ = TextureFormat::RGBA;
 
 		m_info.mip_levels_ = static_cast<uint32_t>(std::floor(std::log2(std::max(w, h)))) + 1;
-
+		if (m_info.stage_) m_need_stage = true;
 		Init(pixels);
 
 		stbi_image_free(pixels);
 	}
 
-	VulkanTexture2D::VulkanTexture2D()
-	{
-	}
-
 	VulkanTexture2D::VulkanTexture2D(void* data, TextureInfo info)
 		: m_info(info)
 	{
+		if (m_info.stage_) m_need_stage = true;
 		Init(data);
+	}
+
+	VulkanTexture2D::VulkanTexture2D(TextureInfo info)
+		: m_info(std::move(info))
+	{
+		const auto& physicalDevice = VulkanContext::Get().physicalDevice;
+		format = (Utils::ToVulkanFormat(m_info.format_));
+		if (m_info.format_ == TextureFormat::Depth)
+		{
+			auto find = Utils::GetSupportedDepthFormat(physicalDevice, &format);
+			ASSERT(find);
+		}
+		auto max_sample_count = Utils::GetMaxUsableSampleCount(physicalDevice.getProperties());
+		if(m_info.multi_sampler_rate.has_value())
+		{
+			if(vk::SampleCountFlagBits(m_info.multi_sampler_rate.value()) <= max_sample_count)
+			{
+				sample_count = vk::SampleCountFlagBits(m_info.multi_sampler_rate.value());
+			}else
+			{
+				LOG_ERROR("Current Sample Count {} is greater than Max sample count{}", m_info.multi_sampler_rate.value(), (uint32_t)max_sample_count);
+			}
+		}
+
+
+		//create image
+		vk::ImageCreateInfo create_info{};
+
+		if (m_info.format_ != TextureFormat::Depth)
+		{
+			create_info
+				.setImageType(vk::ImageType::e2D)
+				.setArrayLayers(1)
+				.setMipLevels(1)
+				.setExtent({m_info.extend_.width_, m_info.extend_.height_, 1})
+				.setFormat(format)
+				.setTiling(vk::ImageTiling::eOptimal)
+				.setInitialLayout((vk::ImageLayout::eUndefined))
+				.setUsage(vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled)
+				.setSamples(sample_count)
+				.setSharingMode(vk::SharingMode::eExclusive);
+		}
+		else
+		{
+			create_info
+				.setImageType(vk::ImageType::e2D)
+				.setArrayLayers(1)
+				.setMipLevels(1)
+				.setExtent({m_info.extend_.width_, m_info.extend_.height_, 1})
+				.setFormat(format)
+				.setTiling(vk::ImageTiling::eOptimal)
+				.setInitialLayout(vk::ImageLayout::eUndefined)
+				.setUsage(vk::ImageUsageFlagBits::eDepthStencilAttachment)
+				.setSamples(sample_count)
+				.setSharingMode(vk::SharingMode::eExclusive);
+		}
+
+		image = VulkanContext::Get().device.createImage(create_info);
+
+		const auto& device = VulkanContext::Get().device;
+
+		const vk::MemoryRequirements memory_requirements = image.getMemoryRequirements();
+		const uint32_t memoryTypeIndex = Utils::findMemoryType(
+			physicalDevice.getMemoryProperties(),
+			memory_requirements.memoryTypeBits,
+			vk::MemoryPropertyFlagBits::eDeviceLocal);
+		// allocate memory
+		vk::MemoryAllocateInfo memory_allocate_info;
+		memory_allocate_info.setAllocationSize(memory_requirements.size).setMemoryTypeIndex(memoryTypeIndex);
+		memory = device.allocateMemory(memory_allocate_info);
+		//AllocateImageMemory();
+		// bind memory
+		image.bindMemory(*memory, 0);
+
+		vk::ImageSubresourceRange range;
+		vk::ImageViewCreateInfo image_view_create_info;
+
+		if (m_info.type_ == TextureType::Color)
+		{
+			range.setAspectMask(vk::ImageAspectFlagBits::eColor)
+			     .setBaseMipLevel(0)
+			     .setLevelCount(1)
+			     .setBaseArrayLayer(0)
+			     .setLayerCount(1);
+
+			image_view_create_info
+				.setFlags({})
+				.setFormat(format)
+				.setImage(*image)
+				.setViewType(vk::ImageViewType::e2D)
+				.setSubresourceRange(range)
+				.setComponents({});
+		}
+		else
+		{
+			range.setAspectMask(vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil)
+			     .setBaseMipLevel(0)
+			     .setLevelCount(1)
+			     .setBaseArrayLayer(0)
+			     .setLayerCount(1);
+
+			image_view_create_info
+				.setFlags({})
+				.setFormat(format)
+				.setImage(*image)
+				.setViewType(vk::ImageViewType::e2D)
+				.setSubresourceRange(range)
+				.setComponents({});
+		}
+
+
+		imageView = vk::raii::ImageView(device, image_view_create_info);
+	
+
+		if (m_info.format_ == TextureFormat::Depth)
+		{
+			layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+		}
+		else
+		{
+			CommandExecutor::Get().ImmediateExecute(
+				VulkanContext::Get().graphicsQueue,
+				[&](const vk::raii::CommandBuffer& cmd)
+				{
+					TransitionImageLayout(cmd, vk::ImageLayout::eUndefined,
+					vk::ImageLayout::eShaderReadOnlyOptimal,
+					vk::AccessFlagBits::eHostWrite,
+					vk::AccessFlagBits::eShaderRead, vk::PipelineStageFlagBits::eHost,
+					vk::PipelineStageFlagBits::eFragmentShader);
+				});
+			vk::SamplerCreateInfo sampler_create_info;
+			sampler_create_info
+				.setFlags({})
+				.setMagFilter(Utils::ToVulkanFilter(m_info.sampler_filter_))
+				.setMinFilter(Utils::ToVulkanFilter(m_info.sampler_filter_))
+				.setMipmapMode(vk::SamplerMipmapMode::eLinear)
+				.setAddressModeU(vk::SamplerAddressMode::eClampToEdge)
+				.setAddressModeV(vk::SamplerAddressMode::eClampToEdge)
+				.setAddressModeW(vk::SamplerAddressMode::eClampToEdge)
+				.setMipLodBias(1.0f)
+				.setAnisotropyEnable(false)
+				.setCompareEnable(false)
+				.setMaxAnisotropy(1.0f)
+				.setCompareOp(vk::CompareOp::eNever)
+				.setMinLod(0.0f)
+				.setMaxLod(1.0f)
+				.setBorderColor(vk::BorderColor::eFloatOpaqueWhite);
+			sampler = vk::raii::Sampler(device, sampler_create_info);
+
+			layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		}
+		UpdateDescriptor();
 	}
 
 
 	void VulkanTexture2D::Init(void* data)
 	{
+		format = (Utils::ToVulkanFormat(m_info.format_));
 		uint32_t size = m_info.extend_.width_ * m_info.extend_.height_ * 4;
 		auto width = m_info.extend_.width_;
 		auto height = m_info.extend_.width_;
@@ -68,7 +258,7 @@ namespace Tomato
 		AllocateImageMemory();
 		// bind memory
 		image.bindMemory(*memory, 0);
-
+		//stage buffer
 		Buffer stage_buffer{nullptr};
 		if (m_need_stage)
 		{
@@ -94,9 +284,9 @@ namespace Tomato
 						vk::AccessFlagBits::eTransferWrite,
 						vk::PipelineStageFlagBits::eTransfer,
 						vk::PipelineStageFlagBits::eTransfer);
-					CopyDataToImage(cmd, stage_buffer.buffer, width, height);
+			CopyDataToImage(cmd, stage_buffer.buffer, width, height);
 
-					TransitionImageLayout(
+			TransitionImageLayout(
 						cmd, vk::ImageLayout::eTransferDstOptimal,
 						vk::ImageLayout::eTransferSrcOptimal,
 						vk::AccessFlagBits::eTransferWrite,
@@ -109,7 +299,7 @@ namespace Tomato
 		{
 			CommandExecutor::Get().ImmediateExecute(
 				VulkanContext::Get().graphicsQueue,
-				[&](vk::raii::CommandBuffer& cmd)
+				[&](const vk::raii::CommandBuffer& cmd)
 				{
 					TransitionImageLayout(cmd, vk::ImageLayout::ePreinitialized,
 					                      vk::ImageLayout::eShaderReadOnlyOptimal,
@@ -118,9 +308,14 @@ namespace Tomato
 					                      vk::PipelineStageFlagBits::eFragmentShader);
 				});
 		}
-		GenerateMipMap();
+		if (m_info.gen_mips_)
+		{
+			GenerateMipMap();
+		}
 		CreateSampler();
 		CreateImageView();
+		layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		UpdateDescriptor();
 	}
 
 	void VulkanTexture2D::GenerateMipMap()
@@ -231,20 +426,43 @@ namespace Tomato
 	{
 		const auto& device = VulkanContext::Get().device;
 		vk::ImageSubresourceRange range;
-		range.setAspectMask(vk::ImageAspectFlagBits::eColor)
-		     .setBaseMipLevel(0)
-		     .setLevelCount(m_info.mip_levels_)
-		     .setBaseArrayLayer(0)
-		     .setLayerCount(1);
-
 		vk::ImageViewCreateInfo image_view_create_info;
-		image_view_create_info
-			.setFlags({})
-			.setFormat(format)
-			.setImage(*image)
-			.setViewType(vk::ImageViewType::e2D)
-			.setSubresourceRange(range)
-			.setComponents({});
+
+		if (m_info.type_ == TextureType::Color)
+		{
+			range.setAspectMask(vk::ImageAspectFlagBits::eColor)
+			     .setBaseMipLevel(0)
+			     .setLevelCount(m_info.mip_levels_)
+			     .setBaseArrayLayer(0)
+			     .setLayerCount(1);
+
+			image_view_create_info
+				.setFlags({})
+				.setFormat(format)
+				.setImage(*image)
+				.setViewType(vk::ImageViewType::e2D)
+				.setSubresourceRange(range)
+				.setComponents({});
+		}
+		else
+		{
+			auto bits = vk::ImageAspectFlagBits::eDepth;
+
+			range.setAspectMask(bits | vk::ImageAspectFlagBits::eStencil)
+			     .setBaseMipLevel(0)
+			     .setLevelCount(m_info.mip_levels_)
+			     .setBaseArrayLayer(0)
+			     .setLayerCount(1);
+
+			image_view_create_info
+				.setFlags({})
+				.setFormat(format)
+				.setImage(*image)
+				.setViewType(vk::ImageViewType::e2D)
+				.setSubresourceRange(range)
+				.setComponents({});
+		}
+
 
 		imageView = vk::raii::ImageView(device, image_view_create_info);
 	}
@@ -267,7 +485,7 @@ namespace Tomato
 			.setMaxAnisotropy(1.0f)
 			.setCompareOp(vk::CompareOp::eNever)
 			.setMinLod(0.0f)
-			.setMaxLod((m_need_stage) ? static_cast<float>(m_info.mip_levels_) : 0.0f)
+			.setMaxLod((m_need_stage) ? static_cast<float>(m_info.mip_levels_) : 1.0f)
 			.setBorderColor(vk::BorderColor::eFloatOpaqueWhite);
 
 		sampler = vk::raii::Sampler(device, sampler_create_info);
@@ -315,9 +533,16 @@ namespace Tomato
 		cmd.copyBufferToImage(*buffer, *image, vk::ImageLayout::eTransferDstOptimal, buffer_copy_regions);
 	}
 
+	void VulkanTexture2D::UpdateDescriptor()
+	{
+		descriptor = vk::DescriptorImageInfo{*sampler, *imageView, layout};
+	}
+
 	void VulkanTexture2D::CreateImage(uint32_t width, uint32_t height)
 	{
 		vk::ImageCreateInfo create_info;
+
+
 		create_info
 			.setImageType(vk::ImageType::e2D)
 			.setArrayLayers(1)
@@ -326,13 +551,15 @@ namespace Tomato
 			.setFormat(format)
 			.setTiling(m_need_stage ? vk::ImageTiling::eOptimal : vk::ImageTiling::eLinear)
 			.setInitialLayout((m_need_stage ? vk::ImageLayout::eUndefined : vk::ImageLayout::ePreinitialized))
-			.setUsage(vk::ImageUsageFlagBits::eSampled |
+			.setUsage(vk::ImageUsageFlagBits::eSampled | Utils::ToVulkanTexture(m_info.usage_) |
 				(m_need_stage
 					 ? vk::ImageUsageFlagBits::eTransferDst
 					 : vk::ImageUsageFlagBits()) |
 				vk::ImageUsageFlagBits::eTransferSrc)
 			.setSamples(vk::SampleCountFlagBits::e1)
 			.setSharingMode(vk::SharingMode::eExclusive);
+
+
 		image = VulkanContext::Get().device.createImage(create_info);
 	}
 

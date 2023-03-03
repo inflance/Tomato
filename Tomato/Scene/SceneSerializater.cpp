@@ -1,4 +1,4 @@
-#include "SceneSerializater.h"
+#include "SceneSerializater.hpp"
 
 #include <fstream>
 
@@ -146,13 +146,13 @@ namespace Tomato
 					}*/
 
 				auto spriteComponent = g["SpriteComponent"];
-				if (spriteComponent.empty() == false)
+				/*if (spriteComponent.empty() == false)
 				{
 					auto& src = deserializedEntity.AddComponent<SpriteComponent>();
 					src.color_ = spriteComponent["Color"].get<glm::vec4>();
 					src.texture_ = Texture2D::Create(spriteComponent["TexturePath"].get<std::string>());
 					src.tiling_factor_ = spriteComponent["TilingFactor"].get<int>();
-				}
+				}*/
 			}
 		}
 
@@ -195,7 +195,7 @@ namespace Tomato
 		//	js["Entity"]["CameraComponent"]["IsMain"] = cc.IsMain;
 		//	js["Entity"]["CameraComponent"]["IsResize"] = cc.IsResize;
 		//}
-		if (entity.HasComponent<SpriteComponent>())
+		/*if (entity.HasComponent<SpriteComponent>())
 		{
 			auto& spriteComponent = entity.GetComponent<SpriteComponent>();
 			auto& color = spriteComponent.color_;
@@ -207,7 +207,7 @@ namespace Tomato
 			else
 				js["Entity"]["SpriteComponent"]["TexturePath"] = "";
 			js["Entity"]["SpriteComponent"]["TilingFactor"] = tilingFactor;
-		}
+		}*/
 		json = js;
 	}
 }
