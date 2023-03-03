@@ -1,12 +1,12 @@
-#include "RenderPass.h"
+#include "RenderPass.hpp"
 
-#include "Renderer.h"
-#include "RendererAPI.h"
-#include "Vulkan/VulkanRenderPass.h"
+#include "Renderer.hpp"
+#include "RendererAPI.hpp"
+#include "Vulkan/VulkanRenderPass.hpp"
 
 namespace Tomato
 {
-	Ref<RenderPass> RenderPass::Create(const RenderPassProps& props)
+	Ref<RenderPass> RenderPass::Create(RenderPassInfo props)
 	{
 		switch (Renderer::GetCurrentAPI())
 		{
@@ -16,5 +16,6 @@ namespace Tomato
 		case RendererAPI::API::DirectX12: return nullptr;
 		}
 		LOG_ASSERT(false, "Unknow");
+		return {};
 	}
 }

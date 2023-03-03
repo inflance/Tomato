@@ -1,11 +1,14 @@
-#include "RendererAPI.h"
+#include "RendererAPI.hpp"
 
-#include "Vulkan/VulkanRendererAPI.h"
+
+#include "GraphicsContext.hpp"
+#include "IndexBuffer.hpp"
+#include "Model.hpp"
+
+#include "Vulkan/VulkanRendererAPI.hpp"
 
 namespace Tomato
 {
-	RendererAPI::API RendererAPI::s_api = API::Vulkan;
-
 	Ref<RendererAPI> RendererAPI::Create()
 	{
 		switch (s_api)

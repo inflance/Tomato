@@ -1,8 +1,8 @@
-#include "Texture.h"
+#include "Texture.hpp"
 
-#include "Renderer.h"
-#include "Tomato/Core/Core.h"
-#include "Tomato/Renderer/Vulkan/VulkanTexture.h"
+#include "Renderer.hpp"
+#include "Tomato/Core/Core.hpp"
+#include "Tomato/Renderer/Vulkan/VulkanTexture2D.hpp"
 
 namespace Tomato
 {
@@ -26,6 +26,19 @@ namespace Tomato
 		case RendererAPI::API::None: return nullptr;
 		case RendererAPI::API::OpenGL: return nullptr;
 		case RendererAPI::API::Vulkan: return std::make_shared<VulkanTexture2D>(data, info);
+		case RendererAPI::API::DirectX12: return nullptr;
+		}
+		LOG_ASSERT(false, "api");
+		return nullptr;
+	}
+
+	std::shared_ptr<Texture2D> Texture2D::Create(TextureInfo info)
+	{
+		switch (Renderer::GetCurrentAPI())
+		{
+		case RendererAPI::API::None: return nullptr;
+		case RendererAPI::API::OpenGL: return nullptr;
+		case RendererAPI::API::Vulkan: return std::make_shared<VulkanTexture2D>(info);
 		case RendererAPI::API::DirectX12: return nullptr;
 		}
 		LOG_ASSERT(false, "api");

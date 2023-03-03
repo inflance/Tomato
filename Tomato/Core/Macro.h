@@ -2,6 +2,8 @@
 
 #include "Log.h"
 
+
+#define NoCopy(class) #class(const class&) = delete;
 #define BIT(x) (1 << (x))
 //log macro
 #define  LOG_TRACE(...) ::Tomato::Log::Trace( __VA_ARGS__ )

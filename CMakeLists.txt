@@ -1,5 +1,5 @@
-ï»¿# CMakeList.txt: é¡¶å±‚ CMake é¡¹ç›®æ–‡ä»¶ï¼Œåœ¨æ­¤å¤„æ‰§è¡Œå…¨å±€é…ç½®
-# å¹¶åŒ…å«å­é¡¹ç›®ã€‚
+# CMakeList.txt: ¶¥²ã CMake ÏîÄ¿ÎÄ¼ş£¬ÔÚ´Ë´¦Ö´ĞĞÈ«¾ÖÅäÖÃ
+# ²¢°üº¬×ÓÏîÄ¿¡£
 #
 cmake_minimum_required (VERSION 3.12.4)
 
@@ -8,7 +8,7 @@ project (TomatoEditor)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(${PROJECT_NAME}  "Main.cpp"  "TestLayer.h" "TestLayer.cpp")
+add_executable(${PROJECT_NAME}  "Main.cpp"  "TestLayer.h" "TestLayer.cpp" "Resource/Tomato.rc")
 
 set(ENGINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -44,7 +44,3 @@ target_link_libraries(
 	Tomato
 	Editor
 )
-
-
-
-

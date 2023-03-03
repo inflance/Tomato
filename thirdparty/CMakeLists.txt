@@ -12,6 +12,8 @@ add_subdirectory(ImGuizmo)
 add_subdirectory(VulkanMemoryAllocator)
 add_subdirectory(vulkan-hpp)
 add_subdirectory(tinyobjloader)
+add_subdirectory(box2d)
+
 
 file(GLOB assimpdll "${CMAKE_CURRENT_SOURCE_DIR}/assimp/bin/Debug/assimp-vc142-mtd.dll")
 file(COPY ${assimpdll} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

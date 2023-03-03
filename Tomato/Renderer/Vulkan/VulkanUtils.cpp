@@ -1,4 +1,4 @@
-#include "VulkanUtils.h"
+#include "VulkanUtils.hpp"
 
 #include "Tomato/Core/Window.h"
 

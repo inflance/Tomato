@@ -1,9 +1,9 @@
-#include "IndexBuffer.h"
+#include "IndexBuffer.hpp"
 
-#include "Renderer.h"
-#include "RendererAPI.h"
+#include "Renderer.hpp"
+#include "RendererAPI.hpp"
 #include "Tomato/Core/Macro.h"
-#include "Vulkan/VulkanIndexBuffer.h"
+#include "Vulkan/VulkanIndexBuffer.hpp"
 
 namespace Tomato
 {

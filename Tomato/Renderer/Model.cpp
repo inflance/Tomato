@@ -1,4 +1,4 @@
-#include "Model.h"
+#include "Model.hpp"
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
@@ -41,11 +41,14 @@ namespace Tomato
 			for (const auto& index : shape.mesh.indices)
 			{
 				Vertex vertex{};
-				vertex.position_ = {
+				if(index.vertex_index >=0)
+				{
+					vertex.position_ = {
 					attrib.vertices[3 * index.vertex_index + 0],
 					attrib.vertices[3 * index.vertex_index + 1],
 					attrib.vertices[3 * index.vertex_index + 2]
-				};
+					};
+				}
 
 				if (index.normal_index >= 0)
 				{
@@ -55,7 +58,6 @@ namespace Tomato
 						attrib.normals[3 * index.normal_index + 2]
 					};
 				}
-
 				vertex.tex_coord_ = {
 					attrib.texcoords[2 * index.texcoord_index + 0],
 					1.0 - attrib.texcoords[2 * index.texcoord_index + 1]

@@ -11,11 +11,11 @@ namespace Tomato
 
 	Entity EntityRegistry::CreateEntity()
 	{
-		auto entity = m_registry.create();
-		return Entity(entity, this);
+		const auto entity = m_registry.create();
+		return { entity, this };
 	}
 
-	void EntityRegistry::DestoryEntity(Entity& entity)
+	void EntityRegistry::DestroyEntity(const Entity& entity)
 	{
 		m_registry.destroy(entity);
 	}

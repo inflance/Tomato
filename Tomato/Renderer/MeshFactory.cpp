@@ -1,6 +1,6 @@
-#include "MeshFactory.h"
+#include "MeshFactory.hpp"
 
-#include "Tomato/Core/Core.h"
+#include "Tomato/Core/Core.hpp"
 
 namespace Tomato
 {

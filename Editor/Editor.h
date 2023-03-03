@@ -1,10 +1,9 @@
 #pragma once
 
-#include "ScenePanel.h"
 #include "AssetPanel.h"
 
 #include "Tomato/Tomato.h"
-#include "Tomato/Renderer/Mesh.h"
+#include "Tomato/Renderer/Mesh.hpp"
 
 
 namespace Tomato
@@ -64,7 +63,6 @@ namespace Tomato
 		EditorCamera m_editorCamera;
 		EditorMode m_editorMode = EditorMode::DefaultMode;
 
-		ScenePanel m_ScenePanel;
 		AssetPanel m_asset_panel;
 
 		int m_zgmoMode = -1;

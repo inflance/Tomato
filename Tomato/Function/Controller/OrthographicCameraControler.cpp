@@ -1,8 +1,8 @@
-#include "OrthographicCameraControler.h"
+#include "OrthographicCameraControler.hpp"
 
-#include "Tomato/Core/Core.h"
-#include "Tomato/Input/Input.h"
-#include "Tomato/Input/Codes.h"
+#include "Tomato/Core/Core.hpp"
+#include "Tomato/Input/Input.hpp"
+#include "Tomato/Input/Codes.hpp"
 
 namespace Tomato
 {

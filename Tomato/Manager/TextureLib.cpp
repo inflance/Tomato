@@ -1,4 +1,4 @@
-#include "TextureLib.h"
+#include "TextureLib.hpp"
 
 namespace Tomato
 {
@@ -15,6 +15,7 @@ namespace Tomato
 			return false;
 		}
 		m_tex_lib[path] = tex;
+		LOG_INFO("Texture {} added", path);
 		return true;
 	}
 

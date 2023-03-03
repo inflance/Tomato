@@ -1,8 +1,8 @@
-#include "VulkanImGuiLayer.h"
+#include "VulkanImGuiLayer.hpp"
 
 #include <imgui.h>
 #include "ImGuizmo.h"
-#include "VulkanContext.h"
+#include "VulkanContext.hpp"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "Tomato/Core/Engine.h"
@@ -10,9 +10,10 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 
-#include "VulkanSwapChain.h"
-#include "VulkanCommandExecutor.h"
-#include "Tomato/Renderer/RendererConfig.h"
+#include "VulkanSwapChain.hpp"
+#include "VulkanCommandExecutor.hpp"
+#include "Tomato/ImGui/Notify.hpp"
+#include "Tomato/Renderer/RendererConfig.hpp"
 
 
 namespace Tomato
@@ -31,7 +32,7 @@ namespace Tomato
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
-		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
 		//io.ConfigViewportsNoDecoration = false;
 		//io.ConfigViewportsNoAutoMerge = true;
 		//io.ConfigViewportsNoTaskBarIcon = true;
@@ -50,10 +51,8 @@ namespace Tomato
 		}
 		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.15f, 0.15f, 0.15f, style.Colors[ImGuiCol_WindowBg].w);
 
-		/*Renderer::Submit([instance]()
-			{*/
 
-		const auto& vulkanContext = VulkanContext::Get();
+		const auto& vulkan_context = VulkanContext::Get();
 
 		//set up descriptor poopl
 		{
@@ -86,22 +85,22 @@ namespace Tomato
 		// Setup Platform/Renderer bindings
 		ImGui_ImplGlfw_InitForVulkan(window, true);
 		ImGui_ImplVulkan_InitInfo init_info = {};
-		init_info.Instance = *vulkanContext.instance;
-		init_info.PhysicalDevice = *vulkanContext.physicalDevice;
-		init_info.Device = *vulkanContext.device;
-		init_info.QueueFamily = vulkanContext.queueFamily.Graphics.value();
-		init_info.Queue = *vulkanContext.graphicsQueue;
-		init_info.PipelineCache = {};
+		init_info.Instance = *vulkan_context.instance;
+		init_info.PhysicalDevice = *vulkan_context.physicalDevice;
+		init_info.Device = *vulkan_context.device;
+		init_info.QueueFamily = vulkan_context.queueFamily.Graphics.value();
+		init_info.Queue = *vulkan_context.graphicsQueue;
+		init_info.PipelineCache = *vulkan_context.pipelineCache;
 		init_info.DescriptorPool = *descPool;
 		init_info.Allocator = nullptr;
 		init_info.MinImageCount = 2;
-		auto& swapChain = vulkanContext.swapChain;
+		auto& swapChain = vulkan_context.swapChain;
 		init_info.ImageCount = swapChain->GetImageCount();
 		init_info.CheckVkResultFn = [](VkResult res)
 		{
 			LOG_ASSERT(res == VK_SUCCESS, "")
 		};
-		ImGui_ImplVulkan_Init(&init_info, *vulkanContext.renderPass);
+		ImGui_ImplVulkan_Init(&init_info, *vulkan_context.renderPass);
 
 		// Load Fonts
 		// - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
@@ -117,10 +116,10 @@ namespace Tomato
 		//io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
 		//ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
 		//IM_ASSERT(font != NULL);
-
+		Notify::Init();
 		//Upload Fonts
 		{
-			CommandExecutor::Get().ImmediateExecute(vulkanContext.graphicsQueue,
+			CommandExecutor::Get().ImmediateExecute(vulkan_context.graphicsQueue,
 			                                        [](const vk::raii::CommandBuffer& cmdBuf)mutable
 			                                        {
 				                                        ImGui_ImplVulkan_CreateFontsTexture(*cmdBuf);
@@ -131,13 +130,6 @@ namespace Tomato
 
 			s_command_buffers = CommandExecutor::CreateCommandBuffers(FrameInFlight);
 		}
-
-		/*	uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
-			s_ImGuiCommandBuffers.resize(framesInFlight);
-			for (uint32_t i = 0; i < framesInFlight; i++)
-				s_ImGuiCommandBuffers[i] = VulkanContext::GetCurrentDevice()->CreateSecondaryCommandBuffer(
-					"ImGuiSecondaryCoommandBuffer");
-		});*/
 	}
 
 
@@ -157,7 +149,7 @@ namespace Tomato
 
 	void VulkanImGuiLayer::OnImGuiRenderer()
 	{
-		ImGui::ShowDemoWindow();
+		
 	}
 
 	void VulkanImGuiLayer::Begin()
@@ -165,15 +157,15 @@ namespace Tomato
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		//ImGuizmo::BeginFrame();
+		ImGuizmo::BeginFrame();
 	}
 
 	void VulkanImGuiLayer::End()
 	{
+		Notify::Render();
 		ImGui::Render();
 		ImDrawData* main_draw_data = ImGui::GetDrawData();
 		ImGui_ImplVulkan_RenderDrawData(main_draw_data, *VulkanContext::Get().GetCurrentCommandBuffer());
-
 		ImGuiIO& io = ImGui::GetIO();
 		(void)io;
 		// Update and Render additional Platform Windows

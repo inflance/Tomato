@@ -1,28 +1,27 @@
-#include "CommandQueue.h"
+#include "CommandQueue.hpp"
 
 namespace Tomato
 {
 	CommandQueue::CommandQueue()
 	{
-		//m_command_queue.resize(512 * 1024);
 	}
 
 	CommandQueue::~CommandQueue()
 	{
-		m_command_queue.clear();
 	}
 
 	void CommandQueue::Allocate(CommandFn&& func)
 	{
-		m_command_queue.emplace_back(std::forward<CommandFn>(func));
+		m_command_queue.emplace(std::move(func));
 	}
 
 	void CommandQueue::Execute()
 	{
-		for (auto& func : m_command_queue)
+		while (!m_command_queue.empty())
 		{
+			const auto& func = m_command_queue.front();
 			func();
+			m_command_queue.pop();
 		}
-		m_command_queue.clear();
 	}
 }

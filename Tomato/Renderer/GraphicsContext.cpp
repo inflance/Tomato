@@ -1,8 +1,8 @@
-#include "GraphicsContext.h"
+#include "GraphicsContext.hpp"
 
-#include "Renderer.h"
-#include "Tomato/Core/Core.h"
-#include "Vulkan/VulkanContext.h"
+#include "Renderer.hpp"
+#include "Tomato/Core/Core.hpp"
+#include "Vulkan/VulkanContext.hpp"
 
 namespace Tomato
 {

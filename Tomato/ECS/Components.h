@@ -7,16 +7,20 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#include "Tomato/Scene/Light.h"
-#include "Tomato/Scene/ScriptableEntity.h"
-#include "Tomato/Scene/SceneCamera.h"
+#include "ScriptableEntity.hpp"
+#include "Tomato/ECS/Components/Light.hpp"
 #include "Tomato/Core/Math.h"
-#include "Tomato/Function/Camera/EditorCamera.h"
-#include "Tomato/Renderer/Texture.h"
+#include "Tomato/Renderer/Texture.hpp"
+#include "Tomato/ECS/Components/RigidBody2D.hpp"
+#include "Tomato/ECS/Components/SpriteRenderer.hpp"
+#include "Tomato/Renderer/Model.hpp"
+#include "Tomato/Function/Camera/Camera.hpp"
 
 
 namespace Tomato
 {
+	class ScriptableEntity;
+
 	struct TransformComponent
 	{
 		glm::vec3 position_ = glm::vec3(0.0f);
@@ -70,53 +74,54 @@ namespace Tomato
 		TagComponent(const TagComponent& other) = default;
 	};
 
-	struct SpriteComponent
-	{
-		glm::vec4 color_{1.0f};
-		float tiling_factor_ = 1.0f;
-		//white texture
-		std::shared_ptr<Texture2D> texture_ = Texture2D::Create(std::string());
-
-		SpriteComponent() = default;
-
-		SpriteComponent(const glm::vec4& color)
-			: color_(color)
-		{
-		}
-
-		SpriteComponent(const SpriteComponent& other) = default;
-	};
-
 
 	struct NativeScriptComponent
 	{
-		ScriptableEntity* Instance = nullptr;
+		ScriptableEntity* instance_ = nullptr;
 
-		ScriptableEntity* (*InstantiateScript)();
-		void (*DestroyScript)(NativeScriptComponent*);
+		ScriptableEntity* (*instantiate_script_)();
+		void (*destroy_script)(NativeScriptComponent*);
+
+		NativeScriptComponent() = default;
+		~NativeScriptComponent();
 
 		template <typename T>
 		void Bind()
 		{
-			InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
-			DestroyScript = [](NativeScriptComponent* nativeScriptComponent)
+			instantiate_script_ = []() { return static_cast<ScriptableEntity*>(new T()); };
+			if (!instance_) {
+				instance_ = instantiate_script_();
+				instance_->OnCreate();
+			}
+			destroy_script = [](NativeScriptComponent* native_script_component)
 			{
-				delete nativeScriptComponent->Instance;
-				nativeScriptComponent->Instance = nullptr;
+				native_script_component->instance_->OnDestroy();
+				delete native_script_component->instance_;
+				native_script_component->instance_ = nullptr;
 			};
 		}
 	};
 
-	struct LightComponent
+	inline NativeScriptComponent::~NativeScriptComponent()
 	{
-		Light light_{};
+		destroy_script(this);
+	}
 
-		LightComponent() = default;
 
-		LightComponent(LightType lightType, float intensity, const glm::vec4& color, const glm::vec3& direction)
+	template <typename T>
+	struct ResetComponent
+	{
+		T component_;
+
+		ResetComponent() = default;
+		ResetComponent(const ResetComponent&) = default;
+
+		ResetComponent(const T& component)
 		{
+			component_ = component;
 		}
 	};
+
 #if 0
 
 	struct MatirialComponent

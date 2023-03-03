@@ -9,13 +9,13 @@
 
 #include "Tomato/Core/Math.h"
 #include "Tomato/Core/File.h"
-#include "Tomato/Input/Input.h"
+#include "Tomato/Input/Input.hpp"
 #include "Tomato/Core/Timer.h"
-#include "Tomato/Scene/ScriptableEntity.h"
-#include "Tomato/Renderer/Mesh.h"
-#include "Tomato/Renderer/Pipeline.h"
-#include "Tomato/Renderer/RenderPass.h"
-#include "Tomato/Renderer/ShaderFactory.h"
+#include "Tomato/Scene/ScriptableEntity.hpp"
+#include "Tomato/Renderer/Mesh.hpp"
+#include "Tomato/Renderer/Pipeline.hpp"
+#include "Tomato/Renderer/RenderPass.hpp"
+#include "Tomato/Renderer/ShaderFactory.hpp"
 
 namespace Tomato
 {
@@ -43,7 +43,7 @@ namespace Tomato
 
 			//Renderer2D::ResetStats();
 			//m_Scene->Tick(ts);
-		m_frameBuffer->Bind();
+		//m_frameBuffer->Bind();
 
 		//RendererCommand::SetClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		//m_frameBuffer->ClearAttachment(1, -1);
@@ -88,7 +88,7 @@ namespace Tomato
 			const ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImGui::SetNextWindowPos(viewport->WorkPos);
 			ImGui::SetNextWindowSize(viewport->WorkSize);
-			//ImGui::SetNextWindowViewport(viewport->ID);
+			ImGui::SetNextWindowViewport(viewport->ID);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 9.0f);
@@ -100,7 +100,7 @@ namespace Tomato
 			ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 7.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.00f, 0.5f));
 			//window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-			ImGuiWindowFlags_NoMove;
+			//ImGuiWindowFlags_NoMove;
 			//window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 		}
 		else
@@ -212,16 +212,16 @@ namespace Tomato
 					m_viewPortSize = { viewPortSize.x, viewPortSize.y };
 					//LOG_WARN("{0}{1}", m_viewPortSize.x, m_viewPortSize.y);
 
-					m_frameBuffer->Resize(m_viewPortSize.x, m_viewPortSize.y);
+					//m_frameBuffer->Resize(m_viewPortSize.x, m_viewPortSize.y);
 					m_Scene->SetViewPortResize(m_viewPortSize.x, m_viewPortSize.y);
 					m_editorCamera.SetViewportSize(m_viewPortSize.x, m_viewPortSize.y);
 				}
 			}
 
-			uint32_t id = m_frameBuffer->GetRendererID();
+			//uint32_t id = m_frameBuffer->GetRendererID();
 
-			ImGui::Image((void*)(id), ImVec2{ m_viewPortSize.x, m_viewPortSize.y }, ImVec2{ 0, 1 },
-				ImVec2{ 1, 0 });
+			//ImGui::Image((void*)(id), ImVec2{ m_viewPortSize.x, m_viewPortSize.y }, ImVec2{ 0, 1 },
+				//ImVec2{ 1, 0 });
 
 			{
 				Entity SelectedEntity = m_ScenePanel.GetSelectedEntity();
@@ -240,7 +240,7 @@ namespace Tomato
 
 					const auto& cc = cameraEntity.GetComponent<CameraComponent>().Camera;
 					auto cameraProjection = cc.GetProjection();
-					auto cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());*/
+					auto cameraView = glm::inverse(cameraEntity.GetComponent< >().GetTransform());*/
 
 					//auto cameraProjection = m_editorCamera.GetProjection();
 					auto cameraView = m_editorCamera.GetViewMatrix();
@@ -248,7 +248,7 @@ namespace Tomato
 					auto& tc = SelectedEntity.GetComponent<TransformComponent>();
 					auto transform = tc.GetTransform();
 
-					/*Manipulate(value_ptr(cameraView), value_ptr(cameraProjection),
+				/*	Manipulate(value_ptr(cameraView), value_ptr(cameraProjection),
 					static_cast<ImGuizmo::OPERATION>(m_zgmoMode), ImGuizmo::LOCAL,
 						value_ptr(transform)); */
 
@@ -293,7 +293,7 @@ namespace Tomato
 	{
 		m_Scene = std::make_shared<Scene>();
 		m_Scene->SetViewPortResize(m_viewPortSize.x, m_viewPortSize.y);
-		m_ScenePanel.SetContex(m_Scene);
+		m_ScenePanel.SetContext(m_Scene);
 	}
 
 	void Editor::OpenScene()
@@ -308,7 +308,7 @@ namespace Tomato
 			{
 				m_Scene = newScene;
 				m_Scene->SetViewPortResize(m_viewPortSize.x, m_viewPortSize.y);
-				m_ScenePanel.SetContex(m_Scene);
+				m_ScenePanel.SetContext(m_Scene);
 			}
 			else
 			{
@@ -410,7 +410,7 @@ namespace Tomato
 
 	void Editor::DeBugInfoPanel()
 	{
-		ImGui::Begin("setting");
+		/*ImGui::Begin("setting");
 		{
 			const auto stats = Renderer2D::GetStats();
 			ImGui::Text("DrawCalls:%d ", stats.DrawCalls);
@@ -420,7 +420,7 @@ namespace Tomato
 
 			ImGui::Text("fps: %u", Engine::Get().GetFPS());
 		}
-		ImGui::End();
+		ImGui::End();*/
 	}
 
 	bool Editor::OnMouseButtonReleased(MouseButtonReleasedEvent& e)

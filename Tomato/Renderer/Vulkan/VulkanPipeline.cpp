@@ -1,11 +1,11 @@
-#include "VulkanPipeline.h"
+#include "VulkanPipeline.hpp"
 
-#include "VulkanContext.h"
-#include "VulkanRenderPass.h"
-#include "VulkanShader.h"
-#include "VulkanTexture.h"
-#include "VulkanUniformBuffer.h"
-#include "VulkanVertexBuffer.h"
+#include "VulkanContext.hpp"
+#include "VulkanRenderPass.hpp"
+#include "VulkanShader.hpp"
+#include "VulkanTexture2D.hpp"
+#include "VulkanUniformBuffer.hpp"
+#include "VulkanVertexBuffer.hpp"
 
 namespace Tomato
 {
@@ -21,6 +21,17 @@ namespace Tomato
 			}
 			ASSERT(false);
 			return vk::DescriptorType::eUniformBuffer;
+		}
+
+		static inline auto ToVulkanShaderStageFlag(ShaderType flags)
+		{
+			switch (flags)
+			{
+			case ShaderType::Vertex: return vk::ShaderStageFlagBits::eVertex;
+			case ShaderType::Fragment: return vk::ShaderStageFlagBits::eFragment;
+			}
+			ASSERT(false);
+			return vk::ShaderStageFlagBits::eVertex;
 		}
 
 		static inline auto ToVulkanShaderStageFlag(ShaderStageFlags flags)
@@ -72,14 +83,20 @@ namespace Tomato
 
 		pipelineLayout = vk::raii::PipelineLayout(device, {{}, *descriptorSetLayout});
 
-		vk::raii::ShaderModule vertexShaderModule = nullptr, fragmentShaderModule = nullptr;
-		if (shader->HasShader(ShaderType::Vertex))
-			vertexShaderModule = shader->GetShaderModule(device, ShaderType::Vertex);
-		if (shader->HasShader(ShaderType::Fragment))
-			fragmentShaderModule = shader->GetShaderModule(device, ShaderType::Fragment);
+		assert(!poolSizes.empty());
+		uint32_t maxSets = std::accumulate(
+			poolSizes.begin(), poolSizes.end(), 0, [](uint32_t sum, const vk::DescriptorPoolSize& dps)
+			{
+				return sum + dps.descriptorCount;
+			});
+		assert(0 < maxSets);
+
+		vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+		                                                      maxSets, poolSizes);
+
+		descriptorPool = vk::raii::DescriptorPool(device, descriptorPoolCreateInfo);
 
 
-		descriptorPool = Utils::makeDescriptorPool(device, poolSizes);
 		descriptorSet = vk::raii::DescriptorSets(device, {*descriptorPool, *descriptorSetLayout});
 		//descriptorSet.resize(2);
 		std::vector<std::tuple<vk::DescriptorType, const vk::raii::Buffer&, vk::DeviceSize, const vk::raii::BufferView
@@ -96,30 +113,121 @@ namespace Tomato
 			imageData.emplace_back(textureData[i]->sampler, textureData[i]->imageView);
 		}
 
-		for (int i = 0; i < descriptorSet.size(); i++)
+		for (auto& i : descriptorSet)
 		{
 			Utils::updateDescriptorSets(
-				device, descriptorSet[i], {
+				device, i, {
 					bufferData
 				}, imageData);
 		}
 
 		const auto& renderPass = As<VulkanRenderPass>(props.render_pass_)->renderPass;
 		auto vi = VulkanVertexBuffer::GetVulkanVertexLayout(props.vertex_layout_);
-		graphicsPipeline = Utils::makeGraphicsPipeline(device,
-		                                               pipelineCache,
-		                                               vertexShaderModule,
-		                                               nullptr,
-		                                               fragmentShaderModule,
-		                                               nullptr,
-		                                               props.vertex_layout_.GetStride(),
-		                                               {
-			                                               vi
-		                                               },
-		                                               vk::FrontFace::eClockwise,
-		                                               true,
-		                                               pipelineLayout,
-		                                               renderPass);
+
+		std::vector<vk::PipelineShaderStageCreateInfo> pipeline_shader_stage_create_infos;
+
+		for (auto& shader_module : shader->CreateShaderModule())
+		{
+			vk::PipelineShaderStageCreateInfo cf;
+			cf.setPName("main").setStage(Utils::ToVulkanShaderStageFlag(shader_module.first))
+			  .setFlags({}).setModule(*shader_module.second).setPSpecializationInfo(nullptr);
+			pipeline_shader_stage_create_infos.emplace_back(cf);
+		}
+
+		auto vertex_stride = props.vertex_layout_.GetStride();
+
+		std::vector<vk::VertexInputAttributeDescription> vertex_attribute_descriptions;
+		vk::PipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo;
+		vk::VertexInputBindingDescription vertexInputBindingDescription(0, props.vertex_layout_.GetStride());
+
+		if (0 < vertex_stride)
+		{
+			vertex_attribute_descriptions.reserve(vi.size());
+			for (uint32_t i = 0; i < vi.size(); i++)
+			{
+				vertex_attribute_descriptions.emplace_back(i, 0, vi[i].first,
+				                                           vi[i].second);
+			}
+			pipelineVertexInputStateCreateInfo.setVertexBindingDescriptions(vertexInputBindingDescription);
+			pipelineVertexInputStateCreateInfo.setVertexAttributeDescriptions(vertex_attribute_descriptions);
+		}
+
+		vk::PipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo(
+			vk::PipelineInputAssemblyStateCreateFlags(),
+			vk::PrimitiveTopology::eTriangleList);
+
+		vk::PipelineViewportStateCreateInfo pipelineViewportStateCreateInfo(
+			vk::PipelineViewportStateCreateFlags(), 1, nullptr, 1, nullptr);
+
+		vk::PipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo(
+			vk::PipelineRasterizationStateCreateFlags(),
+			false,
+			false,
+			vk::PolygonMode::eFill,
+			vk::CullModeFlagBits::eNone,
+			vk::FrontFace::eClockwise,
+			false,
+			0.0f,
+			0.0f,
+			0.0f,
+			1.0f);
+		
+		vk::PipelineMultisampleStateCreateInfo pipeline_multisample_state_create_info({}, vk::SampleCountFlagBits::e1);
+
+		vk::StencilOpState stencilOpState(vk::StencilOp::eKeep, vk::StencilOp::eKeep, vk::StencilOp::eKeep,
+		                                  vk::CompareOp::eAlways);
+		vk::PipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo(
+			vk::PipelineDepthStencilStateCreateFlags(), true, true, vk::CompareOp::eLessOrEqual,
+			false, false, stencilOpState, stencilOpState);
+
+		//Set Blend
+		/*
+		 *	new_rgb = (src_factor * src_rgb) op (dst_factor  * dst_rgb)
+		 *	new_a = (src_factor * src_a) op (dst_factor  * dst_a)
+		 *
+		 *	new_rgb = 1 * src_rgb + (1 - srcA) * dst_rgb
+		 *	new_a = src_a === 1 * src_a + 0 * dst_a;
+		 */
+		//one way blend
+		vk::ColorComponentFlags color_write_mask(
+			vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB |
+			vk::ColorComponentFlagBits::eA);
+
+		vk::PipelineColorBlendAttachmentState color_blend_attachment_state;
+		color_blend_attachment_state.setBlendEnable(true)
+		.setSrcColorBlendFactor(vk::BlendFactor::eOne)
+		.setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha)
+		.setColorBlendOp(vk::BlendOp::eAdd)
+		.setSrcAlphaBlendFactor(vk::BlendFactor::eOne)
+		.setDstAlphaBlendFactor(vk::BlendFactor::eZero)
+		.setAlphaBlendOp(vk::BlendOp::eAdd)
+		.setColorWriteMask(color_write_mask);
+
+		//by bits
+		vk::PipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo(
+			vk::PipelineColorBlendStateCreateFlags(), false, vk::LogicOp::eNoOp, color_blend_attachment_state,
+			{{1.0f, 1.0f, 1.0f, 1.0f}});
+		//Set Blend
+
+		std::array<vk::DynamicState, 2> dynamicStates = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+		vk::PipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo(
+			vk::PipelineDynamicStateCreateFlags(), dynamicStates);
+
+		vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo(vk::PipelineCreateFlags(),
+		                                                          pipeline_shader_stage_create_infos,
+		                                                          &pipelineVertexInputStateCreateInfo,
+		                                                          &pipelineInputAssemblyStateCreateInfo,
+		                                                          nullptr,
+		                                                          &pipelineViewportStateCreateInfo,
+		                                                          &pipelineRasterizationStateCreateInfo,
+		                                                          &pipeline_multisample_state_create_info,
+		                                                          &pipelineDepthStencilStateCreateInfo,
+		                                                          &pipelineColorBlendStateCreateInfo,
+		                                                          &pipelineDynamicStateCreateInfo,
+		                                                          *pipelineLayout,
+		                                                          *renderPass);
+
+		graphicsPipeline = vk::raii::Pipeline(device, pipelineCache, graphicsPipelineCreateInfo);
 	}
 
 	void VulkanPipeline::Init()

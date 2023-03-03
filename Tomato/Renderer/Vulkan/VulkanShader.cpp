@@ -1,11 +1,11 @@
-#include "VulkanShader.h"
+#include "VulkanShader.hpp"
 
 #include <shaderc/shaderc.hpp>
 #include <vulkan/vulkan_core.h>
 #include <spirv_cross/spirv_cross.hpp>
 
 #include "Tomato/Core/Log.h"
-#include "Tomato/Function/Loder.h"
+#include "Tomato/Function/Loder.hpp"
 #include "Tomato/Core/FileSystem.h"
 #include "Tomato/Core/Timer.h"
 
@@ -141,6 +141,11 @@ namespace Tomato
 		CompileGLSLToSPIRV();
 	}
 
+	VulkanShader::~VulkanShader()
+	{
+		DestroyShaderModule();
+	}
+
 	void VulkanShader::Bind() const
 	{
 	}
@@ -183,6 +188,7 @@ namespace Tomato
 
 	void VulkanShader::CompileGLSLToSPIRV()
 	{
+		LOG_INFO("{} shader compile", m_create_info.Name);
 		//Timer timer("CompileGLSLToSPIRV");
 		shaderc::Compiler compiler;
 		shaderc::CompileOptions options;

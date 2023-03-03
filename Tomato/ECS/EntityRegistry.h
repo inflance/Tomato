@@ -1,4 +1,5 @@
 #pragma once
+
 #include <entt/entt.hpp>
 
 namespace Tomato
@@ -9,11 +10,12 @@ namespace Tomato
 	{
 	public:
 		EntityRegistry() = default;
+
 		EntityRegistry(std::string name);
 
 		Entity CreateEntity();
 	
-		void DestoryEntity(Entity& entity);
+		void DestroyEntity(const Entity& entity);
 
 		auto& Get() { return m_registry; }
 	private:

@@ -1,17 +1,17 @@
-#include "VulkanContext.h"
+#include "VulkanContext.hpp"
 
 #include "Tomato/Core/Macro.h"
-#include "VulkanUtils.h"
-#include "VulkanDebug.h"
+#include "VulkanUtils.hpp"
+#include "VulkanDebug.hpp"
 #include <ThirdParty/Vulkan-Hpp/RAII_Samples/utils/utils.hpp>
 #ifdef TMT_PLATFORM_WINDOWS
 #define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
-#include "VulkanShader.h"
-#include "VulkanConfig.h"
-#include "VulkanSwapChain.h"
-#include "Tomato/Renderer/RendererConfig.h"
+#include "VulkanShader.hpp"
+#include "VulkanConfig.hpp"
+#include "VulkanSwapChain.hpp"
+#include "Tomato/Renderer/RendererConfig.hpp"
 
 constexpr const char* VK_LAYER_LUNARG_STANDARD_VALIDATION_NAME = "VK_LAYER_LUNARG_standard_validation";
 constexpr const char* VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME = "VK_LAYER_LUNARG_assistant_layer";
@@ -227,15 +227,15 @@ namespace Tomato
 		}
 
 		swapChain->InitSwapChain(m_width, m_height);
-		m_depth_buffer_data = Utils::DepthBufferData(physicalDevice, device, vk::Format::eD16Unorm, swapChain->extent);
+		//m_depth_buffer_data = Utils::DepthBufferData(physicalDevice, device, vk::Format::eD16Unorm, swapChain->extent);
 
 		const vk::Format colorFormat = vk::su::pickSurfaceFormat(
 				physicalDevice.getSurfaceFormatsKHR(*swapChain->surface)).
 			format;
-		renderPass = vk::raii::su::makeRenderPass(device, colorFormat, m_depth_buffer_data.format);
+		renderPass = vk::raii::su::makeRenderPass(device, colorFormat, vk::Format::eUndefined);
 
 		frameBuffers =
-			vk::raii::su::makeFramebuffers(device, renderPass, swapChain->imageViews, &m_depth_buffer_data.imageView,
+			vk::raii::su::makeFramebuffers(device, renderPass, swapChain->imageViews, nullptr,
 			                               swapChain->extent);
 
 		pipelineCache = vk::raii::PipelineCache(device, vk::PipelineCacheCreateInfo());
@@ -282,15 +282,16 @@ namespace Tomato
 	void VulkanContext::SwapChainResize(uint32_t width, uint32_t height)
 	{
 		swapChain->InitSwapChain(width, height);
-		m_depth_buffer_data = Utils::DepthBufferData(physicalDevice, device, vk::Format::eD16Unorm, swapChain->extent);
+		//m_depth_buffer_data = Utils::DepthBufferData(physicalDevice, device, vk::Format::eD16Unorm, swapChain->extent);
 		const vk::Format colorFormat = vk::su::pickSurfaceFormat(
 				physicalDevice.getSurfaceFormatsKHR(*swapChain->surface)).
 			format;
 
-		renderPass = vk::raii::su::makeRenderPass(device, colorFormat, m_depth_buffer_data.format);
+		renderPass = vk::raii::su::makeRenderPass(device, colorFormat, vk::Format::eUndefined);
+
 		frameBuffers =
-			vk::raii::su::makeFramebuffers(device, renderPass, swapChain->imageViews, &m_depth_buffer_data.imageView,
-			                               swapChain->extent);
+			vk::raii::su::makeFramebuffers(device, renderPass, swapChain->imageViews, nullptr,
+				swapChain->extent);
 	}
 
 	void VulkanContext::OnResize(uint32_t width, uint32_t height)

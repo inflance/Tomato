@@ -1,8 +1,8 @@
-#include "AssetManager.h"
+#include "AssetManager.hpp"
 
 #include "stb_image.h"
-#include "TextureLib.h"
-#include "Tomato/Renderer/Renderer.h"
+#include "TextureLib.hpp"
+#include "Tomato/Renderer/Renderer.hpp"
 
 namespace Tomato
 {
@@ -20,6 +20,8 @@ namespace Tomato
 		info.mip_levels_ = static_cast<uint32_t>(std::floor(std::log2(std::max(w, h)))) + 1;
 		info.extend_.width_ = w;
 		info.extend_.height_ = h;
+		info.stage_ = true;
+		info.gen_mips_ = false;
 		TextureLib::Get().Add(path.data(), Texture2D::Create(pixels, info));
 		stbi_image_free(pixels);
 		return As<Texture2D>(TextureLib::Get().GetTexture(path.data()));

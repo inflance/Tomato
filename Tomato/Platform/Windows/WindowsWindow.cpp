@@ -1,14 +1,15 @@
-#include "windowsWindow.h"
+#include "WindowsWindow.hpp"
 
 #include <GLFW/glfw3.h>
 
-#include "Tomato/Core/Core.h"
+#include "stb_image.h"
+#include "Tomato/Core/Core.hpp"
 #include "Tomato/Events/Event.h"
 #include "Tomato/Events/ApplicationEvent.h"
 #include "Tomato/Events/KeyEvent.h"
 #include "Tomato/Events/MouseEvent.h"
-#include "Tomato/Renderer/RendererAPI.h"
-#include "Tomato/Renderer/Vulkan/VulkanContext.h"
+#include "Tomato/Renderer/RendererAPI.hpp"
+#include "Tomato/Renderer/Vulkan/VulkanContext.hpp"
 
 namespace Tomato
 {
@@ -96,13 +97,20 @@ namespace Tomato
 		}
 		else
 		{
-			m_window = glfwCreateWindow(m_window_data.width_, m_window_data.height_, m_window_data.title_.c_str(), nullptr,
+			m_window = glfwCreateWindow(m_window_data.width_, m_window_data.height_, m_window_data.title_.c_str(),
+			                            nullptr,
 			                            nullptr);
 		}
 
 		glfwSetWindowUserPointer(m_window, &m_window_data);
 		SetVSync(m_window_data.is_v_sync_);
-
+		//set the icon
+		int che;
+		GLFWimage images[1];
+		images[0].pixels = stbi_load(R"(C:\Users\liyun\source\repos\Tomato\Resource\Tomato.png)", &images[0].width,
+			&images[0].height, &che, 4); //rgba channels 
+		glfwSetWindowIcon(m_window, 1, images);
+		stbi_image_free(images[0].pixels);
 		//Set GLFW callbacks
 		glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height)
 		{
@@ -146,6 +154,7 @@ namespace Tomato
 					data.event_callback_(event);
 					break;
 				}
+			default: break;
 			}
 		});
 

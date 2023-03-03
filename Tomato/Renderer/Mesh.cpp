@@ -1,15 +1,15 @@
-#include "Mesh.h"
+#include "Mesh.hpp"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include <Tomato/Core/Core.h>
+#include <Tomato/Core/Core.hpp>
 
 #include <Tomato/Core/Timer.h>
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "MeshFactory.h"
+#include "VertexBuffer.hpp"
+#include "IndexBuffer.hpp"
+#include "MeshFactory.hpp"
 
 namespace Tomato
 {
@@ -72,7 +72,7 @@ namespace Tomato
 		//Timer timer("GetStaticMeshData");
 		std::vector<Vertex1> veries;
 		std::vector<uint32_t> indices;
-		std::vector<MatirialTextureData> textures;
+		std::vector<MaterialTextureData> textures;
 		for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 		{
 			Vertex1 vertex;
@@ -122,29 +122,29 @@ namespace Tomato
 		// process materials
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-		std::vector<MatirialTextureData> diffuseMaps = LoadMaterialTextures(
+		std::vector<MaterialTextureData> diffuseMaps = LoadMaterialTextures(
 			material, aiTextureType_DIFFUSE, PBRTextureType::Diffuse);
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 		// 2. specular maps
-		std::vector<MatirialTextureData> specularMaps = LoadMaterialTextures(
+		std::vector<MaterialTextureData> specularMaps = LoadMaterialTextures(
 			material, aiTextureType_SPECULAR, PBRTextureType::Specular);
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 		// 3. normal maps
-		std::vector<MatirialTextureData> normalMaps = LoadMaterialTextures(
+		std::vector<MaterialTextureData> normalMaps = LoadMaterialTextures(
 			material, aiTextureType_HEIGHT, PBRTextureType::Normal);
 		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 		// 4. height maps
-		std::vector<MatirialTextureData> heightMaps = LoadMaterialTextures(
+		std::vector<MaterialTextureData> heightMaps = LoadMaterialTextures(
 			material, aiTextureType_AMBIENT, PBRTextureType::Ambient);
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 		m_submeshs.emplace_back(SubMesh(veries, indices, textures));
 	}
 
-	std::vector<MatirialTextureData> Mesh::LoadMaterialTextures(aiMaterial* mat, aiTextureType type,
+	std::vector<MaterialTextureData> Mesh::LoadMaterialTextures(aiMaterial* mat, aiTextureType type,
 	                                                            PBRTextureType typeName)
 	{
 		//Timer timer("LoadMaterialTextures");
-		std::vector<MatirialTextureData> textures;
+		std::vector<MaterialTextureData> textures;
 		for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
 		{
 			aiString str;
@@ -159,7 +159,7 @@ namespace Tomato
 			else
 			{
 				//Timer timer("!skip");
-				MatirialTextureData texture;
+				MaterialTextureData texture;
 				texture.Type = typeName;
 				texture.Path = str.C_Str();
 				texture = MatirialFactory::Get().Load(path, texture);
@@ -177,7 +177,7 @@ namespace Tomato
 
 
 	SubMesh::SubMesh(const std::vector<Vertex1>& vertices, const std::vector<uint32_t>& indices,
-	                 const std::vector<MatirialTextureData>& texture)
+	                 const std::vector<MaterialTextureData>& texture)
 		: SubMesh(vertices, indices)
 	{
 		m_texture = texture;

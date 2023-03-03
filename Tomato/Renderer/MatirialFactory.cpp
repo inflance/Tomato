@@ -1,21 +1,21 @@
-#include "MatirialFactory.h"
+#include "MatirialFactory.hpp"
 
 namespace Tomato
 {
-	void MatirialFactory::Add(const std::string& path, const MatirialTextureData& data)
+	void MatirialFactory::Add(const std::string& path, const MaterialTextureData& data)
 	{
 		LOG_ASSERT(!Exist(path), "");
 		m_matirial_factory[path] = data;
 	}
 
-	MatirialTextureData& MatirialFactory::Load(const std::string& path, MatirialTextureData& data)
+	MaterialTextureData& MatirialFactory::Load(const std::string& path, MaterialTextureData& data)
 	{
 		data.Texture = Texture2D::Create(path);
 		Add(path, data);
 		return m_matirial_factory[path];
 	}
 
-	MatirialTextureData& MatirialFactory::GetMatirial(const std::string& path)
+	MaterialTextureData& MatirialFactory::GetMatirial(const std::string& path)
 	{
 		LOG_ASSERT(Exist(path), "");
 		return m_matirial_factory[path];

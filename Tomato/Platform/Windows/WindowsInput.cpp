@@ -1,4 +1,4 @@
-#include "Tomato/Input/Input.h"
+#include "Tomato/Input/Input.hpp"
 
 #include <glfw/glfw3.h>
 
