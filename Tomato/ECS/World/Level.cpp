@@ -19,6 +19,7 @@ inline static std::unordered_map<Tomato::RigidBody2DComponent::BodyType, b2BodyT
 	{Tomato::RigidBody2DComponent::BodyType::Kinematic, b2_kinematicBody},
 };
 
+
 namespace Tomato
 {
 	Level::Level(std::string level_name)
@@ -45,7 +46,7 @@ namespace Tomato
 		{
 			Entity entity = {e, m_registry.get()};
 			const auto& transform = entity.GetComponent<TransformComponent>();
-
+			
 			auto& rb2d = entity.GetComponent<RigidBody2DComponent>();
 
 			b2BodyDef bodyDef;
@@ -158,8 +159,8 @@ namespace Tomato
 					auto& sp = view.get<SpriteComponent>(entity);
 					if (sp.geometry_type_ == SpriteComponent::Render2DType::Quad)
 					{
-						Renderer2D::RenderQuad(tc.GetTransform(), sp.color_);
-					}
+					Renderer2D::RenderQuad(tc.GetTransform(), sp.color_);
+				}
 					else if (sp.geometry_type_ == SpriteComponent::Render2DType::Circle)
 					{
 						Renderer2D::RenderCircle(tc.GetTransform(), sp.color_);
@@ -189,7 +190,7 @@ namespace Tomato
 				LightComponent, TransformComponent, ResetComponent<TransformComponent>>();
 
 			for (auto& e : view)
-			{
+		{
 				Entity entity = {e, m_registry.get()};
 
 				auto& tc = view.get<TransformComponent>(e);
@@ -201,7 +202,7 @@ namespace Tomato
 		}
 		{
 			const auto& view = m_registry->Get().view<TransformComponent, SpriteComponent>();
-
+			
 			for (auto& e : view)
 			{
 				Entity entity = {e, m_registry.get()};
@@ -231,14 +232,15 @@ namespace Tomato
 					Entity entity = {e, m_registry.get()};
 
 					auto& tc = view.get<TransformComponent>(e);
-					// save the reset value
-					if (!entity.HasComponent<ResetComponent<TransformComponent>>())
-						entity.AddComponent<ResetComponent<TransformComponent>>(tc);
-					else
-						entity.GetComponent<ResetComponent<TransformComponent>>().component_ = tc;
+				// save the reset value
+				if (!entity.HasComponent<ResetComponent<TransformComponent>>())
+					entity.AddComponent<ResetComponent<TransformComponent>>(tc);
+				else
+					entity.GetComponent<ResetComponent<TransformComponent>>().component_ = tc;
 				}
 			}
 		}
+		Renderer2D::End();
 	}
 
 	void Level::LogicTick(float delta_time) const

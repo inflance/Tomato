@@ -30,10 +30,10 @@ namespace Tomato
 		static void EndRenderPass();
 
 		static void RenderIndexed(Ref<CommandBuffer> render_command_buffer, Ref<Pipeline> pipeline,
-		                          Ref<VertexBuffer> vertex_buffer, Ref<IndexBuffer> index_buffer,
-		                          uint32_t index_count = 0);
+			Ref<VertexBuffer> vertex_buffer, Ref<IndexBuffer> index_buffer,
+			uint32_t index_count = 0);
 
-		static void RenderModel(Ref<CommandBuffer> render_command_buffer, Ref<Pipeline> pipeline,const Model& model);
+		static void RenderModel(Ref<CommandBuffer> render_command_buffer, Ref<Pipeline> pipeline, const Model& model);
 		static void OnWindowResize(int x, int y, uint32_t width, uint32_t height);
 
 		template <typename T>
