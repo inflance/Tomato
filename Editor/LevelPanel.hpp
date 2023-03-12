@@ -44,4 +44,5 @@ namespace Tomato
 		Entity m_selected_entity{};
 		std::shared_ptr<Level> m_level_context{};
 	};
+
 }

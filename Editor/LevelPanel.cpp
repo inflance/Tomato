@@ -52,17 +52,17 @@ namespace Tomato
 
 		DrawComponents<TransformComponent>
 		("Transform", entity, [&](TransformComponent& component)
-		{
-			auto& position = component.position_;
-			auto& scale = component.scale_;
-			ImGui::DragFloat3("Position", value_ptr(position), 0.1f);
+		 {
+			 auto& position = component.position_;
+			 auto& scale = component.scale_;
+			 ImGui::DragFloat3("Position", value_ptr(position), 0.1f);
 
-			glm::vec3 rotation = degrees(component.rotation_);
-			ImGui::DragFloat3("Rotation", value_ptr(rotation), 1.0f);
-			component.rotation_ = radians(rotation);
+			 glm::vec3 rotation = degrees(component.rotation_);
+			 ImGui::DragFloat3("Rotation", value_ptr(rotation), 1.0f);
+			 component.rotation_ = radians(rotation);
 
-			ImGui::DragFloat3("Scale", value_ptr(scale), 0.1f);
-		});
+			 ImGui::DragFloat3("Scale", value_ptr(scale), 0.1f);
+		 });
 
 		DrawComponents<LightComponent>
 		("Light", entity, [&](LightComponent& component)
@@ -271,7 +271,7 @@ namespace Tomato
 				{
 					const bool is_selected = cur_geom_type == geometry_type_to_str[type];
 					if (ImGui::Selectable(geometry_type_to_str[type].c_str(), is_selected))
-					{
+		 {
 						cur_geom_type = geometry_type_to_str[type];
 						component.geometry_type_ = type;
 					}
@@ -282,53 +282,53 @@ namespace Tomato
 
 				ImGui::EndCombo();
 			}
-			auto& color = component.color_;
-			ImGui::Columns(2);
-			ImGui::SetColumnWidth(0, 120.0f);
-			ImGui::Text("Color");
+			 auto& color = component.color_;
+			 ImGui::Columns(2);
+			 ImGui::SetColumnWidth(0, 120.0f);
+			 ImGui::Text("Color");
 
-			ImGui::NextColumn();
-			ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
-			ImGui::ColorEdit4("##Color", value_ptr(color));
-			ImGui::PopItemWidth();
+			 ImGui::NextColumn();
+			 ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
+			 ImGui::ColorEdit4("##Color", value_ptr(color));
+			 ImGui::PopItemWidth();
 
-			ImGui::NextColumn();
-			ImGui::Text("Texture");
+			 ImGui::NextColumn();
+			 ImGui::Text("Texture");
 
-			ImGui::NextColumn();
-			ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
-			//if (component.texture_)
-			//{
-			// ImGui::ImageButton((void*)(component.texture_->GetID()),
-			//	 { 80, 80 }, { 0, 1 }, { 1, 0 });
-			//}
-			//else
-			//{
-			// //TODO add default texture here
-			//}
+			 ImGui::NextColumn();
+			 ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
+			 //if (component.texture_)
+			 //{
+			 // ImGui::ImageButton((void*)(component.texture_->GetID()),
+			 //	 { 80, 80 }, { 0, 1 }, { 1, 0 });
+			 //}
+			 //else
+			 //{
+			 // //TODO add default texture here
+			 //}
 
-			ImGui::PopItemWidth();
+			 ImGui::PopItemWidth();
 
-			/*	if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(
-						"Assets_Panel"))
-					{
-						auto path = static_cast<const wchar_t*>(payload->Data);
-						std::filesystem::path texturePath = std::filesystem::path(
-							g_asset_path) / path;
-						Ref<Texture2D> texture = Texture2D::Create(texturePath.string());
-						component.texture_ = texture;
-					}
-					ImGui::EndDragDropTarget();
-				}*/
-			ImGui::NextColumn();
-			ImGui::Text("Tiling Factor");
-			ImGui::NextColumn();
-			ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
-			ImGui::DragFloat("##Tiling Factor", &component.tiling_factor_, 0.1f);
-			ImGui::PopItemWidth();
-		});
+			 /*	if (ImGui::BeginDragDropTarget())
+				 {
+					 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(
+						 "Assets_Panel"))
+					 {
+						 auto path = static_cast<const wchar_t*>(payload->Data);
+						 std::filesystem::path texturePath = std::filesystem::path(
+							 g_asset_path) / path;
+						 Ref<Texture2D> texture = Texture2D::Create(texturePath.string());
+						 component.texture_ = texture;
+					 }
+					 ImGui::EndDragDropTarget();
+				 }*/
+			 ImGui::NextColumn();
+			 ImGui::Text("Tiling Factor");
+			 ImGui::NextColumn();
+			 ImGui::PushMultiItemsWidths(1, ImGui::GetContentRegionAvail().x);
+			 ImGui::DragFloat("##Tiling Factor", &component.tiling_factor_, 0.1f);
+			 ImGui::PopItemWidth();
+		 });
 	}
 
 	void LevelPanel::DrawVector3(const std::string& label, glm::vec3& values, float speed,

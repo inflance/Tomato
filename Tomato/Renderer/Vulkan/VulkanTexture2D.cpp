@@ -293,9 +293,9 @@ namespace Tomato
 						vk::AccessFlagBits::eTransferWrite,
 						vk::PipelineStageFlagBits::eTransfer,
 						vk::PipelineStageFlagBits::eTransfer);
-					CopyDataToImage(cmd, stage_buffer.buffer, width, height);
+			CopyDataToImage(cmd, stage_buffer.buffer, width, height);
 
-					TransitionImageLayout(
+			TransitionImageLayout(
 						cmd, vk::ImageLayout::eTransferDstOptimal,
 						vk::ImageLayout::eTransferSrcOptimal,
 						vk::AccessFlagBits::eTransferWrite,

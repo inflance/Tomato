@@ -192,7 +192,7 @@ namespace Tomato
 					auto& rb2dc = deserialized_entity.AddComponent<RigidBody2DComponent>();
 					rb2dc.type_ = str_to_body_type[rigid_body2d_component_json["BodyType"].get<std::string>()];
 					rb2dc.fixed_rotation_ = rigid_body2d_component_json["FixedRotation"].get<bool>();
-				}
+			}
 
 				auto box_collider2d_component_json = entity["BoxCollider2DComponent"];
 				if (!box_collider2d_component_json.empty())
@@ -204,7 +204,7 @@ namespace Tomato
 					bc2dc.friction_ = box_collider2d_component_json["Friction"].get<float>();
 					bc2dc.restitution_ = box_collider2d_component_json["Restitution"].get<float>();
 					bc2dc.restitution_threshold_ = box_collider2d_component_json["RestitutionThreshold"].get<float>();
-				}
+		}
 			}
 		}
 
