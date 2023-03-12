@@ -20,6 +20,7 @@ namespace Tomato
 		void OnResize(uint32_t width, uint32_t height) override;
 
 	private:
+
 		RenderPassInfo m_props;
 	public:
 		vk::raii::RenderPass renderPass = nullptr;

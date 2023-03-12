@@ -24,12 +24,12 @@ namespace Tomato
 
 
 	void Renderer::RenderIndexed(Ref<CommandBuffer> render_command_buffer, Ref<Pipeline> pipeline,
-	                             Ref<VertexBuffer> vertex_buffer, Ref<IndexBuffer> index_buffer, uint32_t index_count)
+		Ref<VertexBuffer> vertex_buffer, Ref<IndexBuffer> index_buffer, uint32_t index_count)
 	{
 		s_renderer_api_->RenderIndexed(render_command_buffer, pipeline, vertex_buffer, index_buffer, index_count);
 	}
 
-	void Renderer::RenderModel(Ref<CommandBuffer> render_command_buffer, Ref<Pipeline> pipeline,const  Model& model)
+	void Renderer::RenderModel(Ref<CommandBuffer> render_command_buffer, Ref<Pipeline> pipeline, const  Model& model)
 	{
 		s_renderer_api_->RenderModel(render_command_buffer, pipeline, model);
 	}
