@@ -20,6 +20,7 @@ layout(binding = 0) uniform UniformBufferObject {
     mat4 model;
     mat4 view;
     mat4 proj;
+	float lod;
 } ubo;
 
 void main() {
@@ -30,4 +31,5 @@ void main() {
 	outWorldPos = vec3(ubo.model *  vec4(inPositions,1.0f));
 	outNormal = vec3(ubo.model * vec4(inNormal, 1.0f));
 	outTilingFactor = inTilingFactor;
+	outLOD = ubo.lod;
 }
